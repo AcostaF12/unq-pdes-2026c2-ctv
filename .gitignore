@@ -1,0 +1,47 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+build/
+dist/
+*.class
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Gradle
+.gradle/
+# Ignore jars but keep the Gradle wrapper (needed to build after clone)
+*.jar
+!gradle-wrapper.jar
+
+# Maven
+target/
+.mvn/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+postgres_data/
+*.db
+
+# Logs
+*.log
+logs/
