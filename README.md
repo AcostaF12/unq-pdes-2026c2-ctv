@@ -32,12 +32,14 @@ En progreso...
 
 ## 🛠️ Tech Stack
 
-**Backend:** Spring Boot 3.3.5 + Kotlin 2.0.10 + Java 25  
-**BD:** PostgreSQL (2 instancias)  
-**Testing:** JUnit 5 + Mockito + AssertJ + JaCoCo  
-**API Docs:** Swagger/OpenAPI  
+**Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
+**Frontend:** React 19 + TypeScript 6 + Vite 8  
+**BD:** PostgreSQL 16 (2 instancias)  
+**Testing:** JUnit 5 (H2 en memoria)  
 **CI/CD:** GitHub Actions  
 **Containerización:** Docker + Docker Compose
+
+_Pendiente:_ JaCoCo (cobertura) · Swagger/OpenAPI (API docs)
 
 ---
 
