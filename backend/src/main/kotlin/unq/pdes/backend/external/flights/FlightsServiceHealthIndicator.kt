@@ -1,4 +1,4 @@
-package unq.pdes.backend.health
+package unq.pdes.backend.external.flights
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.health.contributor.Health
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 
 /**
- * Reporta el estado de flights-service (servicio interno) dentro del /actuator/health del backend.
+ * Reporta el estado de flights-service (servicio externo) dentro del /actuator/health del backend.
  * Deshabilitado en el perfil de test, donde flights-service no está corriendo.
  */
 @Component
