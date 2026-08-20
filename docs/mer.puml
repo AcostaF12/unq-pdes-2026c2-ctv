@@ -1,0 +1,138 @@
+@startuml CTV-MER
+title Compra Tu Viaje (CTV) - Entity Relationship Model
+
+hide circle
+skinparam linetype ortho
+skinparam roundcorner 8
+skinparam shadowing false
+
+legend top left
+  PK = Primary Key   FK = Foreign Key   UK = Unique Key
+  Cross-service: package/purchase flight ids are LOGICAL references
+  to flights-service (no DB foreign key).
+endlegend
+
+' ==========================================================
+' Backend DB (CTV)
+' ==========================================================
+package "Backend DB (CTV)" #F7F9FC {
+
+  entity "destinations" as destinations {
+    * code : char(3) <<PK>>  -- IATA city code (e.g. BUE)
+    --
+    * city : varchar <<NOT NULL>>
+  }
+
+  entity "agencies" as agencies {
+    * id : bigint <<PK>>
+    --
+    * name : varchar <<NOT NULL>>
+  }
+
+  entity "users" as users {
+    * id : bigint <<PK>>
+    --
+    * username : varchar <<UK>> <<NOT NULL>>
+    * password : varchar <<NOT NULL>>
+    * role : varchar <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
+    * first_name : varchar <<NOT NULL>>
+    * last_name : varchar <<NOT NULL>>
+      agency_id : bigint <<FK>>  -- only when role = AGENCY
+  }
+
+  entity "hotels" as hotels {
+    * id : bigint <<PK>>
+    --
+    * name : varchar <<NOT NULL>>
+    * destination_code : char(3) <<FK>> <<NOT NULL>>
+    * photo_url : varchar <<NOT NULL>>
+  }
+
+  entity "packages" as packages {
+    * id : bigint <<PK>>
+    --
+    * agency_id : bigint <<FK>> <<NOT NULL>>
+    * hotel_id : bigint <<FK>> <<NOT NULL>>
+    * name : varchar <<NOT NULL>>  -- keyword search
+    * outbound_flight_id : bigint <<NOT NULL>>  -- logical ref -> flights
+    * return_flight_id : bigint <<NOT NULL>>    -- logical ref -> flights
+    * price : numeric <<NOT NULL>>
+    .. unique ..
+    (agency_id, name)
+  }
+
+  entity "favorites" as favorites {
+    * id : bigint <<PK>>
+    --
+    * buyer_id : bigint <<FK>> <<NOT NULL>>
+    * package_id : bigint <<FK>> <<NOT NULL>>
+    .. unique ..
+    (buyer_id, package_id)
+  }
+
+  entity "reviews" as reviews {
+    * id : bigint <<PK>>
+    --
+    * buyer_id : bigint <<FK>> <<NOT NULL>>
+    * package_id : bigint <<FK>> <<NOT NULL>>
+    * score : smallint <<NOT NULL>>  -- CHECK 0..10
+      comment : text
+    .. unique ..
+    (buyer_id, package_id)
+  }
+
+  entity "purchases" as purchases {
+    * id : bigint <<PK>>
+    --
+    * buyer_id : bigint <<FK>> <<NOT NULL>>
+    * package_id : bigint <<FK>> <<NOT NULL>>
+    * purchase_price : numeric <<NOT NULL>>  -- price at purchase time
+    * purchased_at : timestamp <<NOT NULL>>
+  }
+}
+
+' ==========================================================
+' Flights-Service DB (external API - separate database)
+' ==========================================================
+package "Flights-Service DB (Vuelos API)" #FCF7F2 {
+
+  entity "flights" as flights {
+    * id : bigint <<PK>>
+    --
+    * airline : varchar <<NOT NULL>>
+    * flight_date : date <<NOT NULL>>
+    * departure_time : time <<NOT NULL>>
+    * origin : char(3) <<NOT NULL>>       -- IATA city code
+    * destination : char(3) <<NOT NULL>>  -- IATA city code
+    * capacity : int <<NOT NULL>>
+    * availability : int <<NOT NULL>>
+  }
+
+  entity "flight_sales" as flight_sales {
+    * id : bigint <<PK>>
+    --
+    * flight_id : bigint <<FK>> <<NOT NULL>>
+    * passenger_name : varchar <<NOT NULL>>
+  }
+}
+
+' ==========================================================
+' Relationships (crow's foot / Information Engineering)
+' ==========================================================
+destinations ||--o{ hotels    : "located in"
+agencies     ||--o{ users     : "employs"
+agencies     ||--o{ packages  : "offers"
+hotels       ||--o{ packages  : "included in"
+users        ||--o{ purchases : "makes"
+packages     ||--o{ purchases : "sold as"
+users        ||--o{ favorites : "saves"
+packages     ||--o{ favorites : "favorited in"
+users        ||--o{ reviews   : "writes"
+packages     ||--o{ reviews   : "reviewed in"
+
+flights      ||--o{ flight_sales : "sold in"
+
+' Cross-service logical link (no physical FK)
+packages ..> flights : "logical ref\n(outbound/return flight id)"
+
+@enduml

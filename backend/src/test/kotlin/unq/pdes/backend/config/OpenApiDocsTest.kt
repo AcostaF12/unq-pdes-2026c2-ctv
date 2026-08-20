@@ -1,4 +1,4 @@
-package unq.pdes.backend
+package unq.pdes.backend.config
 
 import kotlin.test.assertContains
 import org.junit.jupiter.api.Test

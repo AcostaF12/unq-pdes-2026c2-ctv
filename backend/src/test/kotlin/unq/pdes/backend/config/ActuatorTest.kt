@@ -1,4 +1,4 @@
-package unq.pdes.backend
+package unq.pdes.backend.config
 
 import java.net.URI
 import java.net.http.HttpClient
