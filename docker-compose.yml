@@ -1,14 +1,19 @@
 services:
-  postgres:
+  backend-postgres:
     image: postgres:16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: backend_dev
-    ports:
-      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - backend_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d backend_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend-net
 
   flights-postgres:
     image: postgres:16
@@ -16,10 +21,75 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: flights_dev
-    ports:
-      - "5434:5432"
     volumes:
       - flights_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flights_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - flights-net
+
+  flights-service:
+    build: ./flights-service
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: flights-postgres
+      DB_PORT: 5432
+      DB_NAME: flights_dev
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      SERVER_PORT: 8081
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
+    depends_on:
+      flights-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - flights-net
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: backend-postgres
+      DB_PORT: 5432
+      DB_NAME: backend_dev
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      FLIGHTS_SERVICE_URL: http://flights-service:8081
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend-postgres:
+        condition: service_healthy
+      flights-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - backend-net
+      - flights-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8090:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend-net
 
   prometheus:
     image: prom/prometheus:latest
@@ -27,9 +97,18 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+      - flights-service
+    networks:
+      - backend-net
+      - flights-net
+
+networks:
+  backend-net:
+  flights-net:
+  frontend-net:
 
 volumes:
-  postgres_data:
+  backend_postgres_data:
   flights_postgres_data:

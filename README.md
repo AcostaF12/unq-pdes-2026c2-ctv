@@ -21,8 +21,9 @@ En progreso...
 ### 🚀 Estructura
 ```
 ├── backend/           # Spring Boot - CTV (Kotlin)
-├── flights-service/   # Spring Boot - API Vuelos (Kotlin)
+├── flights-service/   # Spring Boot - API Vuelos (Kotlin) — interno
 ├── frontend/          # React + TypeScript + Vite
+├── monitoring/        # Configuración de Prometheus
 └── docker-compose.yml
 ```
 
@@ -33,30 +34,37 @@ En progreso...
 **Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
 **Frontend:** React 19 + TypeScript 6 + Vite 8  
 **BD:** PostgreSQL 16 (2 instancias)  
-**Testing:** JUnit 5 (H2 en memoria)  
+**Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura)  
+**API Docs:** Swagger/OpenAPI (springdoc)  
+**Observabilidad:** Spring Boot Actuator + Prometheus  
 **CI/CD:** GitHub Actions  
 **Containerización:** Docker + Docker Compose
-
-_Pendiente:_ JaCoCo (cobertura) · Swagger/OpenAPI (API docs)
 
 ---
 
 ## 🚀 Cómo Correr
 
-```bash
-# Todo
-docker-compose up
+Levantar toda la app (2 bases de datos, backend, flights-service, frontend y Prometheus) con un solo comando:
 
-# Backend: http://localhost:8080
-# Flights: http://localhost:8081
-# Swagger: http://localhost:8080/swagger-ui.html
+```bash
+docker compose up --build
 ```
+
+### Servicios expuestos
+
+| Servicio | URL |
+|----------|-----|
+| Frontend | http://localhost:8090 |
+| Backend | http://localhost:8080 |
+| Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
+| Health (Backend) | http://localhost:8080/actuator/health |
+| Prometheus | http://localhost:9090 |
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-./gradlew test
-./gradlew jacocoTestReport
+./gradlew test              # tests
+./gradlew jacocoTestReport  # reporte de cobertura (build/reports/jacoco/test/html)
 ```

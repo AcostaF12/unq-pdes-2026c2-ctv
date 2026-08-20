@@ -45,3 +45,6 @@ postgres_data/
 # Logs
 *.log
 logs/
+
+# Docs
+docs/enunciado.md
