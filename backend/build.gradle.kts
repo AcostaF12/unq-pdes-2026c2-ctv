@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.3.21"
+	jacoco
 }
 
 group = "unq.pdes"
@@ -56,8 +57,21 @@ allOpen {
 tasks.withType<Test> {
 	useJUnitPlatform()
 	systemProperty("user.timezone", "America/Argentina/Buenos_Aires")
+	finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.withType<JavaExec> {
 	systemProperty("user.timezone", "America/Argentina/Buenos_Aires")
+}
+
+jacoco {
+	toolVersion = "0.8.15"
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
 }

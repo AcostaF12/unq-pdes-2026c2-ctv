@@ -8,8 +8,6 @@ Proyecto de la materia Prácticas de Desarrollo de Software – UNQ, 2do semestr
 
 ## 📝 Release Notes - Entrega 1
 
-### ✅ Core
-
 En progreso...
 
 ## 📝 Release Notes - Entrega 2
