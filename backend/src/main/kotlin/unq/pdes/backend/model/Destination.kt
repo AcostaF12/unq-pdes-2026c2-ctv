@@ -10,10 +10,10 @@ import jakarta.persistence.Table
 data class Destination(
     @Id
     @Column(length = 3, nullable = false)
-    val code: String,
+    var code: String,
 
     @Column(nullable = false)
-    val city: String,
+    var city: String,
 ) {
 
     override fun equals(other: Any?): Boolean {

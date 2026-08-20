@@ -9,7 +9,7 @@ import org.springframework.test.context.ActiveProfiles
 class FlightsServiceApplicationTests {
 
     @Test
-    fun contextLoads() {
+    fun `context should load`() {
     }
 
 }

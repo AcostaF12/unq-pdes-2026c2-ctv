@@ -3,6 +3,7 @@ package unq.pdes.backend.controller.exceptions
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import unq.pdes.backend.controller.dtos.responses.ErrorDto
@@ -13,6 +14,11 @@ class ExceptionControllerAdvice {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorDto> {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid request.")
+    }
+
+    @ExceptionHandler(AuthenticationException::class)
+    fun handleAuthenticationException(ex: AuthenticationException): ResponseEntity<ErrorDto> {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password.")
     }
 
     @ExceptionHandler(EntityNotFoundException::class)

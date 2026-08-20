@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles
 class BackendApplicationTests {
 
 	@Test
-	fun contextLoads() {
+	fun `context should load`() {
 	}
 
 }

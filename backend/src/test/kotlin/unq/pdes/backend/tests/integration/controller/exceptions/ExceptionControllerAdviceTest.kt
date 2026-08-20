@@ -33,7 +33,7 @@ class ExceptionControllerAdviceTest {
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
-            .andExpect(jsonPath("$.errorData.errorDescription").value("Invalid argument message"))
+            .andExpect(jsonPath("$.errorData.description").value("Invalid argument message"))
     }
 
     @Test
@@ -42,7 +42,7 @@ class ExceptionControllerAdviceTest {
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.httpCode").value(404))
             .andExpect(jsonPath("$.httpStatus").value("NOT_FOUND"))
-            .andExpect(jsonPath("$.errorData.errorDescription").value("Entity not found message"))
+            .andExpect(jsonPath("$.errorData.description").value("Entity not found message"))
     }
 
     @Test
@@ -51,7 +51,7 @@ class ExceptionControllerAdviceTest {
             .andExpect(status().isInternalServerError)
             .andExpect(jsonPath("$.httpCode").value(500))
             .andExpect(jsonPath("$.httpStatus").value("INTERNAL_SERVER_ERROR"))
-            .andExpect(jsonPath("$.errorData.errorDescription").value("An unexpected error has occurred."))
+            .andExpect(jsonPath("$.errorData.description").value("An unexpected error has occurred."))
     }
 }
 

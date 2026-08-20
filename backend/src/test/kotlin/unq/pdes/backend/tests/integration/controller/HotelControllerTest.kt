@@ -12,8 +12,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import unq.pdes.backend.controller.dtos.requests.HotelRequestDto
@@ -21,6 +24,7 @@ import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
 
 @SpringBootTest
+@WithMockUser(roles = ["ADMIN"])
 class HotelControllerTest {
 
     @Autowired
@@ -39,7 +43,9 @@ class HotelControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build()
+        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply<DefaultMockMvcBuilder>(springSecurity())
+            .build()
     }
 
     @AfterEach
@@ -75,7 +81,7 @@ class HotelControllerTest {
         mvc.perform(get("/hotels/{id}", 999))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.httpCode").value(404))
-            .andExpect(jsonPath("$.errorData.errorDescription").value("There is no Hotel with id: 999."))
+            .andExpect(jsonPath("$.errorData.description").value("There is no Hotel with id: 999."))
     }
 
     @Test
@@ -98,7 +104,7 @@ class HotelControllerTest {
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
-            .andExpect(jsonPath("$.errorData.errorDescription").value("The hotel must have a name."))
+            .andExpect(jsonPath("$.errorData.description").value("The hotel must have a name."))
     }
 
     @Test
@@ -107,7 +113,7 @@ class HotelControllerTest {
 
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.errorData.errorDescription").value("There is no Destination with code: ZZZ."))
+            .andExpect(jsonPath("$.errorData.description").value("There is no Destination with code: ZZZ."))
     }
 
     @Test
@@ -130,5 +136,15 @@ class HotelControllerTest {
 
         mvc.perform(get("/hotels/{id}", hotel.id))
             .andExpect(status().isNotFound)
+    }
+
+    @Test
+    @WithMockUser(roles = ["BUYER"])
+    fun `09 - POST hotels as a non-admin should return 403`() {
+        factory.destinationWith("PAR", "Paris")
+        val request = HotelRequestDto("Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
+
+        mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
+            .andExpect(status().isForbidden)
     }
 }

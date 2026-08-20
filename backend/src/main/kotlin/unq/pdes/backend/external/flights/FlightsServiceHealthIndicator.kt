@@ -7,10 +7,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 
-/**
- * Reporta el estado de flights-service (servicio externo) dentro del /actuator/health del backend.
- * Deshabilitado en el perfil de test, donde flights-service no está corriendo.
- */
 @Component
 @Profile("!test")
 class FlightsServiceHealthIndicator(

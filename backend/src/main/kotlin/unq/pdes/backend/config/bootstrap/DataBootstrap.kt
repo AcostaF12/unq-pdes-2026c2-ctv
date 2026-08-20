@@ -4,11 +4,15 @@ import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.Destination
 import unq.pdes.backend.model.Hotel
+import unq.pdes.backend.persistence.jpa.AgencyRepository
 import unq.pdes.backend.persistence.jpa.HotelRepository
+import unq.pdes.backend.persistence.jpa.UserRepository
 import unq.pdes.backend.service.DestinationService
 import unq.pdes.backend.service.HotelService
+import unq.pdes.backend.service.UserService
 
 @Component
 @Profile("dev", "prod")
@@ -16,11 +20,15 @@ class DataBootstrap(
     private val destinationService: DestinationService,
     private val hotelService: HotelService,
     private val hotelRepository: HotelRepository,
+    private val userService: UserService,
+    private val userRepository: UserRepository,
+    private val agencyRepository: AgencyRepository,
 ) : ApplicationRunner {
 
     override fun run(args: ApplicationArguments) {
         loadDestinations()
         loadHotels()
+        loadUsers()
     }
 
     private fun loadDestinations() {
@@ -47,11 +55,11 @@ class DataBootstrap(
             return
         }
         listOf(
-            hotel("Alvear Palace Hotel", "BUE", "https://images.ctv.demo/hotels/alvear-palace.jpg"),
-            hotel("Hotel Le Meurice", "PAR", "https://images.ctv.demo/hotels/le-meurice.jpg"),
-            hotel("The Savoy", "LON", "https://images.ctv.demo/hotels/the-savoy.jpg"),
-            hotel("Hotel Hassler Roma", "ROM", "https://images.ctv.demo/hotels/hassler-roma.jpg"),
-            hotel("Copacabana Palace", "RIO", "https://images.ctv.demo/hotels/copacabana-palace.jpg"),
+            hotel("Gran Hotel Buenos Aires", "BUE", "https://images.ctv.demo/hotels/gran-hotel-buenos-aires.jpg"),
+            hotel("Hotel Palacio de París", "PAR", "https://images.ctv.demo/hotels/palacio-de-paris.jpg"),
+            hotel("Hotel Real de Londres", "LON", "https://images.ctv.demo/hotels/real-de-londres.jpg"),
+            hotel("Hotel Villa Roma", "ROM", "https://images.ctv.demo/hotels/villa-roma.jpg"),
+            hotel("Hotel Costa de Río", "RIO", "https://images.ctv.demo/hotels/costa-de-rio.jpg"),
         ).forEach { hotelService.save(it) }
     }
 
@@ -61,5 +69,25 @@ class DataBootstrap(
             .destination(destinationService.findByCode(destinationCode))
             .photoUrl(photoUrl)
             .build()
+    }
+
+    private fun loadUsers() {
+        listOf(
+            Triple("facosta", "Federico", "Acosta"),
+            Triple("vferreyra", "Valentin", "Ferreyra"),
+            Triple("adisanto", "Alan", "Disanto"),
+        ).forEach { (username, firstName, lastName) ->
+            if (!userRepository.existsByUsername(username)) {
+                userService.createAdmin(username, username, firstName, lastName)
+            }
+        }
+        if (!userRepository.existsByUsername("buyer")) {
+            userService.register("buyer", "buyer123", "Bruno", "Buyer")
+        }
+        if (!userRepository.existsByUsername("agency")) {
+            val agency = agencyRepository.findByName("Despegar")
+                ?: agencyRepository.save(Agency.Builder().name("Despegar").build())
+            userService.createAgencyUser("agency", "agency123", "Agus", "Agency", agency)
+        }
     }
 }
