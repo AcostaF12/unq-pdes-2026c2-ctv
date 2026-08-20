@@ -34,8 +34,8 @@ En progreso...
 **Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
 **Frontend:** React 19 + TypeScript 6 + Vite 8  
 **BD:** PostgreSQL 16 (2 instancias)  
-**Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura)  
-**API Docs:** Swagger/OpenAPI (springdoc)  
+**Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura) · Vitest (frontend)  
+**API Docs:** Swagger/OpenAPI (springdoc) — solo backend  
 **Observabilidad:** Spring Boot Actuator + Prometheus  
 **CI/CD:** GitHub Actions  
 **Containerización:** Docker + Docker Compose
