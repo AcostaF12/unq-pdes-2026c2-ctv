@@ -11,12 +11,17 @@ class SecurityConfig {
 
 	@Bean
 	fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+		http.csrf { it.disable() }
 		http.authorizeHttpRequests {
 			it.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
 			it.requestMatchers(
 				"/v3/api-docs/**",
 				"/swagger-ui/**",
 				"/swagger-ui.html",
+			).permitAll()
+			it.requestMatchers(
+				"/hotels/**",
+				"/destinations/**",
 			).permitAll()
 			it.anyRequest().authenticated()
 		}.httpBasic {}
