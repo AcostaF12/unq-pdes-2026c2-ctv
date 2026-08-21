@@ -42,6 +42,8 @@ services:
       DB_PASSWORD: postgres
       SERVER_PORT: 8081
       ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     depends_on:
       flights-postgres:
@@ -66,6 +68,8 @@ services:
       DB_PASSWORD: postgres
       FLIGHTS_SERVICE_URL: http://flights-service:8081
       ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     ports:
       - "8080:8080"
@@ -130,12 +134,60 @@ services:
     networks:
       - backend-net
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -qE 'green|yellow'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - logging-net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.3
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - backend-net
+      - flights-net
+      - logging-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - logging-net
+
 networks:
   backend-net:
   flights-net:
   frontend-net:
+  logging-net:
 
 volumes:
   backend_postgres_data:
   flights_postgres_data:
   grafana_data:
+  elasticsearch_data:

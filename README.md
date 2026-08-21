@@ -39,7 +39,7 @@ En progreso...
 ├── backend/           # Spring Boot - CTV (Kotlin)
 ├── flights-service/   # Spring Boot - API Vuelos (Kotlin) — interno
 ├── frontend/          # React + TypeScript + Vite
-├── monitoring/        # Configuración de Prometheus y Grafana
+├── monitoring/        # Configuración de Prometheus, Grafana y Logstash
 └── docker-compose.yml
 ```
 
@@ -52,7 +52,7 @@ En progreso...
 **BD:** PostgreSQL 16 (2 instancias)  
 **Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura) · Vitest (frontend)  
 **API Docs:** Swagger/OpenAPI (springdoc) — solo backend  
-**Observabilidad:** Spring Boot Actuator + Prometheus (métricas) + Grafana (dashboards) + Zipkin (trazas)  
+**Observabilidad:** Spring Boot Actuator + Prometheus (métricas) + Grafana (dashboards) + Zipkin (trazas) + ELK / Elasticsearch + Logstash + Kibana (logs)  
 **CI/CD:** GitHub Actions  
 **Containerización:** Docker + Docker Compose
 
@@ -60,7 +60,7 @@ En progreso...
 
 ## 🚀 Cómo Correr
 
-Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana y Zipkin) con un solo comando:
+Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -76,6 +76,7 @@ docker compose up --build
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3001 (usuario `admin` / pass `admin`) |
 | Zipkin | http://localhost:9411 |
+| Kibana (logs) | http://localhost:5601 |
 
 ---
 
