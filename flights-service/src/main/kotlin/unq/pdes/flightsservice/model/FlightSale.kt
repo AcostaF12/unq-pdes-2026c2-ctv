@@ -15,14 +15,14 @@ class FlightSale private constructor(builder: Builder) {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = builder.id
+    var id: Long? = builder.id
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "flight_id", nullable = false)
-    val flight: Flight = builder.flight!!
+    var flight: Flight = builder.flight!!
 
     @Column(name = "passenger_name", nullable = false, length = 160)
-    val passengerName: String = builder.passengerName!!
+    var passengerName: String = builder.passengerName!!
 
     override fun equals(other: Any?): Boolean {
         return (other is FlightSale) && id == other.id

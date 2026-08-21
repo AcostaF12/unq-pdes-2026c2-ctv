@@ -15,28 +15,28 @@ class Flight private constructor(builder: Builder) {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = builder.id
+    var id: Long? = builder.id
 
     @Column(nullable = false, length = 120)
-    val airline: String = builder.airline!!
+    var airline: String = builder.airline!!
 
     @Column(name = "flight_date", nullable = false)
-    val flightDate: LocalDate = builder.flightDate!!
+    var flightDate: LocalDate = builder.flightDate!!
 
     @Column(name = "departure_time", nullable = false)
-    val departureTime: LocalTime = builder.departureTime!!
+    var departureTime: LocalTime = builder.departureTime!!
 
     @Column(nullable = false, length = 3)
-    val origin: String = builder.origin!!
+    var origin: String = builder.origin!!
 
     @Column(nullable = false, length = 3)
-    val destination: String = builder.destination!!
+    var destination: String = builder.destination!!
 
     @Column(nullable = false)
-    val capacity: Int = builder.capacity!!
+    var capacity: Int = builder.capacity!!
 
     @Column(nullable = false)
-    val availability: Int = builder.availability!!
+    var availability: Int = builder.availability!!
 
     override fun equals(other: Any?): Boolean {
         return (other is Flight) && id == other.id
