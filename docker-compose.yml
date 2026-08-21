@@ -114,6 +114,22 @@ services:
       - backend-net
       - flights-net
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - backend-net
+
 networks:
   backend-net:
   flights-net:
@@ -122,3 +138,4 @@ networks:
 volumes:
   backend_postgres_data:
   flights_postgres_data:
+  grafana_data:

@@ -4,6 +4,22 @@ Aplicación web para gestión y compra de paquetes turísticos.
 
 Proyecto de la materia Prácticas de Desarrollo de Software – UNQ, 2do semestre 2026.
 
+### Backend
+
+[![Backend CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/backend.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/backend.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=acostaf12_unq-pdes-2026c2-ctv-backend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-backend)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=acostaf12_unq-pdes-2026c2-ctv-backend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-backend)
+
+### Flights Service
+
+[![Flights Service CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/flights-service.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/flights-service.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=acostaf12_unq-pdes-2026c2-ctv-flights-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-flights-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=acostaf12_unq-pdes-2026c2-ctv-flights-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-flights-service)
+
+### Frontend
+
+[![Frontend CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/frontend.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/frontend.yml)
+
 ---
 
 ## 📝 Release Notes - Entrega 1
@@ -23,7 +39,7 @@ En progreso...
 ├── backend/           # Spring Boot - CTV (Kotlin)
 ├── flights-service/   # Spring Boot - API Vuelos (Kotlin) — interno
 ├── frontend/          # React + TypeScript + Vite
-├── monitoring/        # Configuración de Prometheus
+├── monitoring/        # Configuración de Prometheus y Grafana
 └── docker-compose.yml
 ```
 
@@ -36,7 +52,7 @@ En progreso...
 **BD:** PostgreSQL 16 (2 instancias)  
 **Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura) · Vitest (frontend)  
 **API Docs:** Swagger/OpenAPI (springdoc) — solo backend  
-**Observabilidad:** Spring Boot Actuator + Prometheus  
+**Observabilidad:** Spring Boot Actuator + Prometheus (métricas) + Grafana (dashboards) + Zipkin (trazas)  
 **CI/CD:** GitHub Actions  
 **Containerización:** Docker + Docker Compose
 
@@ -44,7 +60,7 @@ En progreso...
 
 ## 🚀 Cómo Correr
 
-Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus y Zipkin) con un solo comando:
+Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana y Zipkin) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -58,6 +74,7 @@ docker compose up --build
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
 | Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3001 (usuario `admin` / pass `admin`) |
 | Zipkin | http://localhost:9411 |
 
 ---

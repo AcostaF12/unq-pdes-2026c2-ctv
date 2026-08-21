@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.3.21"
+	id("org.sonarqube") version "7.3.1.8318"
 	jacoco
 }
 
@@ -82,4 +83,17 @@ tasks.jacocoTestReport {
 		xml.required.set(true)
 		html.required.set(true)
 	}
+}
+
+sonar {
+	properties {
+		property("sonar.projectKey", "acostaf12_unq-pdes-2026c2-ctv-backend")
+		property("sonar.organization", "acostaf12")
+		property("sonar.host.url", "https://sonarcloud.io")
+		property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+	}
+}
+
+tasks.named("sonar") {
+	dependsOn(tasks.test, tasks.jacocoTestReport)
 }

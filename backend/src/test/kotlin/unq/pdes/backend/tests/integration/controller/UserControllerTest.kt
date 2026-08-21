@@ -99,4 +99,16 @@ class UserControllerTest {
             .andExpect(jsonPath("$.role").value("AGENCY"))
             .andExpect(jsonPath("$.agency.name").value("Despegar"))
     }
+
+    @Test
+    fun `04 - GET me with a malformed Authorization header should be rejected`() {
+        mvc.perform(get("/users/me").header("Authorization", "Basic something"))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `05 - GET me with an invalid bearer token should be rejected`() {
+        mvc.perform(get("/users/me").header("Authorization", "Bearer not.a.valid.token"))
+            .andExpect(status().isForbidden)
+    }
 }

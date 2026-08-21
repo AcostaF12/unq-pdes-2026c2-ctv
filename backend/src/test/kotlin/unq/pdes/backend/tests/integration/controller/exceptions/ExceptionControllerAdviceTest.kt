@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -53,6 +54,15 @@ class ExceptionControllerAdviceTest {
             .andExpect(jsonPath("$.httpStatus").value("INTERNAL_SERVER_ERROR"))
             .andExpect(jsonPath("$.errorData.description").value("An unexpected error has occurred."))
     }
+
+    @Test
+    fun `04 - should handle AuthenticationException with 401 status code`() {
+        mvc.perform(get("/test/authentication").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.httpCode").value(401))
+            .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"))
+            .andExpect(jsonPath("$.errorData.description").value("Invalid username or password."))
+    }
 }
 
 @RestController
@@ -71,5 +81,10 @@ private class TestExceptionController {
     @GetMapping("/test/runtime-exception")
     fun throwRuntimeException() {
         throw RuntimeException("This message will be replaced by the generic message")
+    }
+
+    @GetMapping("/test/authentication")
+    fun throwAuthenticationException() {
+        throw BadCredentialsException("Bad credentials")
     }
 }
