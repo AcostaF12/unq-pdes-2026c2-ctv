@@ -65,6 +65,8 @@ jobs:
         with:
           context: frontend
           push: true
+          build-args: |
+            VITE_API_BASE_URL=http://${{ secrets.VM_HOST }}:8080
           tags: |
             ghcr.io/acostaf12/ctv-frontend:latest
             ghcr.io/acostaf12/ctv-frontend:${{ github.sha }}
