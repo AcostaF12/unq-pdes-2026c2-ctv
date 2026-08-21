@@ -32,12 +32,13 @@ package "Backend DB (CTV)" #F7F9FC {
   entity "users" as users {
     * id : bigint <<PK>>
     --
+    * user_type : varchar <<NOT NULL>>  -- JPA discriminator: STANDARD | AGENCY (User / AgencyUser)
     * username : varchar <<UK>> <<NOT NULL>>
     * password : varchar <<NOT NULL>>
     * role : varchar <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
     * first_name : varchar <<NOT NULL>>
     * last_name : varchar <<NOT NULL>>
-      agency_id : bigint <<FK>>  -- only when role = AGENCY
+      agency_id : bigint <<FK>>  -- only when role = AGENCY (AgencyUser)
   }
 
   entity "hotels" as hotels {
@@ -75,7 +76,7 @@ package "Backend DB (CTV)" #F7F9FC {
     --
     * buyer_id : bigint <<FK>> <<NOT NULL>>
     * package_id : bigint <<FK>> <<NOT NULL>>
-    * score : smallint <<NOT NULL>>  -- CHECK 0..10
+    * score : integer <<NOT NULL>>  -- rango 0..10 validado en la aplicación
       comment : text
     .. unique ..
     (buyer_id, package_id)
