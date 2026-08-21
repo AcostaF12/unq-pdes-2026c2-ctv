@@ -22,3 +22,15 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
   const { data } = await apiClient.post<AuthResponse>('/auth/login', credentials)
   return data
 }
+
+export interface RegisterPayload {
+  username: string
+  password: string
+  firstName: string
+  lastName: string
+}
+
+export async function register(payload: RegisterPayload): Promise<AuthResponse> {
+  const { data } = await apiClient.post<AuthResponse>('/auth/register', payload)
+  return data
+}
