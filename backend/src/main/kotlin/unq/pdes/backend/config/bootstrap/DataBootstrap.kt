@@ -3,11 +3,13 @@ package unq.pdes.backend.config.bootstrap
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Profile
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.Destination
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.persistence.jpa.AgencyRepository
+import unq.pdes.backend.persistence.jpa.DestinationRepository
 import unq.pdes.backend.persistence.jpa.HotelRepository
 import unq.pdes.backend.persistence.jpa.UserRepository
 import unq.pdes.backend.service.DestinationService
@@ -20,15 +22,28 @@ class DataBootstrap(
     private val destinationService: DestinationService,
     private val hotelService: HotelService,
     private val hotelRepository: HotelRepository,
+    private val destinationRepository: DestinationRepository,
     private val userService: UserService,
     private val userRepository: UserRepository,
     private val agencyRepository: AgencyRepository,
+    private val environment: Environment,
 ) : ApplicationRunner {
 
     override fun run(args: ApplicationArguments) {
+        if (environment.activeProfiles.contains("dev")) {
+            resetDevelopmentData()
+        }
+
         loadDestinations()
         loadHotels()
         loadUsers()
+    }
+
+    private fun resetDevelopmentData() {
+        userRepository.deleteAll()
+        agencyRepository.deleteAll()
+        hotelRepository.deleteAll()
+        destinationRepository.deleteAll()
     }
 
     private fun loadDestinations() {

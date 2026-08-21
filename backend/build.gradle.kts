@@ -38,6 +38,7 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+	implementation("org.springframework.boot:spring-boot-starter-zipkin")
 	testRuntimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

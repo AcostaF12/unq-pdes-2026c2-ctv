@@ -41,6 +41,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       SERVER_PORT: 8081
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     depends_on:
       flights-postgres:
@@ -64,6 +65,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       FLIGHTS_SERVICE_URL: http://flights-service:8081
+      ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     ports:
       - "8080:8080"
@@ -78,6 +80,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+    networks:
+      - backend-net
+      - flights-net
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
     networks:
       - backend-net
       - flights-net
