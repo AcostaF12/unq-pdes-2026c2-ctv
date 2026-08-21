@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -66,5 +67,20 @@ class FavoriteTest {
     @Test
     fun `05 - favorites with different id should not be equal`() {
         assertNotEquals(validBuilder().id(1L).build(), validBuilder().id(2L).build())
+    }
+
+    @Test
+    fun `06 - favorite should not be equal to other object type`() {
+        assertNotEquals(validBuilder().id(1L).build(), "Not a favorite")
+    }
+
+    @Test
+    fun `07 - favorite hashcode without id should be zero`() {
+        assertEquals(0, validBuilder().build().hashCode())
+    }
+
+    @Test
+    fun `08 - toString should contain the buyer and package`() {
+        assertTrue(validBuilder().id(1L).build().toString().contains("buyer=1"))
     }
 }

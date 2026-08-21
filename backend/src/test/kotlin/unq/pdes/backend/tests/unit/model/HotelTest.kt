@@ -3,6 +3,7 @@ package unq.pdes.backend.tests.unit.model
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -105,5 +106,13 @@ class HotelTest {
         val hotel = validBuilder().build()
 
         assertEquals(0, hotel.hashCode())
+    }
+
+    @Test
+    fun `11 - toString should contain the name and destination`() {
+        val text = validBuilder().id(1L).build().toString()
+
+        assertTrue(text.contains("name='Alvear Palace Hotel'"))
+        assertTrue(text.contains("destination=BUE"))
     }
 }

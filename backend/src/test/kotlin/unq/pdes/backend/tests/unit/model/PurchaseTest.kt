@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -67,5 +68,29 @@ class PurchaseTest {
     @Test
     fun `04 - purchases with different id should not be equal`() {
         assertNotEquals(validBuilder().id(1L).build(), validBuilder().id(2L).build())
+    }
+
+    @Test
+    fun `05 - purchases with same id should be equal`() {
+        val purchase1 = validBuilder().id(1L).build()
+        val purchase2 = validBuilder().id(1L).purchasePrice(BigDecimal("2000.00")).build()
+
+        assertEquals(purchase1, purchase2)
+        assertEquals(purchase1.hashCode(), purchase2.hashCode())
+    }
+
+    @Test
+    fun `06 - purchase should not be equal to other object type`() {
+        assertNotEquals(validBuilder().id(1L).build(), "Not a purchase")
+    }
+
+    @Test
+    fun `07 - purchase hashcode without id should be zero`() {
+        assertEquals(0, validBuilder().build().hashCode())
+    }
+
+    @Test
+    fun `08 - toString should contain the price`() {
+        assertTrue(validBuilder().id(1L).build().toString().contains("price=1000.00"))
     }
 }

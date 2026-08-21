@@ -3,6 +3,7 @@ package unq.pdes.backend.tests.unit.model
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -118,5 +119,18 @@ class UserTest {
         val user = validBuilder().build()
 
         assertEquals(0, user.hashCode())
+    }
+
+    @Test
+    fun `12 - user should not be equal to other object type`() {
+        assertNotEquals(validBuilder().id(1L).build(), "Not a user")
+    }
+
+    @Test
+    fun `13 - toString should contain the username and role`() {
+        val text = validBuilder().id(1L).build().toString()
+
+        assertTrue(text.contains("username='jdoe'"))
+        assertTrue(text.contains("role=BUYER"))
     }
 }
