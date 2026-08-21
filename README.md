@@ -98,14 +98,16 @@ Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: deploy`
 **Apagar al terminar la demo:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: stop`
 
+VM: `northcentralus`, IP pública `64.236.199.81` (fija mientras no se borre el recurso — no cambia entre `stop`/`deploy`).
+
 | Servicio | URL (con la VM prendida) |
 |----------|-----|
-| Frontend | `http://<IP_VM>:8090` |
-| Backend | `http://<IP_VM>:8080` |
-| Swagger (Backend) | `http://<IP_VM>:8080/swagger-ui/index.html` |
-| Grafana | `http://<IP_VM>:3001` |
-| Zipkin | `http://<IP_VM>:9411` |
-| Kibana | `http://<IP_VM>:5601` |
+| Frontend | http://64.236.199.81:8090 |
+| Backend | http://64.236.199.81:8080 |
+| Swagger (Backend) | http://64.236.199.81:8080/swagger-ui/index.html |
+| Grafana | http://64.236.199.81:3001 |
+| Zipkin | http://64.236.199.81:9411 |
+| Kibana | http://64.236.199.81:5601 |
 
 La VM usa el profile `prod` de Spring, con `ddl-auto=create-drop` (igual que en local) para que el schema se recree y el `DataBootstrap` reseedee datos en cada deploy — no hay persistencia entre demos, es intencional para mantener consistencia entre los datos.
 
