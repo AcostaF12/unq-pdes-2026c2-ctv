@@ -35,7 +35,7 @@ describe('Login page', () => {
     mockNavigate.mockReset()
   })
 
-  it('renders the username and password fields with accessible labels', () => {
+  it('01 - renders the username and password fields with accessible labels', () => {
     renderLogin()
 
     expect(screen.getByLabelText('Usuario')).toBeInTheDocument()
@@ -43,13 +43,13 @@ describe('Login page', () => {
     expect(screen.getByRole('button', { name: /ingresar/i })).toBeInTheDocument()
   })
 
-  it('renders the password field as type="password" by default', () => {
+  it('02 - renders the password field as type="password" by default', () => {
     renderLogin()
 
     expect(screen.getByLabelText('Contraseña')).toHaveAttribute('type', 'password')
   })
 
-  it('toggles the password field visibility when clicking the show/hide button', async () => {
+  it('03 - toggles the password field visibility when clicking the show/hide button', async () => {
     const user = userEvent.setup()
     renderLogin()
 
@@ -69,7 +69,7 @@ describe('Login page', () => {
     expect(passwordInput).toHaveAttribute('type', 'password')
   })
 
-  it('shows validation errors when submitting an empty form and does not call the API', async () => {
+  it('04 - shows validation errors when submitting an empty form and does not call the API', async () => {
     const user = userEvent.setup()
     renderLogin()
 
@@ -80,7 +80,7 @@ describe('Login page', () => {
     expect(mockedLogin).not.toHaveBeenCalled()
   })
 
-  it('shows a validation error when the password is shorter than 6 characters', async () => {
+  it('05 - shows a validation error when the password is shorter than 6 characters', async () => {
     const user = userEvent.setup()
     renderLogin()
 
@@ -92,7 +92,7 @@ describe('Login page', () => {
     expect(mockedLogin).not.toHaveBeenCalled()
   })
 
-  it('marks invalid fields with aria-invalid and an alert role on the error message', async () => {
+  it('06 - marks invalid fields with aria-invalid and an alert role on the error message', async () => {
     const user = userEvent.setup()
     renderLogin()
 
@@ -105,7 +105,7 @@ describe('Login page', () => {
     expect(alerts.length).toBeGreaterThan(0)
   })
 
-  it('submits valid credentials, calls the API and navigates on success', async () => {
+  it('07 - submits valid credentials, calls the API and navigates on success', async () => {
     const user = userEvent.setup()
     mockedLogin.mockResolvedValueOnce({
       token: 'fake-token',
@@ -125,7 +125,7 @@ describe('Login page', () => {
     })
   })
 
-  it('shows a specific error message when the API responds with 401', async () => {
+  it('08 - shows a specific error message when the API responds with 401', async () => {
     const user = userEvent.setup()
     const axiosError = Object.assign(new Error('Unauthorized'), {
       isAxiosError: true,
@@ -145,7 +145,7 @@ describe('Login page', () => {
     vi.mocked(axios.isAxiosError).mockRestore()
   })
 
-  it('shows a generic connection error message for non-HTTP failures', async () => {
+  it('09 - shows a generic connection error message for non-HTTP failures', async () => {
     const user = userEvent.setup()
     mockedLogin.mockRejectedValueOnce(new Error('Network Error'))
     renderLogin()
@@ -160,7 +160,7 @@ describe('Login page', () => {
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
-  it('disables the submit button and shows a loading label while submitting', async () => {
+  it('10 - disables the submit button and shows a loading label while submitting', async () => {
     const user = userEvent.setup()
     let resolveLogin: (value: Awaited<ReturnType<typeof login>>) => void = () => {}
     mockedLogin.mockImplementationOnce(
@@ -188,7 +188,7 @@ describe('Login page', () => {
     })
   })
 
-  it('clears the previous server error once the user resubmits successfully', async () => {
+  it('11 - clears the previous server error once the user resubmits successfully', async () => {
     const user = userEvent.setup()
     const axiosError = Object.assign(new Error('Unauthorized'), {
       isAxiosError: true,
@@ -220,7 +220,7 @@ describe('Login page', () => {
     vi.mocked(axios.isAxiosError).mockRestore()
   })
 
-  it('renders a link to the registration page', () => {
+  it('12 - renders a link to the registration page', () => {
     renderLogin()
 
     const link = screen.getByRole('link', { name: /registrate/i })

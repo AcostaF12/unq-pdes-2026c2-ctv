@@ -43,7 +43,7 @@ describe('Register page', () => {
     mockNavigate.mockReset()
   })
 
-  it('renders all the fields with accessible labels', () => {
+  it('01 - renders all the fields with accessible labels', () => {
     renderRegister()
 
     expect(screen.getByLabelText('Nombre')).toBeInTheDocument()
@@ -54,14 +54,14 @@ describe('Register page', () => {
     expect(screen.getByRole('button', { name: /crear cuenta/i })).toBeInTheDocument()
   })
 
-  it('renders both password fields as type="password" by default', () => {
+  it('02 - renders both password fields as type="password" by default', () => {
     renderRegister()
 
     expect(screen.getByLabelText('Contraseña')).toHaveAttribute('type', 'password')
     expect(screen.getByLabelText('Confirmar contraseña')).toHaveAttribute('type', 'password')
   })
 
-  it('toggles each password field visibility independently', async () => {
+  it('03 - toggles each password field visibility independently', async () => {
     const user = userEvent.setup()
     renderRegister()
 
@@ -75,7 +75,7 @@ describe('Register page', () => {
     expect(screen.getByLabelText('Confirmar contraseña')).toHaveAttribute('type', 'text')
   })
 
-  it('shows validation errors when submitting an empty form and does not call the API', async () => {
+  it('04 - shows validation errors when submitting an empty form and does not call the API', async () => {
     const user = userEvent.setup()
     renderRegister()
 
@@ -88,7 +88,7 @@ describe('Register page', () => {
     expect(mockedRegister).not.toHaveBeenCalled()
   })
 
-  it('shows a validation error when the password is shorter than 6 characters', async () => {
+  it('05 - shows a validation error when the password is shorter than 6 characters', async () => {
     const user = userEvent.setup()
     renderRegister()
 
@@ -103,7 +103,7 @@ describe('Register page', () => {
     expect(mockedRegister).not.toHaveBeenCalled()
   })
 
-  it('shows an error when the passwords do not match', async () => {
+  it('06 - shows an error when the passwords do not match', async () => {
     const user = userEvent.setup()
     renderRegister()
 
@@ -118,7 +118,7 @@ describe('Register page', () => {
     expect(mockedRegister).not.toHaveBeenCalled()
   })
 
-  it('marks invalid fields with aria-invalid and an alert role on the error message', async () => {
+  it('07 - marks invalid fields with aria-invalid and an alert role on the error message', async () => {
     const user = userEvent.setup()
     renderRegister()
 
@@ -129,7 +129,7 @@ describe('Register page', () => {
     expect(screen.getAllByRole('alert').length).toBeGreaterThan(0)
   })
 
-  it('submits valid data, calls the API without confirmPassword, and auto-logs in by redirecting to /trips', async () => {
+  it('08 - submits valid data, calls the API without confirmPassword, and auto-logs in by redirecting to /trips', async () => {
     const user = userEvent.setup()
     mockedRegister.mockResolvedValueOnce({
       token: 'fake-token',
@@ -153,7 +153,7 @@ describe('Register page', () => {
     })
   })
 
-  it('shows the backend message when the username is already taken', async () => {
+  it('09 - shows the backend message when the username is already taken', async () => {
     const user = userEvent.setup()
     const axiosError = Object.assign(new Error('Bad Request'), {
       isAxiosError: true,
@@ -177,7 +177,7 @@ describe('Register page', () => {
     vi.mocked(axios.isAxiosError).mockRestore()
   })
 
-  it('shows a generic connection error message for non-HTTP failures', async () => {
+  it('10 - shows a generic connection error message for non-HTTP failures', async () => {
     const user = userEvent.setup()
     mockedRegister.mockRejectedValueOnce(new Error('Network Error'))
     renderRegister()
@@ -191,7 +191,7 @@ describe('Register page', () => {
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
-  it('disables the submit button and shows a loading label while submitting', async () => {
+  it('11 - disables the submit button and shows a loading label while submitting', async () => {
     const user = userEvent.setup()
     let resolveRegister: (value: Awaited<ReturnType<typeof register>>) => void = () => {}
     mockedRegister.mockImplementationOnce(
@@ -218,7 +218,7 @@ describe('Register page', () => {
     })
   })
 
-  it('renders a link back to the login page', () => {
+  it('12 - renders a link back to the login page', () => {
     renderRegister()
 
     const link = screen.getByRole('link', { name: /iniciá sesión/i })
