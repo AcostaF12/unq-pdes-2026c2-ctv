@@ -38,14 +38,18 @@ class SecurityConfig(
             it.requestMatchers("/auth/**", "/error").permitAll()
 
             // Admin only - Resources ABM (create/update/delete)
-            it.requestMatchers(HttpMethod.POST, "/hotels/**").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.PUT, "/hotels/**").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.DELETE, "/hotels/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole("ADMIN")
 
             // Authenticated - everything else (including GET hotels/destinations)
             it.anyRequest().authenticated()
         }
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         return http.build()
+    }
+
+    companion object {
+        private const val HOTELS_PATH = "/hotels/**"
     }
 }

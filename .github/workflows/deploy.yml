@@ -1,0 +1,79 @@
+name: Deploy Demo (Azure VM)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Acción a ejecutar"
+        required: true
+        type: choice
+        options:
+          - deploy
+          - stop
+        default: deploy
+
+env:
+  RESOURCE_GROUP: ctv-demo-rg
+  VM_NAME: ctv-demo-vm
+
+jobs:
+  stop:
+    if: inputs.action == 'stop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deallocate VM
+        run: az vm deallocate --resource-group "$RESOURCE_GROUP" --name "$VM_NAME"
+
+  deploy:
+    if: inputs.action == 'deploy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Start VM
+        run: az vm start --resource-group "$RESOURCE_GROUP" --name "$VM_NAME"
+
+      - name: Wait for SSH
+        run: |
+          for i in $(seq 1 30); do
+            if nc -z -w5 "${{ secrets.VM_HOST }}" 22; then
+              echo "SSH is up"
+              exit 0
+            fi
+            echo "Waiting for SSH... ($i/30)"
+            sleep 10
+          done
+          echo "Timed out waiting for SSH"
+          exit 1
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd /opt/ctv
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 20); do
+            if curl -sf "http://${{ secrets.VM_HOST }}:8080/actuator/health" | grep -q '"status":"UP"'; then
+              echo "Backend healthy"
+              exit 0
+            fi
+            echo "Waiting for backend health... ($i/20)"
+            sleep 15
+          done
+          echo "Backend did not become healthy in time"
+          exit 1

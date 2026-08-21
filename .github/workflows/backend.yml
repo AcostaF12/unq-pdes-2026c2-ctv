@@ -45,3 +45,30 @@ jobs:
       - name: SonarCloud analysis
         if: ${{ env.SONAR_TOKEN != '' }}
         run: ./gradlew sonar
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ghcr.io/acostaf12/ctv-backend:latest
+            ghcr.io/acostaf12/ctv-backend:${{ github.sha }}

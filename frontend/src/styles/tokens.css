@@ -1,0 +1,29 @@
+:root {
+  --color-bg: #efe7d8; /* arena */
+  --color-surface: #faf6ec; /* blanco calido, cards/inputs */
+  --color-ink: #1c2b45; /* marino profundo: texto, bordes */
+  --color-primary: #d9541f; /* terracota: acciones principales */
+  --color-primary-hover: #b8430f;
+  --color-secondary: #e3a72b; /* mostaza: detalles/hover secundarios */
+  --color-error: #b23a2e; /* rojo oxido */
+  --color-error-bg: #f4dcd6;
+
+  --border-width: 3px;
+  --border-width-lg: 4px;
+  --shadow-offset: 6px;
+  --shadow-hard: var(--shadow-offset) var(--shadow-offset) 0 0 var(--color-ink);
+  --shadow-hard-sm: 4px 4px 0 0 var(--color-ink);
+
+  --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-body: 'Space Grotesk', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, Consolas, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+
+  --radius: 0px;
+}

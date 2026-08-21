@@ -1,5 +1,6 @@
 package unq.pdes.flightsservice.config.bootstrap
 
+import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Profile
@@ -17,11 +18,16 @@ class DataBootstrap(
     private val flightRepository: FlightRepository,
 ) : ApplicationRunner {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     override fun run(args: ApplicationArguments) {
+        logger.info("Loading bootstrap data...")
         if (flightRepository.count() > 0) {
+            logger.info("Flights: {}", flightRepository.count())
             return
         }
         loadFlights()
+        logger.info("Flights: {}", flightRepository.count())
     }
 
     private fun loadFlights() {
