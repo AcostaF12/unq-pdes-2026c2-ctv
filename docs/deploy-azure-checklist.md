@@ -82,10 +82,12 @@ Cerrá y reabrí la sesión SSH después de esto para que el grupo `docker` tome
 
 Desde la raíz del repo, en tu máquina:
 
+IP_VM=64.236.199.81
+
 ```bash
-ssh azureuser@<IP_VM> 'sudo mkdir -p /opt/ctv && sudo chown azureuser:azureuser /opt/ctv'
-scp docker-compose.yml docker-compose.prod.yml azureuser@<IP_VM>:/opt/ctv/
-scp -r monitoring azureuser@<IP_VM>:/opt/ctv/
+ssh azureuser@64.236.199.81 'sudo mkdir -p /opt/ctv && sudo chown azureuser:azureuser /opt/ctv'
+scp docker-compose.yml docker-compose.prod.yml azureuser@64.236.199.81:/opt/ctv/
+scp -r monitoring azureuser@64.236.199.81:/opt/ctv/
 ```
 
 (`/opt` requiere root, por eso el `sudo` — el `chown` deja la carpeta con dueño `azureuser` para que el `scp` de después no necesite privilegios.)
