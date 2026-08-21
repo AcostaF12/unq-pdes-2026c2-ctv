@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -90,5 +91,23 @@ class TravelPackageTest {
     @Test
     fun `07 - packages with different id should not be equal`() {
         assertNotEquals(validBuilder().id(1L).build(), validBuilder().id(2L).build())
+    }
+
+    @Test
+    fun `08 - package should not be equal to other object type`() {
+        assertNotEquals(validBuilder().id(1L).build(), "Not a package")
+    }
+
+    @Test
+    fun `09 - package hashcode without id should be zero`() {
+        assertEquals(0, validBuilder().build().hashCode())
+    }
+
+    @Test
+    fun `10 - toString should contain the name and price`() {
+        val text = validBuilder().id(1L).build().toString()
+
+        assertTrue(text.contains("name='Escapada a Buenos Aires'"))
+        assertTrue(text.contains("price=1500.00"))
     }
 }

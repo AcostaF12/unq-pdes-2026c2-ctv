@@ -3,6 +3,7 @@ package unq.pdes.flightsservice.tests.unit.model
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -144,5 +145,14 @@ class FlightTest {
         val flight = validBuilder().build()
 
         assertEquals(0, flight.hashCode())
+    }
+
+    @Test
+    fun `14 - toString should contain airline origin and destination`() {
+        val text = validBuilder().id(1L).build().toString()
+
+        assertTrue(text.contains("airline='Aerolineas Argentinas'"))
+        assertTrue(text.contains("origin='BUE'"))
+        assertTrue(text.contains("destination='PAR'"))
     }
 }

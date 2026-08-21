@@ -59,4 +59,12 @@ class AgencyUserTest {
 
         assertEquals("The user must have a username.", exception.message)
     }
+
+    @Test
+    fun `05 - toString should contain the username and agency`() {
+        val user = validBuilder().id(1L).build()
+
+        assertTrue(user.toString().contains("username='agency'"))
+        assertTrue(user.toString().contains("agency=1"))
+    }
 }

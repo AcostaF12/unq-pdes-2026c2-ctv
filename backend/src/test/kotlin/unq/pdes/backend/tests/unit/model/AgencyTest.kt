@@ -3,6 +3,7 @@ package unq.pdes.backend.tests.unit.model
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -52,5 +53,17 @@ class AgencyTest {
         val agency2 = Agency.Builder().id(2L).name("Despegar").build()
 
         assertNotEquals(agency1, agency2)
+    }
+
+    @Test
+    fun `06 - agency should not be equal to other object type`() {
+        assertNotEquals(Agency.Builder().id(1L).name("Despegar").build(), "Not an agency")
+    }
+
+    @Test
+    fun `07 - toString should contain the name`() {
+        val agency = Agency.Builder().id(1L).name("Despegar").build()
+
+        assertTrue(agency.toString().contains("name='Despegar'"))
     }
 }

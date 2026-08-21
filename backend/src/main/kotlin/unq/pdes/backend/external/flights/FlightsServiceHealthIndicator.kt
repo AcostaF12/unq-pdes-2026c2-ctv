@@ -13,10 +13,11 @@ import org.springframework.web.client.body
 @Profile("!test")
 class FlightsServiceHealthIndicator(
 	@Value("\${flights.service.url}") private val flightsServiceUrl: String,
+	restClientBuilder: RestClient.Builder,
 ) : HealthIndicator {
 
 	private val logger = LoggerFactory.getLogger(javaClass)
-	private val restClient = RestClient.create()
+	private val restClient = restClientBuilder.build()
 
 	override fun health(): Health {
 		logger.info("Checking external flights service health at {}", flightsServiceUrl)

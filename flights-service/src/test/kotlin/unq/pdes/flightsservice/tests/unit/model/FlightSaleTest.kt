@@ -5,6 +5,7 @@ import java.time.LocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -59,5 +60,29 @@ class FlightSaleTest {
     @Test
     fun `04 - sales with different id should not be equal`() {
         assertNotEquals(validBuilder().id(1L).build(), validBuilder().id(2L).build())
+    }
+
+    @Test
+    fun `05 - sales with same id should be equal`() {
+        val sale1 = validBuilder().id(1L).build()
+        val sale2 = validBuilder().id(1L).passengerName("Otro Pasajero").build()
+
+        assertEquals(sale1, sale2)
+        assertEquals(sale1.hashCode(), sale2.hashCode())
+    }
+
+    @Test
+    fun `06 - sale should not be equal to other object type`() {
+        assertNotEquals(validBuilder().id(1L).build(), "Not a sale")
+    }
+
+    @Test
+    fun `07 - sale hashcode without id should be zero`() {
+        assertEquals(0, validBuilder().build().hashCode())
+    }
+
+    @Test
+    fun `08 - toString should contain the passenger name`() {
+        assertTrue(validBuilder().id(1L).build().toString().contains("passengerName='Bruno Buyer'"))
     }
 }
