@@ -1,0 +1,16 @@
+services:
+  flights-service:
+    build: !reset null
+    image: ghcr.io/acostaf12/ctv-flights-service:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+  backend:
+    build: !reset null
+    image: ghcr.io/acostaf12/ctv-backend:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+  frontend:
+    build: !reset null
+    image: ghcr.io/acostaf12/ctv-frontend:latest

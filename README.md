@@ -68,7 +68,7 @@ En progreso...
 
 ## 🚀 Cómo Correr
 
-Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK) con un solo comando:
+Levantar toda la aplicación (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -87,6 +87,27 @@ docker compose up --build
 | Kibana (logs) | http://localhost:5601 |
 
 ---
+
+## ☁️ Deploy Cloud (Azure)
+
+La app corre en una VM de Azure que permanece **apagada** la mayor parte del tiempo y solo se prende para las demos. Las imágenes de `backend`, `flights-service` y `frontend` se publican automáticamente a GitHub Container Registry en cada push a `main` (ver workflows en `.github/workflows/`), y la VM las consume ya construidas (no compila nada).
+
+**Prender + deployar la última versión de `main`:**
+Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: deploy`
+
+**Apagar al terminar la demo:**
+Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: stop`
+
+| Servicio | URL (con la VM prendida) |
+|----------|-----|
+| Frontend | `http://<IP_VM>:8090` |
+| Backend | `http://<IP_VM>:8080` |
+| Swagger (Backend) | `http://<IP_VM>:8080/swagger-ui/index.html` |
+| Grafana | `http://<IP_VM>:3001` |
+| Zipkin | `http://<IP_VM>:9411` |
+| Kibana | `http://<IP_VM>:5601` |
+
+La VM usa el profile `prod` de Spring, con `ddl-auto=create-drop` (igual que en local) para que el schema se recree y el `DataBootstrap` reseedee datos en cada deploy — no hay persistencia entre demos, es intencional para mantener consistencia entre los datos.
 
 ## 🧪 Testing
 
