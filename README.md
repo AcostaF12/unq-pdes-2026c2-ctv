@@ -44,7 +44,7 @@ En progreso...
 
 ## 🚀 Cómo Correr
 
-Levantar toda la app (2 bases de datos, backend, flights-service, frontend y Prometheus) con un solo comando:
+Levantar toda la app (2 bases de datos, backend, flights-service, frontend, Prometheus y Zipkin) con un solo comando:
 
 ```bash
 docker compose up --build
@@ -57,8 +57,8 @@ docker compose up --build
 | Frontend | http://localhost:8090 |
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
-| Health (Backend) | http://localhost:8080/actuator/health |
 | Prometheus | http://localhost:9090 |
+| Zipkin | http://localhost:9411 |
 
 ---
 
