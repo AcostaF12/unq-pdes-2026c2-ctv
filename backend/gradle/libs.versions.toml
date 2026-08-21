@@ -1,0 +1,15 @@
+[versions]
+springdoc = "3.1.0"
+resilience4j = "2.4.0"
+jjwt = "0.13.0"
+logstash-logback = "8.1"
+archunit = "1.5.0"
+
+[libraries]
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+resilience4j-spring-boot4 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-gson = { module = "io.jsonwebtoken:jjwt-gson", version.ref = "jjwt" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
