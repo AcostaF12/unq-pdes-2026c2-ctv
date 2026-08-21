@@ -2,6 +2,7 @@ package unq.pdes.backend.config.bootstrap
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Profile
@@ -45,7 +46,10 @@ class DataBootstrap(
     private val environment: Environment,
 ) : ApplicationRunner {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     override fun run(args: ApplicationArguments) {
+        logger.info("Loading bootstrap data...")
         if (environment.activeProfiles.contains("dev")) {
             resetDevelopmentData()
         }
@@ -58,6 +62,18 @@ class DataBootstrap(
         loadFavorites(packages)
         loadReviews(packages)
         loadPurchases(packages)
+        logDataSummary()
+    }
+
+    private fun logDataSummary() {
+        logger.info("Destinations: {}", destinationRepository.count())
+        logger.info("Hotels: {}", hotelRepository.count())
+        logger.info("Agencies: {}", agencyRepository.count())
+        logger.info("Users: {}", userRepository.count())
+        logger.info("Packages: {}", travelPackageRepository.count())
+        logger.info("Favorites: {}", favoriteRepository.count())
+        logger.info("Reviews: {}", reviewRepository.count())
+        logger.info("Purchases: {}", purchaseRepository.count())
     }
 
     private fun resetDevelopmentData() {
