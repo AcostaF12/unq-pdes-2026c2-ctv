@@ -1,0 +1,98 @@
+.photo-carousel {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  background: var(--color-ink);
+}
+
+.photo-carousel__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-carousel::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(transparent, rgb(28 43 69 / 0.55));
+  pointer-events: none;
+}
+
+.photo-carousel__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-ink);
+  background: var(--color-secondary);
+  border: var(--border-width) solid var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.photo-carousel__nav--prev {
+  left: var(--space-2);
+}
+
+.photo-carousel__nav--next {
+  right: var(--space-2);
+}
+
+.photo-carousel__nav:hover {
+  background: var(--color-surface);
+}
+
+.photo-carousel__nav:focus-visible,
+.photo-carousel__dot:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+.photo-carousel__dots {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 2;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.photo-carousel__dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: var(--border-width) solid var(--color-ink);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.photo-carousel__dot--active {
+  background: var(--color-primary);
+}
+
+.photo-carousel--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.photo-carousel--fallback::after {
+  display: none;
+}

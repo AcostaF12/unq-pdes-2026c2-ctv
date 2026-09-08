@@ -10,8 +10,8 @@ export function NotFound() {
         <p className="not-found__message">
           Esta página no existe o que hayas escrito mal la dirección.
         </p>
-        <Link className="not-found__cta" to="/login">
-          Volver al login
+        <Link className="not-found__cta" to="/trips">
+          Ir al inicio
         </Link>
       </div>
     </div>

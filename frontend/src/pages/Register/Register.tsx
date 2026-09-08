@@ -2,16 +2,20 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
+import { BrandMark } from '../../components/BrandMark/BrandMark'
 import { Button } from '../../components/Button/Button'
 import { Input } from '../../components/Input/Input'
 import { PasswordToggle } from '../../components/PasswordToggle/PasswordToggle'
 import { register as registerUser } from '../../api/auth'
+import { useAuth } from '../../auth/AuthContext'
 import { getApiErrorMessage } from '../../api/errors'
+import { HOME_PATH } from '../../router/paths'
 import { registerSchema, type RegisterFormValues } from './register.schema'
 import './Register.css'
 
 export function Register() {
   const navigate = useNavigate()
+  const { setSession } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -27,13 +31,14 @@ export function Register() {
   const onSubmit = async (values: RegisterFormValues) => {
     setServerError(null)
     try {
-      await registerUser({
+      const auth = await registerUser({
         username: values.username,
         password: values.password,
         firstName: values.firstName,
         lastName: values.lastName,
       })
-      navigate('/trips')
+      setSession(auth)
+      navigate(HOME_PATH)
     } catch (error) {
       setServerError(
         getApiErrorMessage(error) ?? 'No pudimos conectar con el servidor. Intentá de nuevo.',
@@ -44,7 +49,7 @@ export function Register() {
   return (
     <div className="page-center">
       <div className="register-card">
-        <p className="register-card__eyebrow">Compra Tu Viaje</p>
+        <BrandMark variant="auth" />
         <h1 className="register-card__title">Crear cuenta</h1>
 
         <form className="register-card__form" onSubmit={handleSubmit(onSubmit)} noValidate>

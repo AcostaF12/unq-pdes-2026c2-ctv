@@ -1,0 +1,105 @@
+.list-skeleton {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list-skeleton--cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.list-skeleton--rows,
+.list-skeleton--detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.list-skeleton__item {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+  overflow: hidden;
+}
+
+.list-skeleton--rows .list-skeleton__item {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.list-skeleton--rows .list-skeleton__media {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-bottom: none;
+  border-right: var(--border-width) solid var(--color-ink);
+}
+
+.list-skeleton__media {
+  height: 180px;
+  border-bottom: var(--border-width) solid var(--color-ink);
+  background:
+    linear-gradient(90deg, var(--color-bg) 0%, var(--color-secondary) 45%, var(--color-bg) 100%)
+      0 0 / 200% 100%,
+    var(--color-bg);
+  animation: skeleton-shift 1.15s linear infinite;
+}
+
+.list-skeleton--detail .list-skeleton__media {
+  height: 280px;
+}
+
+.list-skeleton__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.list-skeleton--rows .list-skeleton__body {
+  flex: 1;
+  padding: 0;
+  justify-content: center;
+}
+
+.list-skeleton__line {
+  display: block;
+  height: 12px;
+  width: 100%;
+  border: var(--border-width) solid var(--color-ink);
+  background:
+    linear-gradient(90deg, var(--color-bg) 0%, var(--color-secondary) 45%, var(--color-bg) 100%)
+      0 0 / 200% 100%,
+    var(--color-bg);
+  animation: skeleton-shift 1.15s linear infinite;
+}
+
+.list-skeleton__line--title {
+  height: 18px;
+  width: 70%;
+}
+
+.list-skeleton__line--short {
+  width: 40%;
+}
+
+@keyframes skeleton-shift {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-skeleton__media,
+  .list-skeleton__line {
+    animation: none;
+    background: var(--color-bg);
+  }
+}

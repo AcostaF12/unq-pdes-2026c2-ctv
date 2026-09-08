@@ -1,0 +1,141 @@
+.account-page {
+  max-width: 640px;
+}
+
+.account-hero {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-5) var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+}
+
+.account-hero .page__title {
+  font-size: 28px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.account-hero__copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.account-hero__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.account-hero__meta,
+.account-hero__progress {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.account-hero__bar {
+  margin-top: var(--space-2);
+  height: 6px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-bg);
+}
+
+.account-hero__bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.account-empty {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.account-card {
+  scroll-margin-top: 96px;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.account-card h2 {
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.account-card__hint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.account-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.account-card__row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.account-card__row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-card__error,
+.account-card__status {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin: 0;
+}
+
+.account-card__error {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: var(--border-width) solid var(--color-error);
+  padding: var(--space-2);
+}
+
+.account-card__status {
+  color: var(--color-ink);
+}
+
+.account-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.account-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+@media (max-width: 640px) {
+  .account-hero {
+    flex-direction: column;
+  }
+
+  .account-card__row {
+    flex-direction: column;
+  }
+}

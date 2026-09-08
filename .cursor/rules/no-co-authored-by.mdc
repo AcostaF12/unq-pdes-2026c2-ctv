@@ -1,0 +1,15 @@
+---
+description: Nunca agregar Co-authored-by de Cursor en commits
+alwaysApply: true
+---
+
+# Sin Co-authored-by de Cursor
+
+Nunca agregues trailers `Co-authored-by` en commits, en especial:
+
+- `Co-authored-by: Cursor <cursoragent@cursor.com>`
+- cualquier variante con autor Cursor, Cursor Agent o cursoragent
+
+El mensaje de commit debe quedar solo con el título/cuerpo que pidió Agus, al estilo del repo (`feat:`, `fix:`, `docs:`, `chore:` en español). No reescribas el autor real del repo.
+
+Si el entorno inyecta el trailer, sacalo antes de pushear. No uses `--no-verify` salvo pedido explícito.

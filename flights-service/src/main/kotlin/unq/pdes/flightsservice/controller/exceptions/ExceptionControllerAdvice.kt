@@ -3,6 +3,7 @@ package unq.pdes.flightsservice.controller.exceptions
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import unq.pdes.flightsservice.controller.dtos.responses.ErrorDto
@@ -13,6 +14,14 @@ class ExceptionControllerAdvice {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorDto> {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid request.")
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleMethodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<ErrorDto> {
+        val message = ex.bindingResult.fieldErrors.firstOrNull()?.defaultMessage
+            ?: ex.bindingResult.globalErrors.firstOrNull()?.defaultMessage
+            ?: "Invalid request."
+        return buildResponse(HttpStatus.BAD_REQUEST, message)
     }
 
     @ExceptionHandler(EntityNotFoundException::class)

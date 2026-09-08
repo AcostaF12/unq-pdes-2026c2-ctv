@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import unq.pdes.backend.model.Agency
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.TravelPackage
 
@@ -17,13 +17,17 @@ import unq.pdes.backend.model.TravelPackage
 class TravelPackageTest {
 
     private val agency = Agency.Builder().id(1L).name("Despegar").build()
+    private val origin = City("BUE", "Buenos Aires")
+    private val destination = City("PAR", "Paris")
     private val hotel = Hotel.Builder()
-        .id(1L).name("Gran Hotel").destination(Destination("BUE", "Buenos Aires")).photoUrl("https://x.demo/h.jpg").build()
+        .id(1L).name("Gran Hotel").city(destination).photoUrl("https://x.demo/h.jpg").build()
 
     private fun validBuilder(): TravelPackage.Builder {
         return TravelPackage.Builder()
             .agency(agency)
             .hotel(hotel)
+            .origin(origin)
+            .destination(destination)
             .name("Escapada a Buenos Aires")
             .outboundFlightId(10L)
             .returnFlightId(20L)
@@ -38,6 +42,8 @@ class TravelPackageTest {
         assertEquals("Escapada a Buenos Aires", travelPackage.name)
         assertEquals(agency, travelPackage.agency)
         assertEquals(hotel, travelPackage.hotel)
+        assertEquals(origin, travelPackage.origin)
+        assertEquals(destination, travelPackage.destination)
         assertEquals(10L, travelPackage.outboundFlightId)
         assertEquals(20L, travelPackage.returnFlightId)
         assertEquals(BigDecimal("1500.00"), travelPackage.price)
@@ -73,7 +79,8 @@ class TravelPackageTest {
     @Test
     fun `05 - building without agency should throw IllegalArgumentException`() {
         val exception = assertThrows(IllegalArgumentException::class.java) {
-            TravelPackage.Builder().hotel(hotel).name("X").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal.TEN).build()
+            TravelPackage.Builder().hotel(hotel).origin(origin).destination(destination)
+                .name("X").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal.TEN).build()
         }
 
         assertEquals("The package must belong to an agency.", exception.message)
@@ -109,5 +116,24 @@ class TravelPackageTest {
 
         assertTrue(text.contains("name='Escapada a Buenos Aires'"))
         assertTrue(text.contains("price=1500.00"))
+    }
+
+    @Test
+    fun `11 - same origin and destination should throw IllegalArgumentException`() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            validBuilder().destination(origin).build()
+        }
+
+        assertEquals("Origin and destination cities must be different.", exception.message)
+    }
+
+    @Test
+    fun `12 - building without origin should throw IllegalArgumentException`() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            TravelPackage.Builder().agency(agency).hotel(hotel).destination(destination)
+                .name("X").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal.TEN).build()
+        }
+
+        assertEquals("The package must have an origin city.", exception.message)
     }
 }

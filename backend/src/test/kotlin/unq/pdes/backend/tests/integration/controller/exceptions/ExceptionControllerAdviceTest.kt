@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.springframework.http.MediaType
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -15,6 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.exceptions.ExceptionControllerAdvice
+import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
 
 @TestInstance(PER_CLASS)
 class ExceptionControllerAdviceTest {
@@ -63,6 +65,33 @@ class ExceptionControllerAdviceTest {
             .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"))
             .andExpect(jsonPath("$.errorData.description").value("Invalid username or password."))
     }
+
+    @Test
+    fun `05 - should handle AccessDeniedException with 403 status code`() {
+        mvc.perform(get("/test/access-denied").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.httpCode").value(403))
+            .andExpect(jsonPath("$.errorData.description").value("Only the owning agency can modify this package."))
+    }
+
+    @Test
+    fun `06 - should handle FlightsServiceUnavailableException with 503 status code`() {
+        mvc.perform(get("/test/flights-unavailable").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isServiceUnavailable)
+            .andExpect(jsonPath("$.httpCode").value(503))
+            .andExpect(jsonPath("$.errorData.description").value("Flights service is unavailable."))
+    }
+
+    @Test
+    fun `07 - should use fallback messages when the exception has no message`() {
+        mvc.perform(get("/test/illegal-argument-null").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("Invalid request."))
+
+        mvc.perform(get("/test/entity-not-found-null").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.errorData.description").value("Entity not found."))
+    }
 }
 
 @RestController
@@ -86,5 +115,25 @@ private class TestExceptionController {
     @GetMapping("/test/authentication")
     fun throwAuthenticationException() {
         throw BadCredentialsException("Bad credentials")
+    }
+
+    @GetMapping("/test/access-denied")
+    fun throwAccessDeniedException() {
+        throw AccessDeniedException("Only the owning agency can modify this package.")
+    }
+
+    @GetMapping("/test/flights-unavailable")
+    fun throwFlightsUnavailable() {
+        throw FlightsServiceUnavailableException("Flights service is unavailable.")
+    }
+
+    @GetMapping("/test/illegal-argument-null")
+    fun throwIllegalArgumentWithoutMessage() {
+        throw IllegalArgumentException(null as String?)
+    }
+
+    @GetMapping("/test/entity-not-found-null")
+    fun throwEntityNotFoundWithoutMessage() {
+        throw EntityNotFoundException()
     }
 }

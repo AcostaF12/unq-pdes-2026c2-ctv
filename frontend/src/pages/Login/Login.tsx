@@ -3,15 +3,19 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { BrandMark } from '../../components/BrandMark/BrandMark'
 import { Button } from '../../components/Button/Button'
 import { Input } from '../../components/Input/Input'
 import { PasswordToggle } from '../../components/PasswordToggle/PasswordToggle'
 import { login } from '../../api/auth'
+import { useAuth } from '../../auth/AuthContext'
+import { HOME_PATH } from '../../router/paths'
 import { loginSchema, type LoginFormValues } from './login.schema'
 import './Login.css'
 
 export function Login() {
   const navigate = useNavigate()
+  const { setSession } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -26,8 +30,9 @@ export function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null)
     try {
-      await login(values)
-      navigate('/trips')
+      const auth = await login(values)
+      setSession(auth)
+      navigate(HOME_PATH)
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         setServerError('Usuario o contraseña incorrectos.')
@@ -40,7 +45,7 @@ export function Login() {
   return (
     <div className="page-center">
       <div className="login-card">
-        <p className="login-card__eyebrow">Compra Tu Viaje</p>
+        <BrandMark variant="auth" />
         <h1 className="login-card__title">Ingresar</h1>
 
         <form className="login-card__form" onSubmit={handleSubmit(onSubmit)} noValidate>

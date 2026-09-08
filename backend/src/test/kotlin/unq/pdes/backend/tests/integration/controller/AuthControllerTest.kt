@@ -99,4 +99,15 @@ class AuthControllerTest {
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("The username 'jdoe' is already taken."))
     }
+
+    @Test
+    fun `05 - POST register with blank username should return 400`() {
+        mvc.perform(
+            post("/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(RegisterRequestDto("  ", "secret", "John", "Doe"))),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.errorData.description").value("The user must have a username."))
+    }
 }

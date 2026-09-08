@@ -32,22 +32,22 @@ class HotelServiceTest {
 
     @Test
     fun `01 - create should return the hotel with an id`() {
-        factory.destinationWith("BUE", "Buenos Aires")
+        factory.cityWith("BUE", "Buenos Aires")
 
         val hotel = hotelService.create("Alvear Palace Hotel", "BUE", "https://x.demo/p.jpg")
 
         assertNotNull(hotel.id)
         assertEquals("Alvear Palace Hotel", hotel.name)
-        assertEquals("BUE", hotel.destination.code)
+        assertEquals("BUE", hotel.city.code)
     }
 
     @Test
-    fun `02 - create with unknown destination should throw EntityNotFoundException`() {
+    fun `02 - create with unknown city should throw EntityNotFoundException`() {
         val exception = assertThrows(EntityNotFoundException::class.java) {
             hotelService.create("Some hotel", "ZZZ", "https://x.demo/p.jpg")
         }
 
-        assertEquals("There is no Destination with code: ZZZ.", exception.message)
+        assertEquals("There is no City with code: ZZZ.", exception.message)
     }
 
     @Test
@@ -80,18 +80,18 @@ class HotelServiceTest {
     @Test
     fun `06 - update should modify the hotel keeping its id`() {
         val persisted = factory.anyHotel()
-        factory.destinationWith("PAR", "Paris")
+        factory.cityWith("PAR", "Paris")
 
         val updated = hotelService.update(persisted.id!!, "Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
 
         assertEquals(persisted.id, updated.id)
         assertEquals("Hotel Le Meurice", updated.name)
-        assertEquals("PAR", updated.destination.code)
+        assertEquals("PAR", updated.city.code)
     }
 
     @Test
     fun `07 - update should throw EntityNotFoundException when hotel not found`() {
-        factory.destinationWith("BUE", "Buenos Aires")
+        factory.cityWith("BUE", "Buenos Aires")
 
         val exception = assertThrows(EntityNotFoundException::class.java) {
             hotelService.update(999L, "Some hotel", "BUE", "https://x.demo/p.jpg")
