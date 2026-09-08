@@ -61,4 +61,28 @@ class FavoriteServiceTest {
 
         assertEquals(0, favoriteService.findMine(buyer.username).size)
     }
+
+    @Test
+    fun `04 - remove should fail when the package is not in favorites`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        val exception = assertThrows(jakarta.persistence.EntityNotFoundException::class.java) {
+            favoriteService.remove(buyer.username, travelPackage.id!!)
+        }
+
+        assertEquals("The package is not in favorites.", exception.message)
+    }
+
+    @Test
+    fun `05 - agency users cannot manage favorites`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+            favoriteService.add("agency", travelPackage.id!!)
+        }
+
+        assertEquals("Only buyers can manage favorites.", exception.message)
+    }
 }

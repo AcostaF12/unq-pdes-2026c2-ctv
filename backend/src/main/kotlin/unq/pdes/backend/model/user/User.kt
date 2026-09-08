@@ -14,6 +14,10 @@ import jakarta.persistence.Inheritance
 import jakarta.persistence.InheritanceType
 import jakarta.persistence.Table
 
+private const val USER_FIRST_NAME_REQUIRED = "The user must have a first name."
+private const val USER_LAST_NAME_REQUIRED = "The user must have a last name."
+private const val USER_PASSWORD_REQUIRED = "The user must have a password."
+
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -42,14 +46,14 @@ open class User protected constructor(builder: BaseBuilder<*>) {
     var lastName: String = builder.lastName!!
 
     fun updateProfile(firstName: String, lastName: String) {
-        require(firstName.isNotBlank()) { "The user must have a first name." }
-        require(lastName.isNotBlank()) { "The user must have a last name." }
+        require(firstName.isNotBlank()) { USER_FIRST_NAME_REQUIRED }
+        require(lastName.isNotBlank()) { USER_LAST_NAME_REQUIRED }
         this.firstName = firstName.trim()
         this.lastName = lastName.trim()
     }
 
     fun changePassword(encodedPassword: String) {
-        require(encodedPassword.isNotBlank()) { "The user must have a password." }
+        require(encodedPassword.isNotBlank()) { USER_PASSWORD_REQUIRED }
         this.password = encodedPassword
     }
 
@@ -84,25 +88,25 @@ open class User protected constructor(builder: BaseBuilder<*>) {
         }
 
         fun password(password: String): SELF = self().apply {
-            require(password.isNotBlank()) { "The user must have a password." }
+            require(password.isNotBlank()) { USER_PASSWORD_REQUIRED }
             this.password = password
         }
 
         fun firstName(firstName: String): SELF = self().apply {
-            require(firstName.isNotBlank()) { "The user must have a first name." }
+            require(firstName.isNotBlank()) { USER_FIRST_NAME_REQUIRED }
             this.firstName = firstName
         }
 
         fun lastName(lastName: String): SELF = self().apply {
-            require(lastName.isNotBlank()) { "The user must have a last name." }
+            require(lastName.isNotBlank()) { USER_LAST_NAME_REQUIRED }
             this.lastName = lastName
         }
 
         protected fun validateCommonFields() {
             requireNotNull(username) { "The user must have a username." }
-            requireNotNull(password) { "The user must have a password." }
-            requireNotNull(firstName) { "The user must have a first name." }
-            requireNotNull(lastName) { "The user must have a last name." }
+            requireNotNull(password) { USER_PASSWORD_REQUIRED }
+            requireNotNull(firstName) { USER_FIRST_NAME_REQUIRED }
+            requireNotNull(lastName) { USER_LAST_NAME_REQUIRED }
         }
     }
 

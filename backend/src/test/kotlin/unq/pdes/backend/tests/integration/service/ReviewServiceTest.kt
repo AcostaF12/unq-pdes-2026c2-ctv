@@ -70,4 +70,30 @@ class ReviewServiceTest {
         assertEquals(9, review.score)
         assertEquals(1, reviewService.findByPackageId(travelPackage.id!!).size)
     }
+
+    @Test
+    fun `03 - cannot review the same package twice`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+        reviewService.create(buyer.username, travelPackage.id!!, 9, "Excelente")
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            reviewService.create(buyer.username, travelPackage.id!!, 8, "Otra")
+        }
+
+        assertEquals("You already reviewed this package.", exception.message)
+    }
+
+    @Test
+    fun `04 - agency users cannot write reviews`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+            reviewService.create("agency", travelPackage.id!!, 9, "Excelente")
+        }
+
+        assertEquals("Only buyers can write reviews.", exception.message)
+    }
 }

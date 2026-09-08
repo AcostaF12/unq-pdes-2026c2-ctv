@@ -81,6 +81,17 @@ class ExceptionControllerAdviceTest {
             .andExpect(jsonPath("$.httpCode").value(503))
             .andExpect(jsonPath("$.errorData.description").value("Flights service is unavailable."))
     }
+
+    @Test
+    fun `07 - should use fallback messages when the exception has no message`() {
+        mvc.perform(get("/test/illegal-argument-null").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("Invalid request."))
+
+        mvc.perform(get("/test/entity-not-found-null").contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.errorData.description").value("Entity not found."))
+    }
 }
 
 @RestController
@@ -114,5 +125,15 @@ private class TestExceptionController {
     @GetMapping("/test/flights-unavailable")
     fun throwFlightsUnavailable() {
         throw FlightsServiceUnavailableException("Flights service is unavailable.")
+    }
+
+    @GetMapping("/test/illegal-argument-null")
+    fun throwIllegalArgumentWithoutMessage() {
+        throw IllegalArgumentException(null as String?)
+    }
+
+    @GetMapping("/test/entity-not-found-null")
+    fun throwEntityNotFoundWithoutMessage() {
+        throw EntityNotFoundException()
     }
 }

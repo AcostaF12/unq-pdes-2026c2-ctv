@@ -14,8 +14,10 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
@@ -109,6 +111,95 @@ class TravelPackageControllerTest {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `05 - GET package by id should include flights`() {
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        mvc.perform(get("/packages/{id}", travelPackage.id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("París Romántico"))
+            .andExpect(jsonPath("$.outboundFlight.origin").value("BUE"))
+            .andExpect(jsonPath("$.returnFlight.origin").value("PAR"))
+            .andExpect(jsonPath("$.reviews.length()").value(0))
+    }
+
+    @Test
+    fun `06 - GET package by id should tolerate unavailable flights`() {
+        val travelPackage = factory.packageNamed("París Romántico")
+        Mockito.`when`(flightsClient.findById(1L)).thenThrow(RuntimeException("down"))
+        Mockito.`when`(flightsClient.findById(2L)).thenThrow(RuntimeException("down"))
+
+        mvc.perform(get("/packages/{id}", travelPackage.id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("París Romántico"))
+            .andExpect(jsonPath("$.outboundFlight").doesNotExist())
+            .andExpect(jsonPath("$.returnFlight").doesNotExist())
+    }
+
+    @Test
+    fun `07 - GET packages should filter by name origin and destination`() {
+        factory.packageNamed("París Romántico")
+        factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+
+        mvc.perform(
+            get("/packages")
+                .param("name", "París")
+                .param("origin", "BUE")
+                .param("destination", "PAR"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("París Romántico"))
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `08 - GET agency packages should return owned packages`() {
+        factory.agencyUserNamed("agency")
+        factory.packageNamed("París Romántico")
+
+        mvc.perform(get("/packages/agency"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("París Romántico"))
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `09 - PUT packages should update the package`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+        val request = TravelPackageRequestDto(
+            "París Premium",
+            travelPackage.hotel.id!!,
+            1L,
+            2L,
+            BigDecimal("1800.00"),
+        )
+
+        mvc.perform(
+            put("/packages/{id}", travelPackage.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.name").value("París Premium"))
+            .andExpect(jsonPath("$.price").value(1800.00))
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `10 - DELETE packages should remove the package`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        mvc.perform(delete("/packages/{id}", travelPackage.id))
+            .andExpect(status().isNoContent)
+
+        mvc.perform(get("/packages/{id}", travelPackage.id))
+            .andExpect(status().isNotFound)
     }
 
     private fun flight(id: Long, origin: String, destination: String): ExternalFlightDto {

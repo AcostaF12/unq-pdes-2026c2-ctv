@@ -86,4 +86,40 @@ class PurchaseServiceTest {
 
         assertEquals("Only buyers can purchase packages.", exception.message)
     }
+
+    @Test
+    fun `04 - findMine should return purchases of the buyer`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val purchases = purchaseService.findMine(buyer.username)
+
+        assertEquals(1, purchases.size)
+        assertEquals("París Romántico", purchases.first().travelPackage.name)
+    }
+
+    @Test
+    fun `05 - findForAgency should return sales of the agency`() {
+        factory.agencyUserNamed("agency")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val sales = purchaseService.findForAgency("agency")
+
+        assertEquals(1, sales.size)
+        assertEquals(buyer.username, sales.first().buyer.username)
+    }
+
+    @Test
+    fun `06 - buyers cannot list agency purchases`() {
+        val buyer = factory.buyerNamed("buyer")
+
+        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+            purchaseService.findForAgency(buyer.username)
+        }
+
+        assertEquals("Only agency users can list agency purchases.", exception.message)
+    }
 }
