@@ -69,6 +69,25 @@ class UserService(
         return userRepository.save(user)
     }
 
+    @Transactional
+    fun updateProfile(username: String, firstName: String, lastName: String): User {
+        val user = findByUsername(username)
+        user.updateProfile(firstName, lastName)
+        return userRepository.save(user)
+    }
+
+    @Transactional
+    fun changePassword(username: String, currentPassword: String, newPassword: String) {
+        require(newPassword.isNotBlank()) { "The user must have a password." }
+        require(newPassword.length >= 6) { "The password must be at least 6 characters." }
+        val user = findByUsername(username)
+        require(passwordEncoder.matches(currentPassword, user.password)) {
+            "The current password is incorrect."
+        }
+        user.changePassword(passwordEncoder.encode(newPassword)!!)
+        userRepository.save(user)
+    }
+
     private fun requireUsernameAvailable(username: String) {
         require(!userRepository.existsByUsername(username)) {
             "The username '$username' is already taken."

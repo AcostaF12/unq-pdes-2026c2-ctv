@@ -41,6 +41,18 @@ open class User protected constructor(builder: BaseBuilder<*>) {
     @Column(name = "last_name", nullable = false, length = 80)
     var lastName: String = builder.lastName!!
 
+    fun updateProfile(firstName: String, lastName: String) {
+        require(firstName.isNotBlank()) { "The user must have a first name." }
+        require(lastName.isNotBlank()) { "The user must have a last name." }
+        this.firstName = firstName.trim()
+        this.lastName = lastName.trim()
+    }
+
+    fun changePassword(encodedPassword: String) {
+        require(encodedPassword.isNotBlank()) { "The user must have a password." }
+        this.password = encodedPassword
+    }
+
     override fun equals(other: Any?): Boolean {
         return (other is User) && id == other.id
     }

@@ -95,4 +95,37 @@ class UserServiceTest {
 
         assertEquals("There is no user with username: ghost.", exception.message)
     }
+
+    @Test
+    fun `07 - updateProfile should persist the new name`() {
+        userService.register("jdoe", "secret", "John", "Doe")
+
+        val updated = userService.updateProfile("jdoe", "Jane", "Roe")
+
+        assertEquals("Jane", updated.firstName)
+        assertEquals("Roe", updated.lastName)
+        assertEquals("Jane", userService.findByUsername("jdoe").firstName)
+    }
+
+    @Test
+    fun `08 - changePassword should update the hash and keep login possible`() {
+        userService.register("jdoe", "secret", "John", "Doe")
+
+        userService.changePassword("jdoe", "secret", "secret2")
+
+        val user = userService.findByUsername("jdoe")
+        assertTrue(passwordEncoder.matches("secret2", user.password))
+        assertTrue(!passwordEncoder.matches("secret", user.password))
+    }
+
+    @Test
+    fun `09 - changePassword should reject an incorrect current password`() {
+        userService.register("jdoe", "secret", "John", "Doe")
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            userService.changePassword("jdoe", "wrong", "secret2")
+        }
+
+        assertEquals("The current password is incorrect.", exception.message)
+    }
 }

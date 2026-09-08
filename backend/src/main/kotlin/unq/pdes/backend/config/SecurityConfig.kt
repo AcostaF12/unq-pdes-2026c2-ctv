@@ -30,19 +30,30 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
+        http.cors { }
         http.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         http.authorizeHttpRequests {
-            // Public - Application
             it.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
             it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             it.requestMatchers("/auth/**", "/error").permitAll()
 
-            // Admin only - Resources ABM (create/update/delete)
             it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole("ADMIN")
 
-            // Authenticated - everything else (including GET hotels/destinations)
+            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
+
+            it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole("AGENCY")
+
+            it.requestMatchers(HttpMethod.POST, "/favorites").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.DELETE, "/favorites/**").hasRole("BUYER")
+
+            it.requestMatchers(HttpMethod.POST, "/reviews").hasRole("BUYER")
+
             it.anyRequest().authenticated()
         }
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
@@ -51,5 +62,6 @@ class SecurityConfig(
 
     companion object {
         private const val HOTELS_PATH = "/hotels/**"
+        private const val PACKAGES_PATH = "/packages/**"
     }
 }

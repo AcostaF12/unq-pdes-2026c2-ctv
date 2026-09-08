@@ -67,6 +67,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       FLIGHTS_SERVICE_URL: http://flights-service:8081
+      CORS_ALLOWED_ORIGIN_PATTERNS: http://localhost:*,http://127.0.0.1:*
       ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000

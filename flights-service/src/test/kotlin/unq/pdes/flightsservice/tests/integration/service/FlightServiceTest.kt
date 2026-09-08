@@ -133,4 +133,36 @@ class FlightServiceTest {
 
         assertTrue(flightService.search(null, null, null).size == 2)
     }
+
+    @Test
+    fun `11 - sell should decrement availability and persist the sale`() {
+        val flight = factory.flightWithAvailability(2)
+
+        val sale = flightService.sell(flight.id!!, "Bruno Buyer")
+
+        assertNotNull(sale.id)
+        assertEquals("Bruno Buyer", sale.passengerName)
+        assertEquals(1, flightService.findById(flight.id!!).availability)
+    }
+
+    @Test
+    fun `12 - sell without availability should throw IllegalArgumentException`() {
+        val flight = factory.flightWithAvailability(0)
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            flightService.sell(flight.id!!, "Bruno Buyer")
+        }
+
+        assertEquals("The flight has no availability.", exception.message)
+    }
+
+    @Test
+    fun `13 - cancelSale should restore availability`() {
+        val flight = factory.flightWithAvailability(1)
+        val sale = flightService.sell(flight.id!!, "Bruno Buyer")
+
+        flightService.cancelSale(sale.id!!)
+
+        assertEquals(1, flightService.findById(flight.id!!).availability)
+    }
 }

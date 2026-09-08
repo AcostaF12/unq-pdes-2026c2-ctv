@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import unq.pdes.backend.model.Agency
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Favorite
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.TravelPackage
@@ -22,10 +22,13 @@ class FavoriteTest {
     private val buyer = User.Builder()
         .id(1L).username("buyer").password("secret").role(Role.BUYER).firstName("Bruno").lastName("Buyer").build()
 
+    private val paris = City("PAR", "Paris")
     private val travelPackage = TravelPackage.Builder()
         .id(1L)
         .agency(Agency.Builder().id(1L).name("Despegar").build())
-        .hotel(Hotel.Builder().id(1L).name("Hotel").destination(Destination("BUE", "Buenos Aires")).photoUrl("https://x.demo/h.jpg").build())
+        .hotel(Hotel.Builder().id(1L).name("Hotel").city(paris).photoUrl("https://x.demo/h.jpg").build())
+        .origin(City("BUE", "Buenos Aires"))
+        .destination(paris)
         .name("Paquete").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal("1000.00")).build()
 
     private fun validBuilder(): Favorite.Builder {

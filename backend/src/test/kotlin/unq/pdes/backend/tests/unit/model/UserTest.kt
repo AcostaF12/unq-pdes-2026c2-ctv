@@ -133,4 +133,34 @@ class UserTest {
         assertTrue(text.contains("username='jdoe'"))
         assertTrue(text.contains("role=BUYER"))
     }
+
+    @Test
+    fun `14 - updateProfile should change first and last name`() {
+        val user = validBuilder().id(1L).build()
+
+        user.updateProfile("Jane", "Roe")
+
+        assertEquals("Jane", user.firstName)
+        assertEquals("Roe", user.lastName)
+    }
+
+    @Test
+    fun `15 - updateProfile should reject a blank first name`() {
+        val user = validBuilder().id(1L).build()
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            user.updateProfile("  ", "Roe")
+        }
+
+        assertEquals("The user must have a first name.", exception.message)
+    }
+
+    @Test
+    fun `16 - changePassword should replace the stored password`() {
+        val user = validBuilder().id(1L).build()
+
+        user.changePassword("hashed-secret")
+
+        assertEquals("hashed-secret", user.password)
+    }
 }

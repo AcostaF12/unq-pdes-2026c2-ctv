@@ -28,6 +28,10 @@ class Purchase private constructor(builder: Builder) {
     @JoinColumn(name = "package_id", nullable = false)
     var travelPackage: TravelPackage = builder.travelPackage!!
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "agency_id", nullable = false)
+    var agency: Agency = builder.agency!!
+
     @Column(name = "purchase_price", nullable = false, precision = 12, scale = 2)
     var purchasePrice: BigDecimal = builder.purchasePrice!!
 
@@ -51,6 +55,7 @@ class Purchase private constructor(builder: Builder) {
         var id: Long? = null
         var buyer: User? = null
         var travelPackage: TravelPackage? = null
+        var agency: Agency? = null
         var purchasePrice: BigDecimal? = null
         var purchasedAt: LocalDateTime? = null
 
@@ -66,6 +71,10 @@ class Purchase private constructor(builder: Builder) {
             this.travelPackage = travelPackage
         }
 
+        fun agency(agency: Agency) = apply {
+            this.agency = agency
+        }
+
         fun purchasePrice(purchasePrice: BigDecimal) = apply {
             require(purchasePrice.signum() > 0) { "The purchase price must be greater than zero." }
             this.purchasePrice = purchasePrice
@@ -78,6 +87,7 @@ class Purchase private constructor(builder: Builder) {
         fun build(): Purchase {
             requireNotNull(buyer) { "The purchase must have a buyer." }
             requireNotNull(travelPackage) { "The purchase must reference a package." }
+            requireNotNull(agency) { "The purchase must belong to an agency." }
             requireNotNull(purchasePrice) { "The purchase must have a price." }
             requireNotNull(purchasedAt) { "The purchase must have a timestamp." }
             return Purchase(this)

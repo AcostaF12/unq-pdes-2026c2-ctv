@@ -129,4 +129,54 @@ class FlightControllerTest {
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].flightDate").value("2026-12-25"))
     }
+
+    @Test
+    fun `07 - GET vuelo by id should return the flight`() {
+        val flight = factory.anyFlight()
+
+        mvc.perform(get("/flights/{id}", flight.id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(flight.id))
+            .andExpect(jsonPath("$.origin").value("BUE"))
+    }
+
+    @Test
+    fun `08 - GET vuelo by id should return 404 when not found`() {
+        mvc.perform(get("/flights/{id}", 999))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.errorData.description").value("There is no Flight with id: 999."))
+    }
+
+    @Test
+    fun `09 - POST sales should create a sale and decrement availability`() {
+        val flight = factory.flightWithAvailability(5)
+        val body = """{"passengerName":"Bruno Buyer"}"""
+
+        mvc.perform(
+            post("/flights/{id}/sales", flight.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.id").isNotEmpty)
+            .andExpect(jsonPath("$.passengerName").value("Bruno Buyer"))
+            .andExpect(jsonPath("$.flightId").value(flight.id))
+
+        mvc.perform(get("/flights/{id}", flight.id))
+            .andExpect(jsonPath("$.availability").value(4))
+    }
+
+    @Test
+    fun `10 - POST sales without availability should return 400`() {
+        val flight = factory.flightWithAvailability(0)
+        val body = """{"passengerName":"Bruno Buyer"}"""
+
+        mvc.perform(
+            post("/flights/{id}/sales", flight.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("The flight has no availability."))
+    }
 }

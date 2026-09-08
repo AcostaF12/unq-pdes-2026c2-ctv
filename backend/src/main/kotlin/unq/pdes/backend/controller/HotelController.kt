@@ -2,9 +2,9 @@ package unq.pdes.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,7 +19,6 @@ import unq.pdes.backend.service.HotelService
 
 @Tag(name = "Hotel Services", description = "Endpoints para la administración (ABM) de hoteles.")
 @RestController
-@CrossOrigin
 @RequestMapping("/hotels")
 class HotelController(
     private val hotelService: HotelService,
@@ -39,15 +38,15 @@ class HotelController(
 
     @Operation(summary = "Crear hotel", description = "Registra un nuevo hotel.")
     @PostMapping
-    fun create(@RequestBody request: HotelRequestDto): ResponseEntity<HotelDto> {
-        val hotel = hotelService.create(request.name, request.destinationCode, request.photoUrl)
+    fun create(@Valid @RequestBody request: HotelRequestDto): ResponseEntity<HotelDto> {
+        val hotel = hotelService.create(request.name, request.cityCode, request.photoUrl)
         return ResponseEntity.status(HttpStatus.CREATED).body(HotelDto.fromModel(hotel))
     }
 
     @Operation(summary = "Actualizar hotel", description = "Modifica el hotel identificado por ID.")
     @PutMapping("/{id}")
-    fun update(@PathVariable id: Long, @RequestBody request: HotelRequestDto): ResponseEntity<HotelDto> {
-        val hotel = hotelService.update(id, request.name, request.destinationCode, request.photoUrl)
+    fun update(@PathVariable id: Long, @Valid @RequestBody request: HotelRequestDto): ResponseEntity<HotelDto> {
+        val hotel = hotelService.update(id, request.name, request.cityCode, request.photoUrl)
         return ResponseEntity.ok(HotelDto.fromModel(hotel))
     }
 

@@ -13,3 +13,7 @@ export function getApiErrorMessage(error: unknown): string | undefined {
   }
   return undefined
 }
+
+export function isNotFoundError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404
+}

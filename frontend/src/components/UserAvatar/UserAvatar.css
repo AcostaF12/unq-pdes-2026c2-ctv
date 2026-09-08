@@ -1,0 +1,43 @@
+.user-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.user-avatar--sm {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+  border-width: 2px;
+}
+
+.user-avatar--md {
+  width: 44px;
+  height: 44px;
+  font-size: 14px;
+  border-width: 2px;
+}
+
+.user-avatar--lg {
+  width: 72px;
+  height: 72px;
+  font-size: 22px;
+  border-width: 3px;
+}
+
+.user-avatar--on-dark {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border-style: solid;
+  border-color: var(--color-secondary);
+}
+
+.user-avatar--on-light {
+  background: var(--color-ink);
+  color: var(--color-secondary);
+  border-style: solid;
+  border-color: var(--color-ink);
+}

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import unq.pdes.backend.model.Agency
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Favorite
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.Purchase
@@ -17,14 +17,14 @@ import unq.pdes.backend.model.Review
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.User
 import unq.pdes.backend.persistence.jpa.AgencyRepository
-import unq.pdes.backend.persistence.jpa.DestinationRepository
+import unq.pdes.backend.persistence.jpa.CityRepository
 import unq.pdes.backend.persistence.jpa.FavoriteRepository
 import unq.pdes.backend.persistence.jpa.HotelRepository
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.ReviewRepository
 import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.persistence.jpa.UserRepository
-import unq.pdes.backend.service.DestinationService
+import unq.pdes.backend.service.CityService
 import unq.pdes.backend.service.HotelService
 import unq.pdes.backend.service.UserService
 
@@ -32,10 +32,10 @@ import unq.pdes.backend.service.UserService
 @Profile("dev", "prod")
 @Suppress("LongParameterList")
 class DataBootstrap(
-    private val destinationService: DestinationService,
+    private val cityService: CityService,
     private val hotelService: HotelService,
     private val hotelRepository: HotelRepository,
-    private val destinationRepository: DestinationRepository,
+    private val cityRepository: CityRepository,
     private val userService: UserService,
     private val userRepository: UserRepository,
     private val agencyRepository: AgencyRepository,
@@ -54,7 +54,7 @@ class DataBootstrap(
             resetDevelopmentData()
         }
 
-        loadDestinations()
+        loadCities()
         val hotels = loadHotels()
         loadAgencies()
         loadUsers()
@@ -66,7 +66,7 @@ class DataBootstrap(
     }
 
     private fun logDataSummary() {
-        logger.info("Destinations: {}", destinationRepository.count())
+        logger.info("Cities: {}", cityRepository.count())
         logger.info("Hotels: {}", hotelRepository.count())
         logger.info("Agencies: {}", agencyRepository.count())
         logger.info("Users: {}", userRepository.count())
@@ -84,31 +84,31 @@ class DataBootstrap(
         userRepository.deleteAll()
         agencyRepository.deleteAll()
         hotelRepository.deleteAll()
-        destinationRepository.deleteAll()
+        cityRepository.deleteAll()
     }
 
-    private fun loadDestinations() {
+    private fun loadCities() {
         listOf(
-            Destination("BUE", "Buenos Aires"),
-            Destination("PAR", "Paris"),
-            Destination("LON", "London"),
-            Destination("ROM", "Rome"),
-            Destination("NYC", "New York"),
-            Destination("TYO", "Tokyo"),
-            Destination("RIO", "Rio de Janeiro"),
-            Destination("BCN", "Barcelona"),
-            Destination("CUN", "Cancun"),
-            Destination("DXB", "Dubai"),
-        ).forEach { destination ->
-            if (!destinationService.existsByCode(destination.code)) {
-                destinationService.save(destination)
+            City("BUE", "Buenos Aires"),
+            City("PAR", "Paris"),
+            City("LON", "London"),
+            City("ROM", "Rome"),
+            City("NYC", "New York"),
+            City("TYO", "Tokyo"),
+            City("RIO", "Rio de Janeiro"),
+            City("BCN", "Barcelona"),
+            City("CUN", "Cancun"),
+            City("DXB", "Dubai"),
+        ).forEach { city ->
+            if (!cityService.existsByCode(city.code)) {
+                cityService.save(city)
             }
         }
     }
 
     private fun loadHotels(): Map<String, Hotel> {
         if (hotelRepository.count() > 0) {
-            return hotelRepository.findAll().associateBy { it.destination.code }
+            return hotelRepository.findAll().associateBy { it.city.code }
         }
         return listOf(
             hotel("Gran Hotel Buenos Aires", "BUE", "https://images.ctv.demo/hotels/gran-hotel-buenos-aires.jpg"),
@@ -118,13 +118,13 @@ class DataBootstrap(
             hotel("Hotel Central Park", "NYC", "https://images.ctv.demo/hotels/central-park.jpg"),
             hotel("Hotel Costa de Río", "RIO", "https://images.ctv.demo/hotels/costa-de-rio.jpg"),
         ).map { hotelService.save(it) }
-            .associateBy { it.destination.code }
+            .associateBy { it.city.code }
     }
 
-    private fun hotel(name: String, destinationCode: String, photoUrl: String): Hotel {
+    private fun hotel(name: String, cityCode: String, photoUrl: String): Hotel {
         return Hotel.Builder()
             .name(name)
-            .destination(destinationService.findByCode(destinationCode))
+            .city(cityService.findByCode(cityCode))
             .photoUrl(photoUrl)
             .build()
     }
@@ -184,6 +184,8 @@ class DataBootstrap(
         return TravelPackage.Builder()
             .agency(agency)
             .hotel(hotel)
+            .origin(cityService.findByCode("BUE"))
+            .destination(hotel.city)
             .name(name)
             .outboundFlightId(outboundFlightId)
             .returnFlightId(returnFlightId)
@@ -250,6 +252,7 @@ class DataBootstrap(
         return Purchase.Builder()
             .buyer(buyer)
             .travelPackage(travelPackage)
+            .agency(travelPackage.agency)
             .purchasePrice(travelPackage.price)
             .purchasedAt(purchasedAt)
             .build()

@@ -73,7 +73,7 @@ class HotelControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(hotel.id))
             .andExpect(jsonPath("$.name").value("The Savoy"))
-            .andExpect(jsonPath("$.destination.code").value("BUE"))
+            .andExpect(jsonPath("$.city.code").value("BUE"))
     }
 
     @Test
@@ -86,19 +86,19 @@ class HotelControllerTest {
 
     @Test
     fun `04 - POST hotels should create the hotel and return 201`() {
-        factory.destinationWith("PAR", "Paris")
+        factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
 
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNotEmpty)
             .andExpect(jsonPath("$.name").value("Hotel Le Meurice"))
-            .andExpect(jsonPath("$.destination.code").value("PAR"))
+            .andExpect(jsonPath("$.city.code").value("PAR"))
     }
 
     @Test
     fun `05 - POST hotels with blank name should return 400`() {
-        factory.destinationWith("PAR", "Paris")
+        factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("  ", "PAR", "https://x.demo/lm.jpg")
 
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
@@ -108,12 +108,12 @@ class HotelControllerTest {
     }
 
     @Test
-    fun `06 - POST hotels with unknown destination should return 404`() {
+    fun `06 - POST hotels with unknown city should return 404`() {
         val request = HotelRequestDto("Some hotel", "ZZZ", "https://x.demo/p.jpg")
 
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.errorData.description").value("There is no Destination with code: ZZZ."))
+            .andExpect(jsonPath("$.errorData.description").value("There is no City with code: ZZZ."))
     }
 
     @Test
@@ -141,7 +141,7 @@ class HotelControllerTest {
     @Test
     @WithMockUser(roles = ["BUYER"])
     fun `09 - POST hotels as a non-admin should return 403`() {
-        factory.destinationWith("PAR", "Paris")
+        factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
 
         mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
