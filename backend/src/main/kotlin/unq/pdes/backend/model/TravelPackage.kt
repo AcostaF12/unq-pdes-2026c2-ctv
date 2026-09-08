@@ -30,10 +30,17 @@ class TravelPackage private constructor(builder: Builder) {
     @JoinColumn(name = "hotel_id", nullable = false)
     var hotel: Hotel = builder.hotel!!
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "origin_city_code", nullable = false)
+    var origin: City = builder.origin!!
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "destination_city_code", nullable = false)
+    var destination: City = builder.destination!!
+
     @Column(nullable = false, length = 160)
     var name: String = builder.name!!
 
-    // Referencias lógicas a flights-service (sin FK física, cross-service).
     @Column(name = "outbound_flight_id", nullable = false)
     var outboundFlightId: Long = builder.outboundFlightId!!
 
@@ -59,6 +66,8 @@ class TravelPackage private constructor(builder: Builder) {
         var id: Long? = null
         var agency: Agency? = null
         var hotel: Hotel? = null
+        var origin: City? = null
+        var destination: City? = null
         var name: String? = null
         var outboundFlightId: Long? = null
         var returnFlightId: Long? = null
@@ -74,6 +83,14 @@ class TravelPackage private constructor(builder: Builder) {
 
         fun hotel(hotel: Hotel) = apply {
             this.hotel = hotel
+        }
+
+        fun origin(origin: City) = apply {
+            this.origin = origin
+        }
+
+        fun destination(destination: City) = apply {
+            this.destination = destination
         }
 
         fun name(name: String) = apply {
@@ -97,6 +114,9 @@ class TravelPackage private constructor(builder: Builder) {
         fun build(): TravelPackage {
             requireNotNull(agency) { "The package must belong to an agency." }
             requireNotNull(hotel) { "The package must have a hotel." }
+            val originCity = requireNotNull(origin) { "The package must have an origin city." }
+            val destinationCity = requireNotNull(destination) { "The package must have a destination city." }
+            require(originCity.code != destinationCity.code) { "Origin and destination cities must be different." }
             requireNotNull(name) { "The package must have a name." }
             val outbound = requireNotNull(outboundFlightId) { "The package must have an outbound flight." }
             val ret = requireNotNull(returnFlightId) { "The package must have a return flight." }

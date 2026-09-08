@@ -1,34 +1,34 @@
 package unq.pdes.backend.helpers.factory
 
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 
 open class ObjectsFactory {
 
-    open fun anyDestination(): Destination {
-        return Destination("BUE", "Buenos Aires")
+    open fun anyCity(): City {
+        return City("BUE", "Buenos Aires")
     }
 
-    open fun destinationWith(code: String, city: String): Destination {
-        return Destination(code, city)
+    open fun cityWith(code: String, name: String): City {
+        return City(code, name)
     }
 
     open fun anyHotel(): Hotel {
-        return hotelIn(anyDestination())
+        return hotelIn(anyCity())
     }
 
     open fun hotelNamed(name: String): Hotel {
         return Hotel.Builder()
             .name(name)
-            .destination(anyDestination())
+            .city(anyCity())
             .photoUrl(SOME_PHOTO_URL)
             .build()
     }
 
-    open fun hotelIn(destination: Destination): Hotel {
+    open fun hotelIn(city: City): Hotel {
         return Hotel.Builder()
             .name("Some hotel name")
-            .destination(destination)
+            .city(city)
             .photoUrl(SOME_PHOTO_URL)
             .build()
     }

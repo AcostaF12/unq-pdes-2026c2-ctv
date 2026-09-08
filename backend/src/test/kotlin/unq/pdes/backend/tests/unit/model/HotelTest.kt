@@ -7,18 +7,18 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 
 @TestInstance(PER_CLASS)
 class HotelTest {
 
-    private val destination = Destination("BUE", "Buenos Aires")
+    private val city = City("BUE", "Buenos Aires")
 
     private fun validBuilder(): Hotel.Builder {
         return Hotel.Builder()
             .name("Alvear Palace Hotel")
-            .destination(destination)
+            .city(city)
             .photoUrl("https://images.ctv.demo/hotels/alvear.jpg")
     }
 
@@ -28,7 +28,7 @@ class HotelTest {
 
         assertEquals(1L, hotel.id)
         assertEquals("Alvear Palace Hotel", hotel.name)
-        assertEquals(destination, hotel.destination)
+        assertEquals(city, hotel.city)
         assertEquals("https://images.ctv.demo/hotels/alvear.jpg", hotel.photoUrl)
     }
 
@@ -53,25 +53,25 @@ class HotelTest {
     @Test
     fun `04 - building without name should throw IllegalArgumentException`() {
         val exception = assertThrows(IllegalArgumentException::class.java) {
-            Hotel.Builder().destination(destination).photoUrl("https://x.demo/p.jpg").build()
+            Hotel.Builder().city(city).photoUrl("https://x.demo/p.jpg").build()
         }
 
         assertEquals("The hotel must have a name.", exception.message)
     }
 
     @Test
-    fun `05 - building without destination should throw IllegalArgumentException`() {
+    fun `05 - building without city should throw IllegalArgumentException`() {
         val exception = assertThrows(IllegalArgumentException::class.java) {
             Hotel.Builder().name("Some hotel").photoUrl("https://x.demo/p.jpg").build()
         }
 
-        assertEquals("The hotel must have a destination.", exception.message)
+        assertEquals("The hotel must have a city.", exception.message)
     }
 
     @Test
     fun `06 - building without photo url should throw IllegalArgumentException`() {
         val exception = assertThrows(IllegalArgumentException::class.java) {
-            Hotel.Builder().name("Some hotel").destination(destination).build()
+            Hotel.Builder().name("Some hotel").city(city).build()
         }
 
         assertEquals("The hotel must have a photo url.", exception.message)
@@ -109,10 +109,10 @@ class HotelTest {
     }
 
     @Test
-    fun `11 - toString should contain the name and destination`() {
+    fun `11 - toString should contain the name and city`() {
         val text = validBuilder().id(1L).build().toString()
 
         assertTrue(text.contains("name='Alvear Palace Hotel'"))
-        assertTrue(text.contains("destination=BUE"))
+        assertTrue(text.contains("city=BUE"))
     }
 }

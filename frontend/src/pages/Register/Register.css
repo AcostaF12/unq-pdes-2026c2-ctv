@@ -8,15 +8,6 @@
   text-align: left;
 }
 
-.register-card__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-primary);
-  margin-bottom: var(--space-1);
-}
-
 .register-card__title {
   font-size: 32px;
   margin-bottom: var(--space-4);

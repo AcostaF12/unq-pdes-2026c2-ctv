@@ -5,28 +5,28 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import unq.pdes.backend.controller.dtos.models.DestinationDto
+import unq.pdes.backend.controller.dtos.models.CityDto
 import unq.pdes.backend.controller.dtos.models.HotelDto
-import unq.pdes.backend.model.Destination
+import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 
 @TestInstance(PER_CLASS)
 class HotelDtoTest {
 
-    private val destination = Destination("BUE", "Buenos Aires")
+    private val city = City("BUE", "Buenos Aires")
 
     @Test
     fun `01 - should create a HotelDto with all parameters`() {
         val dto = HotelDto(
             id = 1L,
             name = "Alvear Palace Hotel",
-            destination = DestinationDto.fromModel(destination),
+            city = CityDto.fromModel(city),
             photoUrl = "https://x.demo/p.jpg",
         )
 
         assertEquals(1L, dto.id)
         assertEquals("Alvear Palace Hotel", dto.name)
-        assertEquals("BUE", dto.destination.code)
+        assertEquals("BUE", dto.city.code)
         assertEquals("https://x.demo/p.jpg", dto.photoUrl)
     }
 
@@ -35,7 +35,7 @@ class HotelDtoTest {
         val hotel = Hotel.Builder()
             .id(5L)
             .name("The Savoy")
-            .destination(destination)
+            .city(city)
             .photoUrl("https://x.demo/savoy.jpg")
             .build()
 
@@ -43,7 +43,7 @@ class HotelDtoTest {
 
         assertEquals(5L, dto.id)
         assertEquals("The Savoy", dto.name)
-        assertEquals("BUE", dto.destination.code)
+        assertEquals("BUE", dto.city.code)
         assertEquals("https://x.demo/savoy.jpg", dto.photoUrl)
     }
 
@@ -52,7 +52,7 @@ class HotelDtoTest {
         val dto = HotelDto(
             id = 7L,
             name = "Copacabana Palace",
-            destination = DestinationDto("RIO", "Rio de Janeiro"),
+            city = CityDto("RIO", "Rio de Janeiro"),
             photoUrl = "https://x.demo/copa.jpg",
         )
 
@@ -60,7 +60,7 @@ class HotelDtoTest {
 
         assertEquals(7L, model.id)
         assertEquals("Copacabana Palace", model.name)
-        assertEquals("RIO", model.destination.code)
+        assertEquals("RIO", model.city.code)
         assertEquals("https://x.demo/copa.jpg", model.photoUrl)
     }
 
@@ -69,7 +69,7 @@ class HotelDtoTest {
         val dto = HotelDto(
             id = null,
             name = "Nuevo Hotel",
-            destination = DestinationDto.fromModel(destination),
+            city = CityDto.fromModel(city),
             photoUrl = "https://x.demo/p.jpg",
         )
 

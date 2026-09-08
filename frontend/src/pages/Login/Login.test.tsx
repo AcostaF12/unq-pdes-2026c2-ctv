@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import axios from 'axios'
 import { Login } from './Login'
 import { login } from '../../api/auth'
+import { AuthProvider } from '../../auth/AuthContext'
 
 vi.mock('../../api/auth', () => ({
   login: vi.fn(),
@@ -24,7 +25,9 @@ const mockedLogin = vi.mocked(login)
 function renderLogin() {
   return render(
     <MemoryRouter>
-      <Login />
+      <AuthProvider>
+        <Login />
+      </AuthProvider>
     </MemoryRouter>,
   )
 }
@@ -33,6 +36,7 @@ describe('Login page', () => {
   beforeEach(() => {
     mockedLogin.mockReset()
     mockNavigate.mockReset()
+    localStorage.clear()
   })
 
   it('01 - renders the username and password fields with accessible labels', () => {

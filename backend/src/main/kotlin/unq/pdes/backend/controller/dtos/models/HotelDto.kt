@@ -5,7 +5,7 @@ import unq.pdes.backend.model.Hotel
 data class HotelDto(
     val id: Long?,
     val name: String,
-    val destination: DestinationDto,
+    val city: CityDto,
     val photoUrl: String,
 ) {
     companion object {
@@ -13,7 +13,7 @@ data class HotelDto(
             return HotelDto(
                 id = hotel.id,
                 name = hotel.name,
-                destination = DestinationDto.fromModel(hotel.destination),
+                city = CityDto.fromModel(hotel.city),
                 photoUrl = hotel.photoUrl,
             )
         }
@@ -23,7 +23,7 @@ data class HotelDto(
         return Hotel.Builder()
             .id(id)
             .name(name)
-            .destination(destination.toModel())
+            .city(city.toModel())
             .photoUrl(photoUrl)
             .build()
     }

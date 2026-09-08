@@ -21,8 +21,8 @@ class Hotel private constructor(builder: Builder) {
     var name: String = builder.name!!
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "destination_code", nullable = false)
-    var destination: Destination = builder.destination!!
+    @JoinColumn(name = "city_code", nullable = false)
+    var city: City = builder.city!!
 
     @Column(name = "photo_url", nullable = false, length = 500)
     var photoUrl: String = builder.photoUrl!!
@@ -36,13 +36,13 @@ class Hotel private constructor(builder: Builder) {
     }
 
     override fun toString(): String {
-        return "Hotel(id=$id, name='$name', destination=${destination.code}, photoUrl='$photoUrl')"
+        return "Hotel(id=$id, name='$name', city=${city.code}, photoUrl='$photoUrl')"
     }
 
     class Builder {
         var id: Long? = null
         var name: String? = null
-        var destination: Destination? = null
+        var city: City? = null
         var photoUrl: String? = null
 
         fun id(id: Long?) = apply {
@@ -54,8 +54,8 @@ class Hotel private constructor(builder: Builder) {
             this.name = name
         }
 
-        fun destination(destination: Destination) = apply {
-            this.destination = destination
+        fun city(city: City) = apply {
+            this.city = city
         }
 
         fun photoUrl(photoUrl: String) = apply {
@@ -65,7 +65,7 @@ class Hotel private constructor(builder: Builder) {
 
         fun build(): Hotel {
             requireNotNull(name) { "The hotel must have a name." }
-            requireNotNull(destination) { "The hotel must have a destination." }
+            requireNotNull(city) { "The hotel must have a city." }
             requireNotNull(photoUrl) { "The hotel must have a photo url." }
             return Hotel(this)
         }

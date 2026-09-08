@@ -10,6 +10,7 @@ services:
     image: ghcr.io/acostaf12/ctv-backend:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
 
   frontend:
     build: !reset null

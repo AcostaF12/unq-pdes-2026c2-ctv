@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import axios from 'axios'
 import { Register } from './Register'
 import { register } from '../../api/auth'
+import { AuthProvider } from '../../auth/AuthContext'
 
 vi.mock('../../api/auth', () => ({
   register: vi.fn(),
@@ -24,7 +25,9 @@ const mockedRegister = vi.mocked(register)
 function renderRegister() {
   return render(
     <MemoryRouter>
-      <Register />
+      <AuthProvider>
+        <Register />
+      </AuthProvider>
     </MemoryRouter>,
   )
 }
@@ -41,6 +44,7 @@ describe('Register page', () => {
   beforeEach(() => {
     mockedRegister.mockReset()
     mockNavigate.mockReset()
+    localStorage.clear()
   })
 
   it('01 - renders all the fields with accessible labels', () => {

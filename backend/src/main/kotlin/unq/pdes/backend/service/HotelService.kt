@@ -9,7 +9,7 @@ import unq.pdes.backend.persistence.jpa.HotelRepository
 @Service
 class HotelService(
     private val hotelRepository: HotelRepository,
-    private val destinationService: DestinationService,
+    private val cityService: CityService,
 ) {
 
     @Transactional(readOnly = true)
@@ -24,24 +24,24 @@ class HotelService(
     }
 
     @Transactional
-    fun create(name: String, destinationCode: String, photoUrl: String): Hotel {
-        val destination = destinationService.findByCode(destinationCode)
+    fun create(name: String, cityCode: String, photoUrl: String): Hotel {
+        val city = cityService.findByCode(cityCode)
         val hotel = Hotel.Builder()
             .name(name)
-            .destination(destination)
+            .city(city)
             .photoUrl(photoUrl)
             .build()
         return hotelRepository.save(hotel)
     }
 
     @Transactional
-    fun update(id: Long, name: String, destinationCode: String, photoUrl: String): Hotel {
+    fun update(id: Long, name: String, cityCode: String, photoUrl: String): Hotel {
         findById(id)
-        val destination = destinationService.findByCode(destinationCode)
+        val city = cityService.findByCode(cityCode)
         val hotel = Hotel.Builder()
             .id(id)
             .name(name)
-            .destination(destination)
+            .city(city)
             .photoUrl(photoUrl)
             .build()
         return hotelRepository.save(hotel)

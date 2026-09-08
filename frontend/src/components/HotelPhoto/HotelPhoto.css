@@ -1,0 +1,58 @@
+.hotel-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: var(--color-ink);
+  border-bottom: var(--border-width) solid var(--color-ink);
+}
+
+.hotel-photo__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hotel-photo::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background: linear-gradient(transparent, rgb(28 43 69 / 0.65));
+  pointer-events: none;
+}
+
+.hotel-photo__badge {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  z-index: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  background: var(--color-secondary);
+  border: var(--border-width) solid var(--color-ink);
+  padding: 2px 8px;
+}
+
+.hotel-photo--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.hotel-photo--fallback::after {
+  display: none;
+}
+
+.hotel-photo--large {
+  height: 280px;
+}
