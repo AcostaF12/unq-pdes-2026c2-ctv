@@ -4,6 +4,7 @@ class CtvWorld {
   constructor() {
     this.response = null
     this.token = null
+    this.buyerToken = null
     this.currentUsername = null
     this.package = null
     this.packagePrice = null

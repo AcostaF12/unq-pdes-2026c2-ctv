@@ -31,6 +31,7 @@ async function registerBuyer(world) {
   })
   assert.equal(response.status, 201)
   world.token = response.body.token
+  world.buyerToken = response.body.token
   world.currentUsername = username
 }
 
@@ -271,4 +272,31 @@ Then('ambos vuelos tienen un asiento menos disponible', async function () {
   assert.equal(returnFlight.status, 200)
   assert.equal(outbound.body.availability, this.originalOutboundAvailability - 1)
   assert.equal(returnFlight.body.availability, this.originalReturnAvailability - 1)
+})
+
+When('la agencia cambia el precio del paquete a {int}', async function (newPrice) {
+  await loginAsAgency(this)
+  const response = await backendRequest(`/packages/${this.package.id}`, {
+    method: 'PUT',
+    token: this.token,
+    body: {
+      name: this.package.name,
+      hotelId: this.package.hotel.id,
+      outboundFlightId: this.package.outboundFlightId,
+      returnFlightId: this.package.returnFlightId,
+      price: newPrice,
+    },
+  })
+  assert.equal(response.status, 200, JSON.stringify(response.body))
+  this.package = response.body
+  this.token = this.buyerToken
+})
+
+Then('su historial conserva el precio original de la compra', async function () {
+  const response = await backendRequest('/purchases/me', { token: this.token })
+  assert.equal(response.status, 200)
+  const purchase = response.body.find((candidate) => candidate.packageId === this.package.id)
+  assert.ok(purchase, 'The purchase was not found in the buyer history.')
+  assert.equal(Number(purchase.purchasePrice), Number(this.packagePrice))
+  assert.notEqual(Number(purchase.purchasePrice), Number(this.package.price))
 })

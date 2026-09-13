@@ -52,3 +52,10 @@ Feature: Flujos críticos de Compra Tu Viaje
     When compra el paquete nuevo
     Then la compra responde con status 201
     And ambos vuelos tienen un asiento menos disponible
+
+  Scenario: Una compra conserva el precio vigente al momento de comprar
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    When compra el paquete nuevo
+    And la agencia cambia el precio del paquete a 2400
+    Then su historial conserva el precio original de la compra
