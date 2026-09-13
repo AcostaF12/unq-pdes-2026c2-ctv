@@ -300,3 +300,41 @@ Then('su historial conserva el precio original de la compra', async function () 
   assert.equal(Number(purchase.purchasePrice), Number(this.packagePrice))
   assert.notEqual(Number(purchase.purchasePrice), Number(this.package.price))
 })
+
+async function reviewPackage(world, comment) {
+  return backendRequest('/reviews', {
+    method: 'POST',
+    token: world.token,
+    body: {
+      packageId: world.package.id,
+      score: 9,
+      comment,
+    },
+  })
+}
+
+When('intenta reseñar el paquete nuevo sin comprarlo', async function () {
+  this.response = await reviewPackage(this, 'No debería aceptarse')
+})
+
+Then('la reseña es rechazada con status {int}', function (status) {
+  assert.equal(this.response.status, status, JSON.stringify(this.response.body))
+})
+
+Given('compró el paquete nuevo', async function () {
+  const response = await backendRequest('/purchases', {
+    method: 'POST',
+    token: this.token,
+    body: { packageId: this.package.id },
+  })
+  assert.equal(response.status, 201, JSON.stringify(response.body))
+})
+
+Given('publicó una reseña del paquete nuevo', async function () {
+  const response = await reviewPackage(this, 'Primera reseña')
+  assert.equal(response.status, 201, JSON.stringify(response.body))
+})
+
+When('intenta publicar otra reseña del mismo paquete', async function () {
+  this.response = await reviewPackage(this, 'Segunda reseña')
+})

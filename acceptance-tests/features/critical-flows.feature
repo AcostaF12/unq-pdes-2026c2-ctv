@@ -59,3 +59,17 @@ Feature: Flujos críticos de Compra Tu Viaje
     When compra el paquete nuevo
     And la agencia cambia el precio del paquete a 2400
     Then su historial conserva el precio original de la compra
+
+  Scenario: Un comprador no puede reseñar un paquete que no compró
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    When intenta reseñar el paquete nuevo sin comprarlo
+    Then la reseña es rechazada con status 400
+
+  Scenario: Un comprador no puede reseñar dos veces el mismo paquete
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    And compró el paquete nuevo
+    And publicó una reseña del paquete nuevo
+    When intenta publicar otra reseña del mismo paquete
+    Then la reseña es rechazada con status 400
