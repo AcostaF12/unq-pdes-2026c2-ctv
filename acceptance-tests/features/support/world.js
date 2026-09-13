@@ -10,6 +10,7 @@ class CtvWorld {
     this.outboundFlight = null
     this.returnFlight = null
     this.originalOutboundAvailability = null
+    this.originalReturnAvailability = null
   }
 }
 

@@ -231,3 +231,44 @@ Then('el vuelo de ida recupera su disponibilidad original', async function () {
   assert.equal(response.status, 200)
   assert.equal(response.body.availability, this.originalOutboundAvailability)
 })
+
+When('el comprador intenta publicar un paquete para {string}', async function (destination) {
+  const hotel = await findHotel(this.token, destination)
+  this.response = await backendRequest('/packages', {
+    method: 'POST',
+    token: this.token,
+    body: {
+      name: `Paquete no autorizado ${randomUUID().slice(0, 8)}`,
+      hotelId: hotel.id,
+      outboundFlightId: this.outboundFlight.id,
+      returnFlightId: this.returnFlight.id,
+      price: 1000,
+    },
+  })
+})
+
+Then('la publicación es rechazada con status {int}', function (status) {
+  assert.equal(this.response.status, status, JSON.stringify(this.response.body))
+})
+
+Given('se registra la disponibilidad actual de ambos vuelos', async function () {
+  const [outbound, returnFlight] = await Promise.all([
+    flightsRequest(`/flights/${this.outboundFlight.id}`),
+    flightsRequest(`/flights/${this.returnFlight.id}`),
+  ])
+  assert.equal(outbound.status, 200)
+  assert.equal(returnFlight.status, 200)
+  this.originalOutboundAvailability = outbound.body.availability
+  this.originalReturnAvailability = returnFlight.body.availability
+})
+
+Then('ambos vuelos tienen un asiento menos disponible', async function () {
+  const [outbound, returnFlight] = await Promise.all([
+    flightsRequest(`/flights/${this.outboundFlight.id}`),
+    flightsRequest(`/flights/${this.returnFlight.id}`),
+  ])
+  assert.equal(outbound.status, 200)
+  assert.equal(returnFlight.status, 200)
+  assert.equal(outbound.body.availability, this.originalOutboundAvailability - 1)
+  assert.equal(returnFlight.body.availability, this.originalReturnAvailability - 1)
+})

@@ -38,3 +38,17 @@ Feature: Flujos críticos de Compra Tu Viaje
     Then la compra es rechazada con status 400
     And no queda una compra registrada
     And el vuelo de ida recupera su disponibilidad original
+
+  Scenario: Un comprador no puede publicar paquetes
+    Given inició sesión un comprador nuevo
+    And existen vuelos de ida y vuelta entre "BUE" y "PAR"
+    When el comprador intenta publicar un paquete para "PAR"
+    Then la publicación es rechazada con status 403
+
+  Scenario: Una compra reduce la disponibilidad de ambos vuelos
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    And se registra la disponibilidad actual de ambos vuelos
+    When compra el paquete nuevo
+    Then la compra responde con status 201
+    And ambos vuelos tienen un asiento menos disponible
