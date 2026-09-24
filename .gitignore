@@ -49,3 +49,6 @@ logs/
 # Docs
 docs/enunciado.md
 docs/deploy-azure-checklist.md
+# Cucumber acceptance tests
+acceptance-tests/node_modules/
+acceptance-tests/reports/
