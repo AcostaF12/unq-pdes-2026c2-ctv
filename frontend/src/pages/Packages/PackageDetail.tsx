@@ -59,7 +59,7 @@ export function PackageDetail() {
   })
 
   const favorited = favoritesQuery.data?.some((item) => item.packageId === packageId) ?? false
-  const purchased = purchasesQuery.data?.some((item) => item.packageId === packageId) ?? false
+  const purchased = purchasesQuery.data?.some((item) => item.travelPackage.id === packageId) ?? false
   const detail = detailQuery.data
 
   const buyMutation = useMutation({

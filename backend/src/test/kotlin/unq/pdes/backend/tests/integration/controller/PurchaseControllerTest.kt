@@ -76,8 +76,10 @@ class PurchaseControllerTest {
                 .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
         )
             .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.packageName").value("París Romántico"))
-            .andExpect(jsonPath("$.agency.name").value("Despegar"))
+            .andExpect(jsonPath("$.buyer.username").value("buyer"))
+            .andExpect(jsonPath("$.travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$.travelPackage.agency.name").value("Despegar"))
+            .andExpect(jsonPath("$.travelPackage.hotel.name").value("Some hotel name"))
     }
 
     @Test
@@ -90,7 +92,8 @@ class PurchaseControllerTest {
         mvc.perform(get("/purchases/me"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].packageName").value("París Romántico"))
+            .andExpect(jsonPath("$[0].travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$[0].travelPackage.hotel.name").value("Some hotel name"))
     }
 
     @Test
@@ -104,7 +107,9 @@ class PurchaseControllerTest {
         mvc.perform(get("/purchases/agency"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].packageName").value("París Romántico"))
+            .andExpect(jsonPath("$[0].buyer.username").value("buyer"))
+            .andExpect(jsonPath("$[0].buyer.firstName").value("Bruno"))
+            .andExpect(jsonPath("$[0].travelPackage.name").value("París Romántico"))
     }
 
     @Test

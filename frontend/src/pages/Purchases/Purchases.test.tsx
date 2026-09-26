@@ -16,9 +16,23 @@ const mockedGetMyPurchases = vi.mocked(getMyPurchases)
 const purchases = [
   {
     id: 1,
-    packageId: 10,
-    packageName: 'Escapada a París',
-    agency: { id: 2, name: 'Viajes del Sur' },
+    buyer: { id: 5, username: 'bruno', firstName: 'Bruno', lastName: 'Buyer' },
+    travelPackage: {
+      id: 10,
+      name: 'Escapada a París',
+      price: 1200,
+      agency: { id: 2, name: 'Viajes del Sur' },
+      hotel: {
+        id: 4,
+        name: 'Hotel Lumière',
+        city: { code: 'PAR', name: 'París' },
+        photoUrl: 'https://example.test/hotel.jpg',
+      },
+      origin: { code: 'BUE', name: 'Buenos Aires' },
+      destination: { code: 'PAR', name: 'París' },
+      outboundFlightId: 1,
+      returnFlightId: 2,
+    },
     purchasePrice: 1200,
     purchasedAt: '2026-03-15T14:30:00',
   },
@@ -49,6 +63,8 @@ describe('Purchases page', () => {
       '/trips/10',
     )
     expect(screen.getByText('Viajes del Sur')).toBeInTheDocument()
+    expect(screen.getByText('Buenos Aires → París')).toBeInTheDocument()
+    expect(screen.getByText('Hotel: Hotel Lumière')).toBeInTheDocument()
     expect(screen.getByText('USD 1200')).toBeInTheDocument()
     expect(document.querySelector('time')).toHaveAttribute('datetime', '2026-03-15T14:30:00')
     expect(screen.queryByText(/No pudimos cargar tus compras/)).not.toBeInTheDocument()

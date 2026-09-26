@@ -177,6 +177,19 @@
   color: var(--color-primary);
 }
 
+.purchase-ticket__trip,
+.purchase-ticket__hotel {
+  font-size: 14px;
+}
+
+.purchase-ticket__trip {
+  font-weight: 700;
+}
+
+.purchase-ticket__hotel {
+  opacity: 0.75;
+}
+
 .purchase-ticket__date {
   font-family: var(--font-mono);
   font-size: 13px;

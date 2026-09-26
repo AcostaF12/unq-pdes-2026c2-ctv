@@ -1,11 +1,17 @@
 import { apiClient } from './client'
-import type { Agency } from './packages'
+import type { TravelPackage } from './packages'
+
+export interface BuyerIdentity {
+  id: number
+  username: string
+  firstName: string
+  lastName: string
+}
 
 export interface Purchase {
   id: number
-  packageId: number
-  packageName: string
-  agency: Agency
+  buyer: BuyerIdentity
+  travelPackage: TravelPackage
   purchasePrice: number
   purchasedAt: string
 }

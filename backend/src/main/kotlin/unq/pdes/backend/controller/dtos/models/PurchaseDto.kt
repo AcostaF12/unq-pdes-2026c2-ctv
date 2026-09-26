@@ -6,9 +6,8 @@ import java.time.LocalDateTime
 
 data class PurchaseDto(
     val id: Long?,
-    val packageId: Long?,
-    val packageName: String,
-    val agency: AgencyDto,
+    val buyer: UserDto,
+    val travelPackage: TravelPackageDto,
     val purchasePrice: BigDecimal,
     val purchasedAt: LocalDateTime,
 ) {
@@ -16,9 +15,8 @@ data class PurchaseDto(
         fun fromModel(purchase: Purchase): PurchaseDto {
             return PurchaseDto(
                 id = purchase.id,
-                packageId = purchase.travelPackage.id,
-                packageName = purchase.travelPackage.name,
-                agency = AgencyDto.fromModel(purchase.agency),
+                buyer = UserDto.fromModel(purchase.buyer),
+                travelPackage = TravelPackageDto.fromModel(purchase.travelPackage),
                 purchasePrice = purchase.purchasePrice,
                 purchasedAt = purchase.purchasedAt,
             )

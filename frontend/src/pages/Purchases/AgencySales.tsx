@@ -47,7 +47,7 @@ export function AgencySales() {
         <ul className="purchase-list">
           {sales.map((sale) => (
             <li key={sale.id}>
-              <PurchaseTicket purchase={sale} showAgency={false} />
+              <PurchaseTicket purchase={sale} audience="agency" />
             </li>
           ))}
         </ul>

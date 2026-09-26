@@ -49,9 +49,14 @@ class PurchaseDtoTest {
         val dto = PurchaseDto.fromModel(purchase)
 
         assertEquals(4L, dto.id)
-        assertEquals(8L, dto.packageId)
-        assertEquals("París Romántico", dto.packageName)
-        assertEquals("Despegar", dto.agency.name)
+        assertEquals("buyer", dto.buyer.username)
+        assertEquals("Bruno", dto.buyer.firstName)
+        assertEquals(8L, dto.travelPackage.id)
+        assertEquals("París Romántico", dto.travelPackage.name)
+        assertEquals("Despegar", dto.travelPackage.agency.name)
+        assertEquals("Hotel", dto.travelPackage.hotel.name)
+        assertEquals("Buenos Aires", dto.travelPackage.origin.name)
+        assertEquals("Paris", dto.travelPackage.destination.name)
         assertEquals(BigDecimal("1500.00"), dto.purchasePrice)
         assertEquals(LocalDateTime.of(2026, 8, 20, 12, 0), dto.purchasedAt)
     }
