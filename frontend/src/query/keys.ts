@@ -1,8 +1,6 @@
-export interface PackageSearchFilters {
-  name?: string
-  origin?: string
-  destination?: string
-}
+import type { PackageSearchParams } from '../api/packages'
+
+export type PackageSearchFilters = PackageSearchParams
 
 export const queryKeys = {
   cities: ['cities'] as const,

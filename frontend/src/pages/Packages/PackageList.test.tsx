@@ -73,6 +73,31 @@ describe('PackageList', () => {
     expect(mockedSearchPackages).toHaveBeenCalledWith({ origin: 'BUE' })
   })
 
+  it('sends the selected inclusive price range when searching', async () => {
+    const user = userEvent.setup()
+    renderPackageList()
+
+    await screen.findByLabelText('Nombre')
+    await user.type(screen.getByLabelText('Precio mínimo'), '900')
+    await user.type(screen.getByLabelText('Precio máximo'), '1500')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(mockedSearchPackages).toHaveBeenLastCalledWith({ minPrice: 900, maxPrice: 1500 })
+  })
+
+  it('does not submit an inverted price range', async () => {
+    const user = userEvent.setup()
+    renderPackageList()
+
+    await screen.findByLabelText('Nombre')
+    await user.type(screen.getByLabelText('Precio mínimo'), '1500')
+    await user.type(screen.getByLabelText('Precio máximo'), '900')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(await screen.findByText('El precio mínimo no puede superar al precio máximo.')).toBeInTheDocument()
+    expect(mockedSearchPackages).toHaveBeenCalledTimes(1)
+  })
+
   it('shows an empty catalog state when there are no packages', async () => {
     renderPackageList()
 
