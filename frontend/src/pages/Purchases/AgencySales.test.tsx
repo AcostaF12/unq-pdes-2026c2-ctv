@@ -36,7 +36,7 @@ describe('AgencySales page', () => {
         travelPackage: {
           id: 10,
           name: 'Escapada a París',
-          price: 1200,
+          price: 1800,
           agency: { id: 2, name: 'Viajes del Sur' },
           hotel: {
             id: 4,
@@ -59,6 +59,7 @@ describe('AgencySales page', () => {
     expect(await screen.findByText('Bruno Buyer (@bruno)')).toBeInTheDocument()
     expect(screen.getByText('Buenos Aires → París')).toBeInTheDocument()
     expect(screen.getByText('Hotel: Hotel Lumière')).toBeInTheDocument()
+    expect(screen.getByText('Precio abonado')).toBeInTheDocument()
     expect(screen.getByText('USD 1200')).toBeInTheDocument()
   })
 

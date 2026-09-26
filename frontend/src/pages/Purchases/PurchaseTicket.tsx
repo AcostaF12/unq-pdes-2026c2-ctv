@@ -57,7 +57,10 @@ export function PurchaseTicket({ purchase, audience = 'buyer' }: PurchaseTicketP
         </time>
       </div>
       <div className="purchase-ticket__stub">
-        <p className="purchase-ticket__price">USD {purchase.purchasePrice}</p>
+        <p className="purchase-ticket__price">
+          <span className="purchase-ticket__price-label">Precio abonado</span>
+          USD {purchase.purchasePrice}
+        </p>
         <Link className="purchase-ticket__link" to={tripPath}>
           Ver viaje
         </Link>

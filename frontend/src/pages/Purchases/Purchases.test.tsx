@@ -20,7 +20,7 @@ const purchases = [
     travelPackage: {
       id: 10,
       name: 'Escapada a París',
-      price: 1200,
+      price: 1800,
       agency: { id: 2, name: 'Viajes del Sur' },
       hotel: {
         id: 4,
@@ -65,6 +65,7 @@ describe('Purchases page', () => {
     expect(screen.getByText('Viajes del Sur')).toBeInTheDocument()
     expect(screen.getByText('Buenos Aires → París')).toBeInTheDocument()
     expect(screen.getByText('Hotel: Hotel Lumière')).toBeInTheDocument()
+    expect(screen.getByText('Precio abonado')).toBeInTheDocument()
     expect(screen.getByText('USD 1200')).toBeInTheDocument()
     expect(document.querySelector('time')).toHaveAttribute('datetime', '2026-03-15T14:30:00')
     expect(screen.queryByText(/No pudimos cargar tus compras/)).not.toBeInTheDocument()

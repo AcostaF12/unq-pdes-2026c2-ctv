@@ -46,6 +46,10 @@ class PurchaseDtoTest {
             .purchasedAt(LocalDateTime.of(2026, 8, 20, 12, 0))
             .build()
 
+        purchase.buyer.updateProfile("Nombre actualizado", "Comprador actualizado")
+        travelPackage.name = "Paquete actualizado"
+        travelPackage.hotel.name = "Hotel actualizado"
+
         val dto = PurchaseDto.fromModel(purchase)
 
         assertEquals(4L, dto.id)
