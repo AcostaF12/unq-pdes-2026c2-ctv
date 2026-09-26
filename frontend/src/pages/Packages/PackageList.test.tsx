@@ -36,6 +36,24 @@ const mockedGetCurrentUser = vi.mocked(getCurrentUser)
 const mockedListCities = vi.mocked(listCities)
 const mockedSearchPackages = vi.mocked(searchPackages)
 
+function emptyPage() {
+  return { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }
+}
+
+function travelPackage(overrides: { id?: number; name?: string } = {}) {
+  return {
+    id: overrides.id ?? 1,
+    name: overrides.name ?? 'París Romántico',
+    price: 1500,
+    agency: { id: 1, name: 'Despegar' },
+    hotel: { id: 1, name: 'Hotel Paris', photoUrl: '', city: { code: 'PAR', name: 'Paris' } },
+    origin: { code: 'BUE', name: 'Buenos Aires' },
+    destination: { code: 'PAR', name: 'Paris' },
+    outboundFlightId: 1,
+    returnFlightId: 2,
+  }
+}
+
 function renderPackageList() {
   persistSession('token', buyer)
   return render(
@@ -57,7 +75,7 @@ describe('PackageList', () => {
     mockedSearchPackages.mockReset()
     mockedGetCurrentUser.mockResolvedValue(buyer)
     mockedListCities.mockResolvedValue([{ code: 'BUE', name: 'Buenos Aires' }])
-    mockedSearchPackages.mockResolvedValue([])
+    mockedSearchPackages.mockResolvedValue(emptyPage())
   })
 
   it('uses the saved origin city as the default filter', async () => {
@@ -133,7 +151,7 @@ describe('PackageList', () => {
   it('shows an error and allows retry', async () => {
     const user = userEvent.setup()
     mockedSearchPackages.mockRejectedValueOnce(new Error('boom'))
-    mockedSearchPackages.mockResolvedValueOnce([])
+    mockedSearchPackages.mockResolvedValueOnce(emptyPage())
 
     renderPackageList()
 
@@ -145,5 +163,34 @@ describe('PackageList', () => {
     await user.click(screen.getByRole('button', { name: /reintentar/i }))
 
     expect(await screen.findByText('Todavía no hay paquetes publicados.')).toBeInTheDocument()
+  })
+
+  it('requests the next page when paginating', async () => {
+    const user = userEvent.setup()
+    mockedSearchPackages.mockResolvedValue({
+      content: [travelPackage()],
+      page: 0,
+      size: 20,
+      totalElements: 21,
+      totalPages: 2,
+    })
+
+    renderPackageList()
+
+    const nextPageButton = await screen.findByRole('button', { name: 'Siguiente' })
+    await user.click(nextPageButton)
+
+    expect(mockedSearchPackages).toHaveBeenLastCalledWith({ page: 1 })
+    expect(await screen.findByText('Página 2 de 2')).toBeInTheDocument()
+  })
+
+  it('sends the selected sort order', async () => {
+    const user = userEvent.setup()
+    renderPackageList()
+
+    await screen.findByLabelText('Nombre')
+    await user.selectOptions(screen.getByLabelText('Ordenar por'), 'price-asc')
+
+    expect(mockedSearchPackages).toHaveBeenLastCalledWith({ sort: 'price,asc' })
   })
 })

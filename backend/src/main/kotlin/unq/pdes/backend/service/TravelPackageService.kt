@@ -2,6 +2,9 @@ package unq.pdes.backend.service
 
 import jakarta.persistence.EntityNotFoundException
 import java.math.BigDecimal
+import java.time.Duration
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +18,8 @@ import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.ReviewRepository
 import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.search.TravelPackageSearchCriteria
+import unq.pdes.backend.search.TravelPackageSearchMetrics
+import unq.pdes.backend.search.TravelPackageSearchPageable
 import unq.pdes.backend.search.TravelPackageSearchSpecification
 
 @Service
@@ -27,15 +32,16 @@ class TravelPackageService(
     private val purchaseRepository: PurchaseRepository,
     private val favoriteRepository: FavoriteRepository,
     private val reviewRepository: ReviewRepository,
+    private val searchMetrics: TravelPackageSearchMetrics,
 ) {
 
     @Transactional(readOnly = true)
-    fun search(criteria: TravelPackageSearchCriteria): List<TravelPackage> {
-        return if (criteria.isEmpty()) {
-            travelPackageRepository.findAll()
-        } else {
-            travelPackageRepository.findAll(TravelPackageSearchSpecification.matching(criteria))
-        }
+    fun search(criteria: TravelPackageSearchCriteria, pageable: Pageable): Page<TravelPackage> {
+        val sanitizedPageable = TravelPackageSearchPageable.sanitize(pageable)
+        val startedAt = System.nanoTime()
+        val result = travelPackageRepository.findAll(TravelPackageSearchSpecification.matching(criteria), sanitizedPageable)
+        searchMetrics.record(criteria, result.totalElements, Duration.ofNanos(System.nanoTime() - startedAt))
+        return result
     }
 
     @Transactional(readOnly = true)
@@ -162,5 +168,4 @@ class TravelPackageService(
         return user as? AgencyUser
             ?: throw AccessDeniedException("Only agency users can manage packages.")
     }
-
 }

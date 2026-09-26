@@ -3,16 +3,19 @@ import { Button } from '../../../components/Button/Button'
 import { Input } from '../../../components/Input/Input'
 import { Select } from '../../../components/Select/Select'
 import type { PackageSearchField, PackageSearchFormValues } from './packageSearchFilters'
+import { PACKAGE_SORT_OPTIONS, sortToOptionValue, type PackageSort } from './packageSearchSort'
 
 interface PackageSearchFormProps {
   cities: City[]
   values: PackageSearchFormValues
   error: string
+  sort: PackageSort
   onChange: (field: PackageSearchField, value: string) => void
+  onSortChange: (value: string) => void
   onSubmit: () => void
 }
 
-export function PackageSearchForm({ cities, values, error, onChange, onSubmit }: PackageSearchFormProps) {
+export function PackageSearchForm({ cities, values, error, sort, onChange, onSortChange, onSubmit }: PackageSearchFormProps) {
   return (
     <form
       className="catalog__search"
@@ -62,6 +65,17 @@ export function PackageSearchForm({ cities, values, error, onChange, onSubmit }:
           onChange={(event) => onChange('maxPrice', event.target.value)}
           error={error}
         />
+        <Select
+          label="Ordenar por"
+          value={sortToOptionValue(sort)}
+          onChange={(event) => onSortChange(event.target.value)}
+        >
+          {PACKAGE_SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
         <Button type="submit" className="catalog__filters-submit">
           Buscar
         </Button>

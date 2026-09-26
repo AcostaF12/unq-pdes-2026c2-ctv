@@ -3,6 +3,8 @@ package unq.pdes.backend.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import unq.pdes.backend.controller.dtos.models.PageDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDetailDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageRequestDto
@@ -33,13 +36,18 @@ class TravelPackageController(
     private val flightsClient: FlightsClient,
 ) {
 
-    @Operation(summary = "Buscar paquetes", description = "Filtra por nombre, origen, destino y rango de precio inclusivo.")
+    @Operation(
+        summary = "Buscar paquetes",
+        description = "Filtra por nombre, origen, destino y rango de precio inclusivo. Admite paginación " +
+            "('page', 'size') y orden ('sort=name,asc' o 'sort=price,desc').",
+    )
     @GetMapping
     fun search(
         @ModelAttribute request: TravelPackageSearchRequestDto,
-    ): ResponseEntity<List<TravelPackageDto>> {
-        val packages = travelPackageService.search(request.toCriteria())
-        return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it) })
+        @PageableDefault(size = 20, sort = ["name"]) pageable: Pageable,
+    ): ResponseEntity<PageDto<TravelPackageDto>> {
+        val packages = travelPackageService.search(request.toCriteria(), pageable)
+        return ResponseEntity.ok(PageDto.from(packages) { TravelPackageDto.fromModel(it) })
     }
 
     @Operation(summary = "Paquetes de la agencia", description = "Lista los paquetes de la agencia autenticada.")

@@ -71,10 +71,13 @@ class TravelPackageControllerTest {
 
         mvc.perform(get("/packages"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].name").value("París Romántico"))
-            .andExpect(jsonPath("$[0].origin.code").value("BUE"))
-            .andExpect(jsonPath("$[0].destination.code").value("PAR"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("París Romántico"))
+            .andExpect(jsonPath("$.content[0].origin.code").value("BUE"))
+            .andExpect(jsonPath("$.content[0].destination.code").value("PAR"))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.totalPages").value(1))
     }
 
     @Test
@@ -150,8 +153,8 @@ class TravelPackageControllerTest {
                 .param("destination", "PAR"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].name").value("París Romántico"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("París Romántico"))
     }
 
     @Test
@@ -162,9 +165,9 @@ class TravelPackageControllerTest {
 
         mvc.perform(get("/packages").param("minPrice", "900.00").param("maxPrice", "1500.00"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(2))
-            .andExpect(jsonPath("$[0].name").value("Paris Economic"))
-            .andExpect(jsonPath("$[1].name").value("Paris Romantic"))
+            .andExpect(jsonPath("$.content.length()").value(2))
+            .andExpect(jsonPath("$.content[0].name").value("Paris Economic"))
+            .andExpect(jsonPath("$.content[1].name").value("Paris Romantic"))
     }
 
     @Test
@@ -191,8 +194,41 @@ class TravelPackageControllerTest {
                 .param("maxPrice", "1800.00"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].name").value("Paris Complete"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("Paris Complete"))
+    }
+
+    @Test
+    fun `07d - GET packages should paginate results`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("200.00"))
+        factory.packageNamed("Paris C", price = BigDecimal("300.00"))
+
+        mvc.perform(get("/packages").param("page", "1").param("size", "2").param("sort", "price,asc"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("Paris C"))
+            .andExpect(jsonPath("$.page").value(1))
+            .andExpect(jsonPath("$.totalElements").value(3))
+            .andExpect(jsonPath("$.totalPages").value(2))
+    }
+
+    @Test
+    fun `07e - GET packages should sort by price descending`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("300.00"))
+
+        mvc.perform(get("/packages").param("sort", "price,desc"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content[0].name").value("Paris B"))
+            .andExpect(jsonPath("$.content[1].name").value("Paris A"))
+    }
+
+    @Test
+    fun `07f - GET packages should reject sorting by a non whitelisted property`() {
+        mvc.perform(get("/packages").param("sort", "agency.id,asc"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("Cannot sort packages by 'agency.id'."))
     }
 
     @Test

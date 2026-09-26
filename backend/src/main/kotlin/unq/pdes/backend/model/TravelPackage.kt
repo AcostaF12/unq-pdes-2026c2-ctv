@@ -18,6 +18,7 @@ import java.math.BigDecimal
     indexes = [
         Index(name = "idx_packages_price", columnList = "price"),
         Index(name = "idx_packages_route_price", columnList = "origin_city_code, destination_city_code, price"),
+        Index(name = "idx_packages_destination_price", columnList = "destination_city_code, price"),
     ],
     uniqueConstraints = [UniqueConstraint(columnNames = ["agency_id", "name"])],
 )

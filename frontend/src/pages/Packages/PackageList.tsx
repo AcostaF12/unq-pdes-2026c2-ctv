@@ -7,11 +7,13 @@ import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { Pagination } from '../../components/Pagination/Pagination'
 import { useAuth } from '../../auth/AuthContext'
 import { readPreferences } from '../../preferences/preferences'
 import { queryKeys } from '../../query/keys'
 import { PackageSearchForm } from './search/PackageSearchForm'
 import { hasPackageSearchFilters } from './search/packageSearchFilters'
+import { parseSortOptionValue } from './search/packageSearchSort'
 import { usePackageSearch } from './search/usePackageSearch'
 import './packages.css'
 
@@ -85,12 +87,13 @@ export function PackageList() {
   })
 
   const packagesQuery = useQuery({
-    queryKey: queryKeys.packages.search(search.filters),
-    queryFn: () => searchPackages(hasPackageSearchFilters(search.filters) ? search.filters : undefined),
+    queryKey: queryKeys.packages.search(search.query),
+    queryFn: () => searchPackages(search.query),
   })
 
   const cities = citiesQuery.data ?? []
-  const packages = packagesQuery.data ?? []
+  const packages = packagesQuery.data?.content ?? []
+  const totalPages = packagesQuery.data?.totalPages ?? 0
   const hasFilters = hasPackageSearchFilters(search.filters)
 
   return (
@@ -103,7 +106,9 @@ export function PackageList() {
         cities={cities}
         values={search.formValues}
         error={search.error}
+        sort={search.sort}
         onChange={search.updateField}
+        onSortChange={(value) => search.setSort(parseSortOptionValue(value))}
         onSubmit={search.submit}
       />
       {packagesQuery.isPending ? (
@@ -160,6 +165,7 @@ export function PackageList() {
           ))}
         </ul>
       )}
+      <Pagination page={search.page} totalPages={totalPages} onPageChange={search.setPage} />
     </section>
   )
 }

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import unq.pdes.backend.external.flights.ExternalFlightDto
@@ -110,10 +112,13 @@ class TravelPackageServiceTest {
         factory.packageNamed("París Romántico", destinationCode = "PAR", destinationCity = "Paris")
         factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
 
-        val result = travelPackageService.search(TravelPackageSearchCriteria.from(null, null, "LON", null, null))
+        val result = travelPackageService.search(
+            TravelPackageSearchCriteria.from(null, null, "LON", null, null),
+            PageRequest.of(0, 20),
+        )
 
-        assertEquals(1, result.size)
-        assertEquals("Londres Clásico", result.first().name)
+        assertEquals(1, result.totalElements)
+        assertEquals("Londres Clásico", result.content.first().name)
     }
 
     @Test
@@ -124,9 +129,10 @@ class TravelPackageServiceTest {
 
         val result = travelPackageService.search(
             TravelPackageSearchCriteria.from("Paris", "BUE", "PAR", BigDecimal("900.00"), BigDecimal("1500.00")),
+            PageRequest.of(0, 20, Sort.by("price")),
         )
 
-        assertEquals(listOf("Paris Economic", "Paris Romantic"), result.map { it.name })
+        assertEquals(listOf("Paris Economic", "Paris Romantic"), result.content.map { it.name })
     }
 
     @Test
@@ -219,9 +225,12 @@ class TravelPackageServiceTest {
     fun `11 - search should treat blank filters as absent`() {
         factory.packageNamed("París Romántico")
 
-        val result = travelPackageService.search(TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null))
+        val result = travelPackageService.search(
+            TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null),
+            PageRequest.of(0, 20),
+        )
 
-        assertEquals(1, result.size)
+        assertEquals(1, result.totalElements)
     }
 
     @Test
@@ -308,6 +317,59 @@ class TravelPackageServiceTest {
         }
 
         assertEquals("Cannot delete a package that already has reviews.", exception.message)
+    }
+
+    @Test
+    fun `17 - search should paginate results`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("200.00"))
+        factory.packageNamed("Paris C", price = BigDecimal("300.00"))
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val firstPage = travelPackageService.search(emptyCriteria, PageRequest.of(0, 2, Sort.by("price")))
+
+        assertEquals(3, firstPage.totalElements)
+        assertEquals(2, firstPage.totalPages)
+        assertEquals(listOf("Paris A", "Paris B"), firstPage.content.map { it.name })
+
+        val secondPage = travelPackageService.search(emptyCriteria, PageRequest.of(1, 2, Sort.by("price")))
+
+        assertEquals(listOf("Paris C"), secondPage.content.map { it.name })
+    }
+
+    @Test
+    fun `18 - search should sort by price descending`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("300.00"))
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val result = travelPackageService.search(
+            emptyCriteria,
+            PageRequest.of(0, 20, Sort.by(Sort.Order.desc("price"))),
+        )
+
+        assertEquals(listOf("Paris B", "Paris A"), result.content.map { it.name })
+    }
+
+    @Test
+    fun `19 - search should cap the page size`() {
+        factory.packageNamed("Paris A")
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val result = travelPackageService.search(emptyCriteria, PageRequest.of(0, 500))
+
+        assertEquals(50, result.pageable.pageSize)
+    }
+
+    @Test
+    fun `20 - search should reject sorting by a non whitelisted property`() {
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            travelPackageService.search(emptyCriteria, PageRequest.of(0, 20, Sort.by("agency.id")))
+        }
+
+        assertEquals("Cannot sort packages by 'agency.id'.", exception.message)
     }
 
     private fun stubSales() {
