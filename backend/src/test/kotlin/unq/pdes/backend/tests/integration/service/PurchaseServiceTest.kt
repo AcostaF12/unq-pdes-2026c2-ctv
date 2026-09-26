@@ -100,6 +100,31 @@ class PurchaseServiceTest {
     }
 
     @Test
+    fun `04a - findMine should not include purchases from other buyers`() {
+        val buyer = factory.buyerNamed("buyer")
+        val otherBuyer = factory.buyerNamed("other-buyer")
+        val firstPackage = factory.packageNamed("París Romántico")
+        val secondPackage = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, firstPackage.id!!)
+        purchaseService.purchase(otherBuyer.username, secondPackage.id!!)
+
+        val purchases = purchaseService.findMine(buyer.username)
+
+        assertEquals(listOf("París Romántico"), purchases.map { it.travelPackage.name })
+    }
+
+    @Test
+    fun `04b - findMine should reject users that are not buyers`() {
+        factory.agencyUserNamed("agency")
+
+        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+            purchaseService.findMine("agency")
+        }
+
+        assertEquals("Only buyers can list their purchase history.", exception.message)
+    }
+
+    @Test
     fun `05 - findForAgency should return sales of the agency`() {
         factory.agencyUserNamed("agency")
         val buyer = factory.buyerNamed("buyer")
@@ -110,6 +135,27 @@ class PurchaseServiceTest {
 
         assertEquals(1, sales.size)
         assertEquals(buyer.username, sales.first().buyer.username)
+    }
+
+    @Test
+    fun `05a - findForAgency should not include sales from other agencies`() {
+        factory.agencyUserNamed("agency")
+        factory.agencyUserNamed("other-agency", agencyName = "Otra agencia")
+        val buyer = factory.buyerNamed("buyer")
+        val otherBuyer = factory.buyerNamed("other-buyer")
+        val agencyPackage = factory.packageNamed("París Romántico")
+        val otherAgencyPackage = factory.packageNamed(
+            "Londres Clásico",
+            destinationCode = "LON",
+            destinationCity = "London",
+            agencyName = "Otra agencia",
+        )
+        purchaseService.purchase(buyer.username, agencyPackage.id!!)
+        purchaseService.purchase(otherBuyer.username, otherAgencyPackage.id!!)
+
+        val sales = purchaseService.findForAgency("agency")
+
+        assertEquals(listOf("París Romántico"), sales.map { it.travelPackage.name })
     }
 
     @Test

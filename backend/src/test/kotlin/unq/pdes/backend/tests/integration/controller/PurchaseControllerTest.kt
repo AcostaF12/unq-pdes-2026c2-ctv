@@ -124,4 +124,22 @@ class PurchaseControllerTest {
         )
             .andExpect(status().isForbidden)
     }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `05 - GET purchases me as agency should return 403`() {
+        factory.agencyUserNamed("agency")
+
+        mvc.perform(get("/purchases/me"))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `06 - GET purchases agency as buyer should return 403`() {
+        factory.buyerNamed("buyer")
+
+        mvc.perform(get("/purchases/agency"))
+            .andExpect(status().isForbidden)
+    }
 }

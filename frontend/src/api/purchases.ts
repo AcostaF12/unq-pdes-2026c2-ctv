@@ -1,12 +1,8 @@
 import { apiClient } from './client'
+import type { AuthenticatedUser } from './auth'
 import type { TravelPackage } from './packages'
 
-export interface BuyerIdentity {
-  id: number
-  username: string
-  firstName: string
-  lastName: string
-}
+export type BuyerIdentity = Pick<AuthenticatedUser, 'id' | 'username' | 'firstName' | 'lastName'>
 
 export interface Purchase {
   id: number

@@ -21,6 +21,9 @@ class PurchaseService(
     @Transactional(readOnly = true)
     fun findMine(username: String): List<Purchase> {
         val buyer = userService.findByUsername(username)
+        if (buyer.role != Role.BUYER) {
+            throw AccessDeniedException("Only buyers can list their purchase history.")
+        }
         return purchaseRepository.findByBuyerIdOrderByPurchasedAtDesc(buyer.id!!)
     }
 
