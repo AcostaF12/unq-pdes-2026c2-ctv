@@ -85,6 +85,31 @@ describe('PackageList', () => {
     expect(mockedSearchPackages).toHaveBeenLastCalledWith({ minPrice: 900, maxPrice: 1500 })
   })
 
+  it('sends every advanced filter in one search request', async () => {
+    const user = userEvent.setup()
+    mockedListCities.mockResolvedValue([
+      { code: 'BUE', name: 'Buenos Aires' },
+      { code: 'PAR', name: 'Paris' },
+    ])
+    renderPackageList()
+
+    await screen.findByLabelText('Nombre')
+    await user.type(screen.getByLabelText('Nombre'), 'Paris Complete')
+    await user.selectOptions(screen.getByLabelText('Origen'), 'BUE')
+    await user.selectOptions(screen.getByLabelText('Destino'), 'PAR')
+    await user.type(screen.getByLabelText('Precio mínimo'), '1200')
+    await user.type(screen.getByLabelText('Precio máximo'), '1800')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+
+    expect(mockedSearchPackages).toHaveBeenLastCalledWith({
+      name: 'Paris Complete',
+      origin: 'BUE',
+      destination: 'PAR',
+      minPrice: 1200,
+      maxPrice: 1800,
+    })
+  })
+
   it('does not submit an inverted price range', async () => {
     const user = userEvent.setup()
     renderPackageList()

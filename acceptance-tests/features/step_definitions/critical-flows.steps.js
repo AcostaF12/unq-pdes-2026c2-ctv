@@ -143,6 +143,17 @@ When('busca paquetes desde {string} hacia {string}', async function (origin, des
   this.response = await backendRequest(`/packages?${query}`, { token: this.token })
 })
 
+When('busca el paquete nuevo con todos los filtros', async function () {
+  const query = new URLSearchParams({
+    name: this.package.name,
+    origin: this.package.origin.code,
+    destination: this.package.destination.code,
+    minPrice: String(this.package.price),
+    maxPrice: String(this.package.price),
+  })
+  this.response = await backendRequest(`/packages?${query}`, { token: this.token })
+})
+
 Then('la búsqueda responde con status {int}', function (status) {
   assert.equal(this.response.status, status)
 })

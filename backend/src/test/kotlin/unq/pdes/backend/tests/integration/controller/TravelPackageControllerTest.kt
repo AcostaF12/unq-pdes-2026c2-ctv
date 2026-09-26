@@ -175,6 +175,27 @@ class TravelPackageControllerTest {
     }
 
     @Test
+    fun `07c - GET packages should apply every advanced filter together`() {
+        factory.packageNamed("Paris Complete", price = BigDecimal("1500.00"))
+        factory.packageNamed("London Complete", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris From London", originCode = "LON", originCity = "London", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris To London", destinationCode = "LON", destinationCity = "London", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2500.00"))
+
+        mvc.perform(
+            get("/packages")
+                .param("name", "  paris complete ")
+                .param("origin", "bue")
+                .param("destination", "par")
+                .param("minPrice", "1200.00")
+                .param("maxPrice", "1800.00"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("Paris Complete"))
+    }
+
+    @Test
     @WithMockUser(username = "agency", roles = ["AGENCY"])
     fun `08 - GET agency packages should return owned packages`() {
         factory.agencyUserNamed("agency")
