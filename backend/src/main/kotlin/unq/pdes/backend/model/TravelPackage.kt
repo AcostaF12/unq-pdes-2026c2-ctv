@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -14,6 +15,10 @@ import java.math.BigDecimal
 @Entity
 @Table(
     name = "packages",
+    indexes = [
+        Index(name = "idx_packages_price", columnList = "price"),
+        Index(name = "idx_packages_route_price", columnList = "origin_city_code, destination_city_code, price"),
+    ],
     uniqueConstraints = [UniqueConstraint(columnNames = ["agency_id", "name"])],
 )
 class TravelPackage private constructor(builder: Builder) {

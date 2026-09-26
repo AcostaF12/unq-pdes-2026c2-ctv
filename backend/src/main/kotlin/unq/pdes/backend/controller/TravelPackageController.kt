@@ -9,16 +9,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.dtos.models.TravelPackageDetailDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageRequestDto
+import unq.pdes.backend.controller.dtos.requests.TravelPackageSearchRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.service.ReviewService
 import unq.pdes.backend.service.TravelPackageService
@@ -32,14 +33,12 @@ class TravelPackageController(
     private val flightsClient: FlightsClient,
 ) {
 
-    @Operation(summary = "Buscar paquetes", description = "Filtra por nombre, origen y destino.")
+    @Operation(summary = "Buscar paquetes", description = "Filtra por nombre, origen, destino y rango de precio inclusivo.")
     @GetMapping
     fun search(
-        @RequestParam(required = false) name: String?,
-        @RequestParam(required = false) origin: String?,
-        @RequestParam(required = false) destination: String?,
+        @ModelAttribute request: TravelPackageSearchRequestDto,
     ): ResponseEntity<List<TravelPackageDto>> {
-        val packages = travelPackageService.search(name, origin, destination)
+        val packages = travelPackageService.search(request.toCriteria())
         return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it) })
     }
 

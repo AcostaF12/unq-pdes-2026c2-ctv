@@ -25,6 +25,7 @@ import unq.pdes.backend.persistence.jpa.ReviewRepository
 import unq.pdes.backend.service.FavoriteService
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.TravelPackageService
+import unq.pdes.backend.search.TravelPackageSearchCriteria
 
 @SpringBootTest
 class TravelPackageServiceTest {
@@ -109,10 +110,32 @@ class TravelPackageServiceTest {
         factory.packageNamed("París Romántico", destinationCode = "PAR", destinationCity = "Paris")
         factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
 
-        val result = travelPackageService.search(null, null, "LON")
+        val result = travelPackageService.search(TravelPackageSearchCriteria.from(null, null, "LON", null, null))
 
         assertEquals(1, result.size)
         assertEquals("Londres Clásico", result.first().name)
+    }
+
+    @Test
+    fun `04a - search should filter by an inclusive price range together with other filters`() {
+        factory.packageNamed("Paris Economic", price = BigDecimal("900.00"))
+        factory.packageNamed("Paris Romantic", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2100.00"))
+
+        val result = travelPackageService.search(
+            TravelPackageSearchCriteria.from("Paris", "BUE", "PAR", BigDecimal("900.00"), BigDecimal("1500.00")),
+        )
+
+        assertEquals(listOf("Paris Economic", "Paris Romantic"), result.map { it.name })
+    }
+
+    @Test
+    fun `04b - search should reject an inverted price range`() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            TravelPackageSearchCriteria.from(null, null, null, BigDecimal("1500.00"), BigDecimal("900.00"))
+        }
+
+        assertEquals("The minimum price cannot be greater than the maximum price.", exception.message)
     }
 
     @Test
@@ -196,7 +219,7 @@ class TravelPackageServiceTest {
     fun `11 - search should treat blank filters as absent`() {
         factory.packageNamed("París Romántico")
 
-        val result = travelPackageService.search("  ", "  ", "  ")
+        val result = travelPackageService.search(TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null))
 
         assertEquals(1, result.size)
     }

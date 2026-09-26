@@ -155,6 +155,26 @@ class TravelPackageControllerTest {
     }
 
     @Test
+    fun `07a - GET packages should filter by an inclusive price range`() {
+        factory.packageNamed("Paris Economic", price = BigDecimal("900.00"))
+        factory.packageNamed("Paris Romantic", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2100.00"))
+
+        mvc.perform(get("/packages").param("minPrice", "900.00").param("maxPrice", "1500.00"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].name").value("Paris Economic"))
+            .andExpect(jsonPath("$[1].name").value("Paris Romantic"))
+    }
+
+    @Test
+    fun `07b - GET packages should reject an inverted price range`() {
+        mvc.perform(get("/packages").param("minPrice", "1500.00").param("maxPrice", "900.00"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("The minimum price cannot be greater than the maximum price."))
+    }
+
+    @Test
     @WithMockUser(username = "agency", roles = ["AGENCY"])
     fun `08 - GET agency packages should return owned packages`() {
         factory.agencyUserNamed("agency")

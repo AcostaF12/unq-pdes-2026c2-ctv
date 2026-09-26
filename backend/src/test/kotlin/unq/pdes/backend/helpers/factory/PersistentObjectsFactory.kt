@@ -78,6 +78,7 @@ class PersistentObjectsFactory(
         destinationCode: String = "PAR",
         destinationCity: String = "Paris",
         agencyName: String = "Despegar",
+        price: BigDecimal = BigDecimal("1500.00"),
     ): TravelPackage {
         val origin = cityWith(originCode, originCity)
         val destination = cityWith(destinationCode, destinationCity)
@@ -91,7 +92,7 @@ class PersistentObjectsFactory(
                 .name(name)
                 .outboundFlightId(1L)
                 .returnFlightId(2L)
-                .price(BigDecimal("1500.00"))
+                .price(price)
                 .build(),
         )
     }

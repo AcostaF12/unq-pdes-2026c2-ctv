@@ -14,6 +14,8 @@ import unq.pdes.backend.persistence.jpa.FavoriteRepository
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.ReviewRepository
 import unq.pdes.backend.persistence.jpa.TravelPackageRepository
+import unq.pdes.backend.search.TravelPackageSearchCriteria
+import unq.pdes.backend.search.TravelPackageSearchSpecification
 
 @Service
 class TravelPackageService(
@@ -28,12 +30,12 @@ class TravelPackageService(
 ) {
 
     @Transactional(readOnly = true)
-    fun search(name: String?, origin: String?, destination: String?): List<TravelPackage> {
-        return travelPackageRepository.search(
-            name.blankToNull(),
-            origin.blankToNull(),
-            destination.blankToNull(),
-        )
+    fun search(criteria: TravelPackageSearchCriteria): List<TravelPackage> {
+        return if (criteria.isEmpty()) {
+            travelPackageRepository.findAll()
+        } else {
+            travelPackageRepository.findAll(TravelPackageSearchSpecification.matching(criteria))
+        }
     }
 
     @Transactional(readOnly = true)
@@ -161,5 +163,4 @@ class TravelPackageService(
             ?: throw AccessDeniedException("Only agency users can manage packages.")
     }
 
-    private fun String?.blankToNull(): String? = this?.takeIf { it.isNotBlank() }
 }
