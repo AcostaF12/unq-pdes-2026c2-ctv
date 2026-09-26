@@ -29,7 +29,8 @@ describe('AgencySales page', () => {
   })
 
   it('shows the buyer identity and complete trip information for every sale', async () => {
-    mockedGetAgencyPurchases.mockResolvedValueOnce([
+    mockedGetAgencyPurchases.mockResolvedValueOnce({
+      content: [
       {
         id: 1,
         buyer: { id: 5, username: 'bruno', firstName: 'Bruno', lastName: 'Buyer' },
@@ -52,7 +53,8 @@ describe('AgencySales page', () => {
         purchasePrice: 1200,
         purchasedAt: '2026-03-15T14:30:00',
       },
-    ])
+      ], page: 0, size: 20, totalElements: 1, totalPages: 1, first: true, last: true,
+    })
 
     renderAgencySales()
 
@@ -72,7 +74,7 @@ describe('AgencySales page', () => {
   })
 
   it('shows the empty state when the agency has no sales', async () => {
-    mockedGetAgencyPurchases.mockResolvedValueOnce([])
+    mockedGetAgencyPurchases.mockResolvedValueOnce({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true })
 
     renderAgencySales()
 
@@ -80,10 +82,31 @@ describe('AgencySales page', () => {
     expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
   })
 
+  it('submits agency filters and resets pagination', async () => {
+    const user = userEvent.setup()
+    mockedGetAgencyPurchases.mockResolvedValueOnce({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true })
+    renderAgencySales()
+
+    await user.type(screen.getByLabelText('Usuario comprador'), 'bruno')
+    await user.type(screen.getByLabelText('Paquete'), 'París')
+    await user.type(screen.getByLabelText('Desde'), '2026-03-01')
+    await user.type(screen.getByLabelText('Hasta'), '2026-03-31')
+    await user.click(screen.getByRole('button', { name: 'Filtrar ventas' }))
+
+    expect(mockedGetAgencyPurchases).toHaveBeenLastCalledWith({
+      page: 0,
+      size: 20,
+      buyerUsername: 'bruno',
+      packageName: 'París',
+      from: '2026-03-01',
+      to: '2026-03-31',
+    })
+  })
+
   it('shows an error and retries the request', async () => {
     const user = userEvent.setup()
     mockedGetAgencyPurchases.mockRejectedValueOnce(new Error('boom'))
-    mockedGetAgencyPurchases.mockResolvedValueOnce([])
+    mockedGetAgencyPurchases.mockResolvedValueOnce({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true })
     renderAgencySales()
 
     expect(await screen.findByText(/No pudimos cargar las ventas/)).toBeInTheDocument()

@@ -177,6 +177,37 @@
   color: var(--color-primary);
 }
 
+.history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.history-filters label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 13px;
+}
+
+.history-filters input {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: var(--border-width) solid var(--color-ink);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+}
+
 .purchase-ticket__trip,
 .purchase-ticket__hotel {
   font-size: 14px;

@@ -37,6 +37,7 @@ const purchases = [
     purchasedAt: '2026-03-15T14:30:00',
   },
 ]
+const purchasePage = { content: purchases, page: 0, size: 20, totalElements: 1, totalPages: 1, first: true, last: true }
 
 function renderPurchases() {
   return render(
@@ -54,7 +55,7 @@ describe('Purchases page', () => {
   })
 
   it('shows purchase tickets after loading', async () => {
-    mockedGetMyPurchases.mockResolvedValueOnce(purchases)
+    mockedGetMyPurchases.mockResolvedValueOnce(purchasePage)
     renderPurchases()
 
     expect(screen.getByRole('status', { name: 'Cargando compras' })).toBeInTheDocument()
@@ -73,7 +74,7 @@ describe('Purchases page', () => {
   })
 
   it('shows an empty state without an error', async () => {
-    mockedGetMyPurchases.mockResolvedValueOnce([])
+    mockedGetMyPurchases.mockResolvedValueOnce({ ...purchasePage, content: [], totalElements: 0 })
     renderPurchases()
 
     expect(await screen.findByText('Todavía no hay viajes comprados')).toBeInTheDocument()
@@ -81,10 +82,23 @@ describe('Purchases page', () => {
     expect(screen.queryByText(/No pudimos cargar tus compras/)).not.toBeInTheDocument()
   })
 
+  it('loads the next page when requested', async () => {
+    const user = userEvent.setup()
+    mockedGetMyPurchases.mockResolvedValueOnce({ ...purchasePage, totalElements: 21, totalPages: 2, last: false })
+    mockedGetMyPurchases.mockResolvedValueOnce({ ...purchasePage, page: 1, totalElements: 21, totalPages: 2, first: false })
+    renderPurchases()
+
+    expect(await screen.findByText('Página 1 de 2')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+
+    expect(await screen.findByText('Página 2 de 2')).toBeInTheDocument()
+    expect(mockedGetMyPurchases).toHaveBeenLastCalledWith({ page: 1, size: 20 })
+  })
+
   it('shows an error without the empty state and allows retry', async () => {
     const user = userEvent.setup()
     mockedGetMyPurchases.mockRejectedValueOnce(new Error('boom'))
-    mockedGetMyPurchases.mockResolvedValueOnce(purchases)
+    mockedGetMyPurchases.mockResolvedValueOnce(purchasePage)
     renderPurchases()
 
     expect(await screen.findByText(/No pudimos cargar tus compras/)).toBeInTheDocument()

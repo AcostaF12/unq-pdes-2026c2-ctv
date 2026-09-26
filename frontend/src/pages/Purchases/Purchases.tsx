@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getApiErrorMessage } from '../../api/errors'
@@ -6,16 +7,19 @@ import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { queryKeys } from '../../query/keys'
+import { HistoryPagination } from '../../components/HistoryPagination/HistoryPagination'
 import { PurchaseEmptyScene, PurchaseTicket } from './PurchaseTicket'
 import './Purchases.css'
 
 export function Purchases() {
+  const [page, setPage] = useState(0)
+  const size = 20
   const purchasesQuery = useQuery({
-    queryKey: queryKeys.purchases.mine,
-    queryFn: getMyPurchases,
+    queryKey: queryKeys.purchases.minePage(page, size),
+    queryFn: () => getMyPurchases({ page, size }),
   })
 
-  const purchases = purchasesQuery.data ?? []
+  const purchases = purchasesQuery.data?.content ?? []
 
   return (
     <section className="page">
@@ -59,6 +63,7 @@ export function Purchases() {
           ))}
         </ul>
       )}
+      {purchasesQuery.data ? <HistoryPagination result={purchasesQuery.data} onPageChange={setPage} /> : null}
     </section>
   )
 }

@@ -74,7 +74,7 @@ class PurchaseServiceTest {
         travelPackage.price = java.math.BigDecimal("1800.00")
         travelPackageRepository.save(travelPackage)
 
-        val history = purchaseService.findMine(buyer.username).single()
+        val history = purchaseService.findMine(buyer.username).content.single()
         val historyDto = PurchaseDto.fromModel(history)
 
         assertEquals("París Romántico", historyDto.travelPackage.name)
@@ -117,8 +117,8 @@ class PurchaseServiceTest {
 
         val purchases = purchaseService.findMine(buyer.username)
 
-        assertEquals(1, purchases.size)
-        assertEquals("París Romántico", purchases.first().travelPackage.name)
+        assertEquals(1, purchases.totalElements)
+        assertEquals("París Romántico", purchases.content.first().travelPackage.name)
     }
 
     @Test
@@ -132,7 +132,7 @@ class PurchaseServiceTest {
 
         val purchases = purchaseService.findMine(buyer.username)
 
-        assertEquals(listOf("París Romántico"), purchases.map { it.travelPackage.name })
+        assertEquals(listOf("París Romántico"), purchases.content.map { it.travelPackage.name })
     }
 
     @Test
@@ -147,6 +147,28 @@ class PurchaseServiceTest {
     }
 
     @Test
+    fun `04c - purchase history should paginate and report total pages`() {
+        val buyer = factory.buyerNamed("buyer")
+        val firstPackage = factory.packageNamed("París Romántico")
+        val secondPackage = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, firstPackage.id!!)
+        purchaseService.purchase(buyer.username, secondPackage.id!!)
+
+        val firstPage = purchaseService.findMine(buyer.username, page = 0, size = 1)
+        val secondPage = purchaseService.findMine(buyer.username, page = 1, size = 1)
+
+        assertEquals(2, firstPage.totalElements)
+        assertEquals(2, firstPage.totalPages)
+        assertEquals(1, firstPage.content.size)
+        assertEquals(0, firstPage.number)
+        assertEquals(1, secondPage.number)
+        assertEquals(1, secondPage.content.size)
+        assertNotNull(firstPage.content.single().id)
+        assertNotNull(secondPage.content.single().id)
+        org.junit.jupiter.api.Assertions.assertNotEquals(firstPage.content.single().id, secondPage.content.single().id)
+    }
+
+    @Test
     fun `05 - findForAgency should return sales of the agency`() {
         factory.agencyUserNamed("agency")
         val buyer = factory.buyerNamed("buyer")
@@ -155,8 +177,46 @@ class PurchaseServiceTest {
 
         val sales = purchaseService.findForAgency("agency")
 
-        assertEquals(1, sales.size)
-        assertEquals(buyer.username, sales.first().buyer.username)
+        assertEquals(1, sales.totalElements)
+        assertEquals(buyer.username, sales.content.first().buyer.username)
+    }
+
+    @Test
+    fun `05b - agency history should filter by buyer package and purchase date`() {
+        factory.agencyUserNamed("agency")
+        val buyer = factory.buyerNamed("buyer")
+        val otherBuyer = factory.buyerNamed("other-buyer")
+        val matchingPackage = factory.packageNamed("París Romántico")
+        val otherPackage = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, matchingPackage.id!!)
+        purchaseService.purchase(otherBuyer.username, otherPackage.id!!)
+        val today = LocalDate.now()
+
+        val results = purchaseService.findForAgency(
+            username = "agency",
+            page = 0,
+            size = 5,
+            buyerUsername = buyer.username,
+            packageName = "románt",
+            from = today,
+            to = today,
+        )
+
+        assertEquals(1, results.totalElements)
+        assertEquals(buyer.username, results.content.single().buyer.username)
+        assertEquals("París Romántico", results.content.single().travelPackage.name)
+    }
+
+    @Test
+    fun `05c - history rejects invalid pagination and inverted date range`() {
+        val buyer = factory.buyerNamed("buyer")
+        factory.agencyUserNamed("agency")
+
+        assertThrows(IllegalArgumentException::class.java) { purchaseService.findMine(buyer.username, page = -1) }
+        assertThrows(IllegalArgumentException::class.java) { purchaseService.findMine(buyer.username, size = 101) }
+        assertThrows(IllegalArgumentException::class.java) {
+            purchaseService.findForAgency("agency", from = LocalDate.now(), to = LocalDate.now().minusDays(1))
+        }
     }
 
     @Test
@@ -177,7 +237,7 @@ class PurchaseServiceTest {
 
         val sales = purchaseService.findForAgency("agency")
 
-        assertEquals(listOf("París Romántico"), sales.map { it.travelPackage.name })
+        assertEquals(listOf("París Romántico"), sales.content.map { it.travelPackage.name })
     }
 
     @Test

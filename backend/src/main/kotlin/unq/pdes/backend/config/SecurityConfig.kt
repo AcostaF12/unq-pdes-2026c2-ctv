@@ -47,7 +47,7 @@ class SecurityConfig(
             it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
 
             it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
-            it.requestMatchers(HttpMethod.GET, "/purchases/me").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole("AGENCY")
 
             it.requestMatchers(HttpMethod.POST, "/favorites").hasRole("BUYER")

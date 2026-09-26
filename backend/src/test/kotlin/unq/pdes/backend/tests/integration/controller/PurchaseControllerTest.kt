@@ -91,9 +91,11 @@ class PurchaseControllerTest {
 
         mvc.perform(get("/purchases/me"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].travelPackage.name").value("París Romántico"))
-            .andExpect(jsonPath("$[0].travelPackage.hotel.name").value("Some hotel name"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$.content[0].travelPackage.hotel.name").value("Some hotel name"))
     }
 
     @Test
@@ -106,10 +108,55 @@ class PurchaseControllerTest {
 
         mvc.perform(get("/purchases/agency"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].buyer.username").value("buyer"))
-            .andExpect(jsonPath("$[0].buyer.firstName").value("Bruno"))
-            .andExpect(jsonPath("$[0].travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].buyer.username").value("buyer"))
+            .andExpect(jsonPath("$.content[0].buyer.firstName").value("Bruno"))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `02a - GET purchases me should return only the requested page`() {
+        val buyer = factory.buyerNamed("buyer")
+        val first = factory.packageNamed("París Romántico")
+        val second = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, first.id!!)
+        purchaseService.purchase(buyer.username, second.id!!)
+
+        mvc.perform(get("/purchases/me").param("page", "0").param("size", "1"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(2))
+            .andExpect(jsonPath("$.size").value(1))
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `02b - GET purchased package check should return whether package was bought`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        mvc.perform(get("/purchases/me/packages/${travelPackage.id}"))
+            .andExpect(status().isOk)
+            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("true"))
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `03a - GET agency sales should filter by buyer and package`() {
+        factory.agencyUserNamed("agency")
+        val buyer = factory.buyerNamed("buyer")
+        val matching = factory.packageNamed("París Romántico")
+        val other = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, matching.id!!)
+        purchaseService.purchase(buyer.username, other.id!!)
+
+        mvc.perform(get("/purchases/agency").param("buyerUsername", "buyer").param("packageName", "románt"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
     }
 
     @Test
