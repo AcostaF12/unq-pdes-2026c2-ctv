@@ -14,8 +14,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
+import unq.pdes.backend.controller.dtos.models.PurchaseDto
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
+import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.service.PurchaseService
 
 @SpringBootTest
@@ -29,6 +31,9 @@ class PurchaseServiceTest {
 
     @Autowired
     private lateinit var dataServiceH2: DataServiceH2
+
+    @Autowired
+    private lateinit var travelPackageRepository: TravelPackageRepository
 
     @MockitoBean
     private lateinit var flightsClient: FlightsClient
@@ -58,6 +63,23 @@ class PurchaseServiceTest {
         assertEquals(travelPackage.agency.id, purchase.agency.id)
         Mockito.verify(flightsClient).sell(1L, "Bruno Buyer")
         Mockito.verify(flightsClient).sell(2L, "Bruno Buyer")
+    }
+
+    @Test
+    fun `01a - history should keep the original trip after the package is updated`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+        travelPackage.name = "París actualizado"
+        travelPackage.price = java.math.BigDecimal("1800.00")
+        travelPackageRepository.save(travelPackage)
+
+        val history = purchaseService.findMine(buyer.username).single()
+        val historyDto = PurchaseDto.fromModel(history)
+
+        assertEquals("París Romántico", historyDto.travelPackage.name)
+        assertEquals(java.math.BigDecimal("1500.00"), historyDto.travelPackage.price)
+        assertEquals(java.math.BigDecimal("1500.00"), historyDto.purchasePrice)
     }
 
     @Test
