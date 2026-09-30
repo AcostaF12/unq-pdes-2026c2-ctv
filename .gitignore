@@ -52,3 +52,9 @@ docs/deploy-azure-checklist.md
 # Cucumber acceptance tests
 acceptance-tests/node_modules/
 acceptance-tests/reports/
+
+# Cypress generated artifacts and local secrets
+frontend/cypress/screenshots/
+frontend/cypress/videos/
+frontend/cypress/downloads/
+frontend/cypress.env.json
