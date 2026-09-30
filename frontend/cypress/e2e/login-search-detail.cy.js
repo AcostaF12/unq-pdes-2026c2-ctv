@@ -30,7 +30,7 @@ describe('Comprador: login, búsqueda y detalle', () => {
     cy.contains('h2', packageName).should('be.visible')
     cy.contains('h2', 'Londres Clásico').should('not.exist')
 
-    // abrir el resultado y comprobar información visible del paquete 
+    // abrir el resultado y comprobar información visible del paquete
     cy.contains('a', packageName).click()
     cy.wait('@detail').its('response.statusCode').should('eq', 200)
     cy.location('pathname').should('match', /^\/trips\/\d+$/)

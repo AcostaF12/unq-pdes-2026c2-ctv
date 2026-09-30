@@ -37,7 +37,7 @@ describe('Administrador: gestión de hoteles', () => {
     cy.contains('h1', updatedName).should('be.visible')
     cy.contains('p', 'Rome · ROM').should('be.visible')
 
-    // confirmar la eliminación solo de este hotel 
+    // confirmar la eliminación solo de este hotel
     cy.on('window:confirm', (message) => {
       expect(message).to.eq(`¿Eliminar ${updatedName}?`)
       return true

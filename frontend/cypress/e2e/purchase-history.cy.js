@@ -69,7 +69,7 @@ describe('Comprador: compra e historial', () => {
     cy.contains('a', travelPackage.name).click()
     cy.contains('h1', travelPackage.name).should('be.visible')
 
-    // la operación bajo prueba se realiza con el botón 
+    // la operación bajo prueba se realiza con el botón
     cy.contains('button', /^Comprar$/).should('be.enabled').click()
     cy.wait('@purchase').then(({ response }) => {
       expect(response.statusCode).to.eq(201)
@@ -87,7 +87,7 @@ describe('Comprador: compra e historial', () => {
       cy.contains('USD 1750').should('be.visible')
     })
 
-    // recargar fuerza a recuperar el historial persistido 
+    // recargar fuerza a recuperar el historial persistido
     cy.reload()
     cy.wait('@history').its('response.statusCode').should('eq', 200)
     cy.get('article.purchase-ticket').should('have.length', 1)
