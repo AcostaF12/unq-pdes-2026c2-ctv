@@ -375,7 +375,7 @@ li.catalog__card {
 
 @media (min-width: 640px) {
   .catalog__filters {
-    grid-template-columns: 1.3fr 1fr 1fr auto;
+    grid-template-columns: 1.3fr 1fr 1fr 0.8fr 0.8fr auto;
   }
 
   .catalog__filters-submit {

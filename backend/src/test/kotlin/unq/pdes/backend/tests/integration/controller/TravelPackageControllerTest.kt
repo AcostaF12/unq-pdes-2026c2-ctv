@@ -71,10 +71,13 @@ class TravelPackageControllerTest {
 
         mvc.perform(get("/packages"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].name").value("París Romántico"))
-            .andExpect(jsonPath("$[0].origin.code").value("BUE"))
-            .andExpect(jsonPath("$[0].destination.code").value("PAR"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("París Romántico"))
+            .andExpect(jsonPath("$.content[0].origin.code").value("BUE"))
+            .andExpect(jsonPath("$.content[0].destination.code").value("PAR"))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.totalPages").value(1))
     }
 
     @Test
@@ -150,8 +153,82 @@ class TravelPackageControllerTest {
                 .param("destination", "PAR"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].name").value("París Romántico"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("París Romántico"))
+    }
+
+    @Test
+    fun `07a - GET packages should filter by an inclusive price range`() {
+        factory.packageNamed("Paris Economic", price = BigDecimal("900.00"))
+        factory.packageNamed("Paris Romantic", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2100.00"))
+
+        mvc.perform(get("/packages").param("minPrice", "900.00").param("maxPrice", "1500.00"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(2))
+            .andExpect(jsonPath("$.content[0].name").value("Paris Economic"))
+            .andExpect(jsonPath("$.content[1].name").value("Paris Romantic"))
+    }
+
+    @Test
+    fun `07b - GET packages should reject an inverted price range`() {
+        mvc.perform(get("/packages").param("minPrice", "1500.00").param("maxPrice", "900.00"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("The minimum price cannot be greater than the maximum price."))
+    }
+
+    @Test
+    fun `07c - GET packages should apply every advanced filter together`() {
+        factory.packageNamed("Paris Complete", price = BigDecimal("1500.00"))
+        factory.packageNamed("London Complete", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris From London", originCode = "LON", originCity = "London", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris To London", destinationCode = "LON", destinationCity = "London", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2500.00"))
+
+        mvc.perform(
+            get("/packages")
+                .param("name", "  paris complete ")
+                .param("origin", "bue")
+                .param("destination", "par")
+                .param("minPrice", "1200.00")
+                .param("maxPrice", "1800.00"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("Paris Complete"))
+    }
+
+    @Test
+    fun `07d - GET packages should paginate results`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("200.00"))
+        factory.packageNamed("Paris C", price = BigDecimal("300.00"))
+
+        mvc.perform(get("/packages").param("page", "1").param("size", "2").param("sort", "price,asc"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].name").value("Paris C"))
+            .andExpect(jsonPath("$.page").value(1))
+            .andExpect(jsonPath("$.totalElements").value(3))
+            .andExpect(jsonPath("$.totalPages").value(2))
+    }
+
+    @Test
+    fun `07e - GET packages should sort by price descending`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("300.00"))
+
+        mvc.perform(get("/packages").param("sort", "price,desc"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content[0].name").value("Paris B"))
+            .andExpect(jsonPath("$.content[1].name").value("Paris A"))
+    }
+
+    @Test
+    fun `07f - GET packages should reject sorting by a non whitelisted property`() {
+        mvc.perform(get("/packages").param("sort", "agency.id,asc"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.errorData.description").value("Cannot sort packages by 'agency.id'."))
     }
 
     @Test

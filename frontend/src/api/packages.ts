@@ -53,12 +53,27 @@ export interface TravelPackagePayload {
   price: number
 }
 
-export async function searchPackages(params?: {
+export interface PackageSearchParams {
   name?: string
   origin?: string
   destination?: string
-}): Promise<TravelPackage[]> {
-  const { data } = await apiClient.get<TravelPackage[]>('/packages', { params })
+  minPrice?: number
+  maxPrice?: number
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface PagedResult<T> {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export async function searchPackages(params?: PackageSearchParams): Promise<PagedResult<TravelPackage>> {
+  const { data } = await apiClient.get<PagedResult<TravelPackage>>('/packages', { params })
   return data
 }
 

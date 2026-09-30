@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listCities } from '../../api/cities'
@@ -7,12 +6,15 @@ import { searchPackages } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
-import { Input } from '../../components/Input/Input'
-import { Select } from '../../components/Select/Select'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { Pagination } from '../../components/Pagination/Pagination'
 import { useAuth } from '../../auth/AuthContext'
 import { readPreferences } from '../../preferences/preferences'
-import { queryKeys, type PackageSearchFilters } from '../../query/keys'
+import { queryKeys } from '../../query/keys'
+import { PackageSearchForm } from './search/PackageSearchForm'
+import { hasPackageSearchFilters } from './search/packageSearchFilters'
+import { parseSortOptionValue } from './search/packageSearchSort'
+import { usePackageSearch } from './search/usePackageSearch'
 import './packages.css'
 
 function CatalogEmptyScene() {
@@ -66,14 +68,6 @@ function CatalogEmptyScene() {
   )
 }
 
-function compactFilters(filters: PackageSearchFilters): PackageSearchFilters {
-  return {
-    ...(filters.name ? { name: filters.name } : {}),
-    ...(filters.origin ? { origin: filters.origin } : {}),
-    ...(filters.destination ? { destination: filters.destination } : {}),
-  }
-}
-
 function originFromPreferences(userId: number | undefined): string {
   if (userId == null) {
     return ''
@@ -85,10 +79,7 @@ function originFromPreferences(userId: number | undefined): string {
 export function PackageList() {
   const { user } = useAuth()
   const savedOrigin = originFromPreferences(user?.id)
-  const [name, setName] = useState('')
-  const [origin, setOrigin] = useState(savedOrigin)
-  const [destination, setDestination] = useState('')
-  const [filters, setFilters] = useState<PackageSearchFilters>(() => compactFilters({ origin: savedOrigin }))
+  const search = usePackageSearch(savedOrigin)
 
   const citiesQuery = useQuery({
     queryKey: queryKeys.cities,
@@ -96,31 +87,14 @@ export function PackageList() {
   })
 
   const packagesQuery = useQuery({
-    queryKey: queryKeys.packages.search(filters),
-    queryFn: () => searchPackages(Object.keys(filters).length ? filters : undefined),
+    queryKey: queryKeys.packages.search(search.query),
+    queryFn: () => searchPackages(search.query),
   })
 
   const cities = citiesQuery.data ?? []
-  const packages = packagesQuery.data ?? []
-  const hasFilters = Object.keys(filters).length > 0
-
-  const onSearch = (event: FormEvent) => {
-    event.preventDefault()
-    setFilters(
-      compactFilters({
-        name,
-        origin,
-        destination,
-      }),
-    )
-  }
-
-  const onClearFilters = () => {
-    setName('')
-    setOrigin('')
-    setDestination('')
-    setFilters({})
-  }
+  const packages = packagesQuery.data?.content ?? []
+  const totalPages = packagesQuery.data?.totalPages ?? 0
+  const hasFilters = hasPackageSearchFilters(search.filters)
 
   return (
     <section className="page">
@@ -128,38 +102,15 @@ export function PackageList() {
         <p className="catalog__eyebrow">Elegí tu escape</p>
         <h1 className="page__title">Paquetes</h1>
       </header>
-      <form className="catalog__search" onSubmit={onSearch}>
-        <div className="catalog__search-copy">
-          <h2>Buscá tu viaje</h2>
-          <p>Filtrá por nombre, ciudad de origen o destino.</p>
-        </div>
-        <div className="catalog__filters">
-          <Input label="Nombre" value={name} onChange={(event) => setName(event.target.value)} />
-          <Select label="Origen" value={origin} onChange={(event) => setOrigin(event.target.value)}>
-            <option value="">Todos</option>
-            {cities.map((item) => (
-              <option key={`origin-${item.code}`} value={item.code}>
-                {item.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label="Destino"
-            value={destination}
-            onChange={(event) => setDestination(event.target.value)}
-          >
-            <option value="">Todos</option>
-            {cities.map((item) => (
-              <option key={`dest-${item.code}`} value={item.code}>
-                {item.name}
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" className="catalog__filters-submit">
-            Buscar
-          </Button>
-        </div>
-      </form>
+      <PackageSearchForm
+        cities={cities}
+        values={search.formValues}
+        error={search.error}
+        sort={search.sort}
+        onChange={search.updateField}
+        onSortChange={(value) => search.setSort(parseSortOptionValue(value))}
+        onSubmit={search.submit}
+      />
       {packagesQuery.isPending ? (
         <ListSkeleton variant="cards" withMedia={false} label="Cargando paquetes" />
       ) : packagesQuery.error ? (
@@ -178,13 +129,13 @@ export function PackageList() {
           title="Ningún viaje por acá"
           message={
             hasFilters
-              ? 'No hay paquetes para esos filtros. Probá con otro nombre, origen o destino.'
+              ? 'No hay paquetes para esos filtros. Probá con otro nombre, origen, destino o rango de precio.'
               : 'Todavía no hay paquetes publicados.'
           }
           illustration={<CatalogEmptyScene />}
           action={
             hasFilters ? (
-              <Button type="button" variant="ghost" onClick={onClearFilters}>
+              <Button type="button" variant="ghost" onClick={search.clear}>
                 Limpiar filtros
               </Button>
             ) : undefined
@@ -214,6 +165,7 @@ export function PackageList() {
           ))}
         </ul>
       )}
+      <Pagination page={search.page} totalPages={totalPages} onPageChange={search.setPage} />
     </section>
   )
 }

@@ -24,6 +24,13 @@ Feature: Flujos críticos de Compra Tu Viaje
     Then la búsqueda responde con status 200
     And el paquete nuevo aparece en los resultados
 
+  Scenario: Un comprador encuentra un paquete con todos los filtros avanzados
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    When busca el paquete nuevo con todos los filtros
+    Then la búsqueda responde con status 200
+    And el paquete nuevo aparece en los resultados
+
   Scenario: Un comprador compra un paquete con vuelos disponibles
     Given existe un paquete nuevo entre "BUE" y "PAR"
     And inició sesión un comprador nuevo
