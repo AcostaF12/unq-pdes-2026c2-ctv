@@ -1,3 +1,53 @@
+# Entorno para pruebas e2e
+
+Desde la raíz del repositorio, con Docker Desktop abierto:
+
+```bash
+docker compose -f docker-compose.e2e.yml up --build -d --wait --wait-timeout 180
+```
+
+Abrir http://localhost:18090. Comprador: `buyer` / `buyer123`.
+Administrador: `vferreyra` / `vferreyra`. El backend está en http://localhost:18080.
+La API de vuelos se publica en http://localhost:18081 solo para preparar datos e2e.
+
+Este entorno usa el proyecto Docker `ctv-e2e` y bases PostgreSQL temporales,
+separadas del entorno de desarrollo y del módulo Cucumber. Reutiliza sus
+servicios mediante `extends`; no ejecuta los escenarios Cucumber.
+Los datos iniciales incluyen paquetes, hoteles y vuelos con fechas relativas
+al día de arranque. Los tests deberán preparar sus datos antes de modificar el estado.
+
+Para apagarlo y eliminar los datos de prueba:
+
+```bash
+docker compose -f docker-compose.e2e.yml down
+```
+
+Para empezar otra ejecución con los datos iniciales, ejecutar `down` y luego
+el comando `up` anterior.
+
+## Cypress
+
+Con Node.js instalado, desde `frontend/`:
+
+```bash
+npm ci
+npm run e2e:open
+```
+
+`e2e:open` abre la interfaz de Cypress para ver las acciones en el navegador.
+`npm run e2e:run` ejecuta los tests sin abrir la interfaz, como se hará en CI.
+El entorno Docker anterior debe estar levantado. Los escenarios se escribirán
+en `frontend/cypress/e2e/` con nombres terminados en `.cy.js` o `.cy.ts`;
+La suite verifica login/búsqueda/detalle, compra/historial, creación/edición/eliminación
+de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios reales.
+La compra prepara un comprador, dos vuelos y un paquete propios mediante APIs;
+la operación de compra se hace desde la interfaz. El hotel usa un nombre único
+y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `down`.
+La configuración está en `frontend/cypress.config.js` y apunta a http://localhost:18090.
+Los videos y capturas generados no se incluyen en Git.
+
+Para ejecutar toda la suite en Chrome: `npm run e2e:run -- --browser chrome`.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

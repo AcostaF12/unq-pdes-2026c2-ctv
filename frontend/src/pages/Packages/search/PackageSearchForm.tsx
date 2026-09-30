@@ -29,8 +29,8 @@ export function PackageSearchForm({ cities, values, error, sort, onChange, onSor
         <p>Filtrá por nombre, ciudad de origen o destino, y rango de precio.</p>
       </div>
       <div className="catalog__filters">
-        <Input label="Nombre" value={values.name} onChange={(event) => onChange('name', event.target.value)} />
-        <Select label="Origen" value={values.origin} onChange={(event) => onChange('origin', event.target.value)}>
+        <Input data-cy="search-name" label="Nombre" value={values.name} onChange={(event) => onChange('name', event.target.value)} />
+        <Select data-cy="search-origin" label="Origen" value={values.origin} onChange={(event) => onChange('origin', event.target.value)}>
           <option value="">Todos</option>
           {cities.map((city) => (
             <option key={`origin-${city.code}`} value={city.code}>
@@ -38,7 +38,7 @@ export function PackageSearchForm({ cities, values, error, sort, onChange, onSor
             </option>
           ))}
         </Select>
-        <Select label="Destino" value={values.destination} onChange={(event) => onChange('destination', event.target.value)}>
+        <Select data-cy="search-destination" label="Destino" value={values.destination} onChange={(event) => onChange('destination', event.target.value)}>
           <option value="">Todos</option>
           {cities.map((city) => (
             <option key={`destination-${city.code}`} value={city.code}>
