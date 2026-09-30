@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { addFavorite, getFavorites, removeFavorite } from '../../api/favorites'
 import { getApiErrorMessage } from '../../api/errors'
 import { getPackage } from '../../api/packages'
-import { buyPackage, getMyPurchases } from '../../api/purchases'
+import { buyPackage, hasPurchasedPackage } from '../../api/purchases'
 import { createReview } from '../../api/reviews'
 import { useAuth } from '../../auth/AuthContext'
 import { Button } from '../../components/Button/Button'
@@ -53,13 +53,13 @@ export function PackageDetail() {
   })
 
   const purchasesQuery = useQuery({
-    queryKey: queryKeys.purchases.mine,
-    queryFn: getMyPurchases,
+    queryKey: queryKeys.purchases.ownsPackage(packageId),
+    queryFn: () => hasPurchasedPackage(packageId),
     enabled: !invalidId && isBuyer,
   })
 
   const favorited = favoritesQuery.data?.some((item) => item.packageId === packageId) ?? false
-  const purchased = purchasesQuery.data?.some((item) => item.packageId === packageId) ?? false
+  const purchased = purchasesQuery.data ?? false
   const detail = detailQuery.data
 
   const buyMutation = useMutation({
@@ -67,6 +67,7 @@ export function PackageDetail() {
     onSuccess: async () => {
       setMessage('Compra realizada. Los asientos de ida y vuelta quedaron reservados.')
       await queryClient.invalidateQueries({ queryKey: queryKeys.purchases.mine })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.purchases.ownsPackage(packageId) })
       await queryClient.invalidateQueries({ queryKey: queryKeys.packages.detail(packageId) })
     },
     onError: (reason: unknown) => {

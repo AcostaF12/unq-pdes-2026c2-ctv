@@ -28,6 +28,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("org.springframework.boot:spring-boot-starter-zipkin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
@@ -40,6 +41,7 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	runtimeOnly("org.postgresql:postgresql")
+	runtimeOnly("org.flywaydb:flyway-database-postgresql")
 	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	runtimeOnly(libs.jjwt.impl)
 	runtimeOnly(libs.jjwt.gson)

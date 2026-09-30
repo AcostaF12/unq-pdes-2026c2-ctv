@@ -1,9 +1,13 @@
 package unq.pdes.backend.service
 
 import java.time.LocalDateTime
+import java.time.LocalDate
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.model.Purchase
 import unq.pdes.backend.model.user.AgencyUser
@@ -19,16 +23,48 @@ class PurchaseService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findMine(username: String): List<Purchase> {
+    fun findMine(username: String, page: Int = 0, size: Int = 20): Page<Purchase> {
         val buyer = userService.findByUsername(username)
-        return purchaseRepository.findByBuyerIdOrderByPurchasedAtDesc(buyer.id!!)
+        if (buyer.role != Role.BUYER) {
+            throw AccessDeniedException("Only buyers can list their purchase history.")
+        }
+        return purchaseRepository.findByBuyerId(buyer.id!!, pageRequest(page, size))
     }
 
     @Transactional(readOnly = true)
-    fun findForAgency(username: String): List<Purchase> {
+    fun findForAgency(
+        username: String,
+        page: Int = 0,
+        size: Int = 20,
+        buyerUsername: String? = null,
+        packageName: String? = null,
+        from: LocalDate? = null,
+        to: LocalDate? = null,
+    ): Page<Purchase> {
         val agencyUser = userService.findByUsername(username) as? AgencyUser
             ?: throw AccessDeniedException("Only agency users can list agency purchases.")
-        return purchaseRepository.findByAgencyIdOrderByPurchasedAtDesc(agencyUser.agency.id!!)
+        require(from == null || to == null || !from.isAfter(to)) { "The start date must not be after the end date." }
+        return purchaseRepository.searchAgencyHistory(
+            agencyId = agencyUser.agency.id!!,
+            buyerUsername = buyerUsername?.trim()?.takeIf(String::isNotEmpty),
+            packageName = packageName?.trim()?.takeIf(String::isNotEmpty),
+            fromInclusive = from?.atStartOfDay(),
+            toExclusive = to?.plusDays(1)?.atStartOfDay(),
+            pageable = pageRequest(page, size),
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun hasPurchased(username: String, packageId: Long): Boolean {
+        val buyer = userService.findByUsername(username)
+        if (buyer.role != Role.BUYER) throw AccessDeniedException("Only buyers can check their purchases.")
+        return purchaseRepository.existsByBuyerIdAndTravelPackageId(buyer.id!!, packageId)
+    }
+
+    private fun pageRequest(page: Int, size: Int): PageRequest {
+        require(page >= 0) { "Page must be zero or greater." }
+        require(size in 1..100) { "Page size must be between 1 and 100." }
+        return PageRequest.of(page, size, Sort.by(Sort.Order.desc("purchasedAt"), Sort.Order.desc("id")))
     }
 
     @Transactional

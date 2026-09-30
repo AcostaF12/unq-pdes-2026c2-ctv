@@ -3,7 +3,7 @@ import type { Purchase } from '../../api/purchases'
 
 interface PurchaseTicketProps {
   purchase: Purchase
-  showAgency?: boolean
+  audience?: 'buyer' | 'agency'
 }
 
 export function PurchaseEmptyScene() {
@@ -33,22 +33,34 @@ function formatPurchaseDate(isoDate: string): string {
   })
 }
 
-export function PurchaseTicket({ purchase, showAgency = true }: PurchaseTicketProps) {
-  const tripPath = `/trips/${purchase.packageId}`
+export function PurchaseTicket({ purchase, audience = 'buyer' }: PurchaseTicketProps) {
+  const { travelPackage } = purchase
+  const tripPath = `/trips/${travelPackage.id}`
+  const counterparty =
+    audience === 'agency'
+      ? `${purchase.buyer.firstName} ${purchase.buyer.lastName} (@${purchase.buyer.username})`
+      : travelPackage.agency.name
 
   return (
     <article className="purchase-ticket">
       <div className="purchase-ticket__body">
-        <p className="purchase-ticket__meta">{showAgency ? purchase.agency.name : 'Venta'}</p>
+        <p className="purchase-ticket__meta">{counterparty}</p>
         <h2 className="purchase-ticket__name">
-          <Link to={tripPath}>{purchase.packageName}</Link>
+          <Link to={tripPath}>{travelPackage.name}</Link>
         </h2>
+        <p className="purchase-ticket__trip">
+          {travelPackage.origin.name} → {travelPackage.destination.name}
+        </p>
+        <p className="purchase-ticket__hotel">Hotel: {travelPackage.hotel.name}</p>
         <time className="purchase-ticket__date" dateTime={purchase.purchasedAt}>
           {formatPurchaseDate(purchase.purchasedAt)}
         </time>
       </div>
       <div className="purchase-ticket__stub">
-        <p className="purchase-ticket__price">USD {purchase.purchasePrice}</p>
+        <p className="purchase-ticket__price">
+          <span className="purchase-ticket__price-label">Precio abonado</span>
+          USD {purchase.purchasePrice}
+        </p>
         <Link className="purchase-ticket__link" to={tripPath}>
           Ver viaje
         </Link>

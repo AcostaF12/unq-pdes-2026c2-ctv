@@ -1,6 +1,7 @@
 package unq.pdes.backend.model
 
 import jakarta.persistence.Column
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -10,6 +11,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import unq.pdes.backend.model.history.PurchaseBuyerSnapshot
+import unq.pdes.backend.model.history.PurchaseTravelSnapshot
 import unq.pdes.backend.model.user.User
 
 @Entity
@@ -24,9 +27,15 @@ class Purchase private constructor(builder: Builder) {
     @JoinColumn(name = "buyer_id", nullable = false)
     var buyer: User = builder.buyer!!
 
+    @Embedded
+    var buyerSnapshot: PurchaseBuyerSnapshot = PurchaseBuyerSnapshot.from(builder.buyer!!)
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "package_id", nullable = false)
     var travelPackage: TravelPackage = builder.travelPackage!!
+
+    @Embedded
+    var travelSnapshot: PurchaseTravelSnapshot = PurchaseTravelSnapshot.from(builder.travelPackage!!)
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "agency_id", nullable = false)

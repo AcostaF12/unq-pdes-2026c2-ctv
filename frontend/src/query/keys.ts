@@ -4,6 +4,15 @@ export interface PackageSearchFilters {
   destination?: string
 }
 
+export interface PurchaseHistoryQueryFilters {
+  page: number
+  size: number
+  buyerUsername?: string
+  packageName?: string
+  from?: string
+  to?: string
+}
+
 export const queryKeys = {
   cities: ['cities'] as const,
   hotels: {
@@ -20,5 +29,8 @@ export const queryKeys = {
   purchases: {
     mine: ['purchases', 'me'] as const,
     agency: ['purchases', 'agency'] as const,
+    minePage: (page: number, size: number) => ['purchases', 'me', page, size] as const,
+    agencyPage: (filters: PurchaseHistoryQueryFilters) => ['purchases', 'agency', filters] as const,
+    ownsPackage: (packageId: number) => ['purchases', 'me', 'package', packageId] as const,
   },
 }

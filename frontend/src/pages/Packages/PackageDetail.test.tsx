@@ -9,7 +9,7 @@ import { persistSession } from '../../api/session'
 import { getCurrentUser } from '../../api/auth'
 import { addFavorite, getFavorites, type Favorite } from '../../api/favorites'
 import { getPackage, type TravelPackageDetail } from '../../api/packages'
-import { getMyPurchases } from '../../api/purchases'
+import { hasPurchasedPackage } from '../../api/purchases'
 import { createTestQueryClient } from '../../test/queryClient'
 
 vi.mock('../../api/auth', () => ({
@@ -27,7 +27,7 @@ vi.mock('../../api/favorites', () => ({
 }))
 
 vi.mock('../../api/purchases', () => ({
-  getMyPurchases: vi.fn(),
+  hasPurchasedPackage: vi.fn(),
   buyPackage: vi.fn(),
 }))
 
@@ -68,7 +68,7 @@ const mockedGetCurrentUser = vi.mocked(getCurrentUser)
 const mockedGetPackage = vi.mocked(getPackage)
 const mockedGetFavorites = vi.mocked(getFavorites)
 const mockedAddFavorite = vi.mocked(addFavorite)
-const mockedGetMyPurchases = vi.mocked(getMyPurchases)
+const mockedHasPurchasedPackage = vi.mocked(hasPurchasedPackage)
 
 describe('PackageDetail page', () => {
   beforeEach(() => {
@@ -76,11 +76,11 @@ describe('PackageDetail page', () => {
     mockedGetPackage.mockReset()
     mockedGetFavorites.mockReset()
     mockedAddFavorite.mockReset()
-    mockedGetMyPurchases.mockReset()
+    mockedHasPurchasedPackage.mockReset()
     persistSession('token', buyer)
     mockedGetCurrentUser.mockResolvedValue(buyer)
     mockedGetPackage.mockResolvedValue(travelPackage)
-    mockedGetMyPurchases.mockResolvedValue([])
+    mockedHasPurchasedPackage.mockResolvedValue(false)
   })
 
   it('refetches favorites after starring a package', async () => {
@@ -118,7 +118,7 @@ describe('PackageDetail page', () => {
   it('shows a catalog empty state when the package cannot be loaded', async () => {
     mockedGetPackage.mockRejectedValueOnce(new Error('boom'))
     mockedGetFavorites.mockResolvedValueOnce([])
-    mockedGetMyPurchases.mockResolvedValueOnce([])
+    mockedHasPurchasedPackage.mockResolvedValueOnce(false)
 
     render(
       <QueryClientProvider client={createTestQueryClient()}>
