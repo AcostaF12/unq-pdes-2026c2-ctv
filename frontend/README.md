@@ -44,9 +44,12 @@ La compra prepara un comprador, dos vuelos y un paquete propios mediante APIs;
 la operación de compra se hace desde la interfaz. El hotel usa un nombre único
 y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `down`.
 La configuración está en `frontend/cypress.config.js` y apunta a http://localhost:18090.
-Los videos y capturas generados no se incluyen en Git.
+No se generan videos ni capturas automáticas de fallos.
 
-Para ejecutar toda la suite en Chrome: `npm run e2e:run -- --browser chrome`.
+Para ejecutar toda la suite en Electron: `npm run e2e:run -- --browser electron`.
+El workflow `E2E CI` ejecuta este comando en cada PR y push a `dev` o `main`,
+levanta el entorno Docker y lo apaga al finalizar. Los resultados y los logs
+de la aplicación en caso de fallo se consultan en GitHub Actions; no sube archivos.
 
 # React + TypeScript + Vite
 

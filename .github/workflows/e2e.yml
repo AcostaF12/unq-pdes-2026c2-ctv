@@ -1,0 +1,44 @@
+name: E2E CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Start application
+        run: docker compose -f docker-compose.e2e.yml up --build -d --wait --wait-timeout 180
+
+      - name: Run Cypress with Electron
+        working-directory: frontend
+        run: npm run e2e:run -- --browser electron
+
+      - name: Show application logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.e2e.yml logs --no-color --tail=200
+
+      - name: Stop application
+        if: always()
+        run: docker compose -f docker-compose.e2e.yml down
