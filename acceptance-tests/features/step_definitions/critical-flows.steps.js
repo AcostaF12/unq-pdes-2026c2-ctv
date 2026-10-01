@@ -159,7 +159,7 @@ Then('la búsqueda responde con status {int}', function (status) {
 })
 
 Then('el paquete nuevo aparece en los resultados', function () {
-  assert.ok(this.response.body.some((candidate) => candidate.id === this.package.id))
+  assert.ok(this.response.body.content.some((candidate) => candidate.id === this.package.id))
 })
 
 When('compra el paquete nuevo', async function () {
@@ -189,7 +189,7 @@ Then('la compra es rechazada con status {int}', function (status) {
 Then('la compra figura en su historial con el precio publicado', async function () {
   const response = await backendRequest('/purchases/me', { token: this.token })
   assert.equal(response.status, 200)
-  const purchase = response.body.find((candidate) => candidate.packageId === this.package.id)
+  const purchase = response.body.content.find((candidate) => candidate.travelPackage.id === this.package.id)
   assert.ok(purchase, 'The new purchase was not found in the buyer history.')
   assert.equal(Number(purchase.purchasePrice), Number(this.packagePrice))
 })
@@ -235,7 +235,7 @@ Given('existe un paquete cuyo vuelo de regreso no tiene disponibilidad', async f
 Then('no queda una compra registrada', async function () {
   const response = await backendRequest('/purchases/me', { token: this.token })
   assert.equal(response.status, 200)
-  assert.ok(!response.body.some((candidate) => candidate.packageId === this.package.id))
+  assert.equal(response.body.totalElements, 0)
 })
 
 Then('el vuelo de ida recupera su disponibilidad original', async function () {
@@ -306,7 +306,7 @@ When('la agencia cambia el precio del paquete a {int}', async function (newPrice
 Then('su historial conserva el precio original de la compra', async function () {
   const response = await backendRequest('/purchases/me', { token: this.token })
   assert.equal(response.status, 200)
-  const purchase = response.body.find((candidate) => candidate.packageId === this.package.id)
+  const purchase = response.body.content.find((candidate) => candidate.travelPackage.id === this.package.id)
   assert.ok(purchase, 'The purchase was not found in the buyer history.')
   assert.equal(Number(purchase.purchasePrice), Number(this.packagePrice))
   assert.notEqual(Number(purchase.purchasePrice), Number(this.package.price))
