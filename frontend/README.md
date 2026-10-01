@@ -47,7 +47,7 @@ La configuración está en `frontend/cypress.config.js` y apunta a http://localh
 No se generan videos ni capturas automáticas de fallos.
 
 Para ejecutar toda la suite en Electron: `npm run e2e:run -- --browser electron`.
-El workflow `E2E CI` ejecuta este comando en cada PR y push a `dev` o `main`,
+El workflow `Acceptance and E2E CI` ejecuta este comando en cada PR y push a `dev` o `main`,
 levanta el entorno Docker y lo apaga al finalizar. Los resultados y los logs
 de la aplicación en caso de fallo se consultan en GitHub Actions; no sube archivos.
 
