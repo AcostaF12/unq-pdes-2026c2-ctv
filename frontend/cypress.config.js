@@ -3,7 +3,8 @@ import { defineConfig } from 'cypress'
 export default defineConfig({
   viewportWidth: 1280,
   viewportHeight: 800,
-  video: true,
+  video: false,
+  screenshotOnRunFailure: false,
   expose: {
     backendUrl: 'http://localhost:18080',
     flightsUrl: 'http://localhost:18081',
