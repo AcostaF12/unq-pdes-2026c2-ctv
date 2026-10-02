@@ -53,9 +53,18 @@ jobs:
       - name: Build and test
         run: ./gradlew build
 
-      - name: SonarCloud analysis
-        if: ${{ env.SONAR_TOKEN != '' }}
-        run: ./gradlew sonar
+      - name: SonarCloud analysis and Quality Gate
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if [ -z "${SONAR_TOKEN:-}" ]; then
+            echo "::error::SONAR_TOKEN is required for internal CI and deploy checks. Configure the repository secret and pass it to reusable workflows."
+            exit 1
+          fi
+          ./gradlew sonar -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
+
+      - name: Explain skipped Sonar analysis for fork PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "::warning::Sonar analysis was skipped because fork PRs do not receive repository secrets. Build, tests and lint still run."
 
   publish:
     needs: build

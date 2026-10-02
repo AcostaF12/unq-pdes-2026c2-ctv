@@ -31,6 +31,25 @@ end
   end
 end
 
+%w[backend flights-service].each do |mod|
+  workflow = YAML.load_file(File.join(ROOT, ".github/workflows/#{mod}.yml"))
+  steps = workflow.fetch('jobs').fetch('build').fetch('steps')
+  sonar = steps.find { |step| step['name'] == 'SonarCloud analysis and Quality Gate' }
+  check(!sonar.nil?, "#{mod} must enforce the Sonar Quality Gate")
+  check(sonar['if'] == "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository", "#{mod} must only skip Sonar for fork PRs")
+  check(!sonar['continue-on-error'], "#{mod} must propagate Sonar failures")
+  command = './gradlew sonar -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300'
+  check(sonar.fetch('run').include?(command), "#{mod} must wait for the Quality Gate")
+  # Exercise token validation and failure propagation without contacting Sonar.
+  script = sonar['run'].sub(command, 'exit 23')
+  ['', 'local-test-token'].each do |token|
+    output, _, status = Open3.capture3({ 'SONAR_TOKEN' => token }, 'sh', stdin_data: script)
+    check(status.exitstatus == (token.empty? ? 1 : 23), "#{mod} must reject missing tokens and failed analysis")
+    check(output.include?('SONAR_TOKEN'), "#{mod} must explain missing configuration") if token.empty?
+    check(!output.include?(token), "#{mod} must not expose tokens") unless token.empty?
+  end
+end
+
 check(events.key?('workflow_call'), 'Test workflow must be reusable')
 %w[pull_request push].each do |event|
   check(events.fetch(event).fetch('branches').sort == %w[dev main], "Missing #{event} triggers")
