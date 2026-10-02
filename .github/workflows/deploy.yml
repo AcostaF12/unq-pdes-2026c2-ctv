@@ -24,12 +24,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Reusable workflows declare a publish job, so callers must allow its permissions.
+  # checks-only skips that job; their build jobs use read-only tokens.
+  backend:
+    if: inputs.action == 'deploy'
+    uses: ./.github/workflows/backend.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      checks-only: true
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  flights-service:
+    if: inputs.action == 'deploy'
+    uses: ./.github/workflows/flights-service.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      checks-only: true
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  frontend:
+    if: inputs.action == 'deploy'
+    uses: ./.github/workflows/frontend.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      checks-only: true
+
   tests:
     if: inputs.action == 'deploy'
     uses: ./.github/workflows/e2e.yml
 
   publish:
-    needs: tests
+    needs: [backend, flights-service, frontend, tests]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
