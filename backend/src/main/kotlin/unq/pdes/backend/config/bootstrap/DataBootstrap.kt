@@ -1,7 +1,5 @@
 package unq.pdes.backend.config.bootstrap
 
-import java.math.BigDecimal
-import java.time.LocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
@@ -27,6 +25,8 @@ import unq.pdes.backend.persistence.jpa.UserRepository
 import unq.pdes.backend.service.CityService
 import unq.pdes.backend.service.HotelService
 import unq.pdes.backend.service.UserService
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @Component
 @Profile("dev", "prod")
@@ -45,7 +45,6 @@ class DataBootstrap(
     private val purchaseRepository: PurchaseRepository,
     private val environment: Environment,
 ) : ApplicationRunner {
-
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
@@ -121,13 +120,17 @@ class DataBootstrap(
             .associateBy { it.city.code }
     }
 
-    private fun hotel(name: String, cityCode: String, photoUrl: String): Hotel {
-        return Hotel.Builder()
+    private fun hotel(
+        name: String,
+        cityCode: String,
+        photoUrl: String,
+    ): Hotel =
+        Hotel
+            .Builder()
             .name(name)
             .city(cityService.findByCode(cityCode))
             .photoUrl(photoUrl)
             .build()
-    }
 
     private fun loadAgencies() {
         listOf("Despegar", "Almundo").forEach { name ->
@@ -180,8 +183,9 @@ class DataBootstrap(
         outboundFlightId: Long,
         returnFlightId: Long,
         price: String,
-    ): TravelPackage {
-        return TravelPackage.Builder()
+    ): TravelPackage =
+        TravelPackage
+            .Builder()
             .agency(agency)
             .hotel(hotel)
             .origin(cityService.findByCode("BUE"))
@@ -191,7 +195,6 @@ class DataBootstrap(
             .returnFlightId(returnFlightId)
             .price(BigDecimal(price))
             .build()
-    }
 
     private fun loadFavorites(packages: List<TravelPackage>) {
         if (favoriteRepository.count() > 0) {
@@ -207,7 +210,11 @@ class DataBootstrap(
             buyer2 to packages[4],
         ).forEach { (buyer, travelPackage) ->
             favoriteRepository.save(
-                Favorite.Builder().buyer(buyer).travelPackage(travelPackage).build(),
+                Favorite
+                    .Builder()
+                    .buyer(buyer)
+                    .travelPackage(travelPackage)
+                    .build(),
             )
         }
     }
@@ -225,14 +232,19 @@ class DataBootstrap(
         ).forEach { reviewRepository.save(it) }
     }
 
-    private fun review(buyer: User, travelPackage: TravelPackage, score: Int, comment: String): Review {
-        return Review.Builder()
+    private fun review(
+        buyer: User,
+        travelPackage: TravelPackage,
+        score: Int,
+        comment: String,
+    ): Review =
+        Review
+            .Builder()
             .buyer(buyer)
             .travelPackage(travelPackage)
             .score(score)
             .comment(comment)
             .build()
-    }
 
     private fun loadPurchases(packages: List<TravelPackage>) {
         if (purchaseRepository.count() > 0) {
@@ -248,21 +260,21 @@ class DataBootstrap(
         ).forEach { purchaseRepository.save(it) }
     }
 
-    private fun purchase(buyer: User, travelPackage: TravelPackage, purchasedAt: LocalDateTime): Purchase {
-        return Purchase.Builder()
+    private fun purchase(
+        buyer: User,
+        travelPackage: TravelPackage,
+        purchasedAt: LocalDateTime,
+    ): Purchase =
+        Purchase
+            .Builder()
             .buyer(buyer)
             .travelPackage(travelPackage)
             .agency(travelPackage.agency)
             .purchasePrice(travelPackage.price)
             .purchasedAt(purchasedAt)
             .build()
-    }
 
-    private fun agency(name: String): Agency {
-        return requireNotNull(agencyRepository.findByName(name)) { "Missing bootstrap agency: $name." }
-    }
+    private fun agency(name: String): Agency = requireNotNull(agencyRepository.findByName(name)) { "Missing bootstrap agency: $name." }
 
-    private fun user(username: String): User {
-        return userService.findByUsername(username)
-    }
+    private fun user(username: String): User = userService.findByUsername(username)
 }

@@ -7,11 +7,10 @@ data class AgencyDto(
     val name: String,
 ) {
     companion object {
-        fun fromModel(agency: Agency): AgencyDto {
-            return AgencyDto(
+        fun fromModel(agency: Agency): AgencyDto =
+            AgencyDto(
                 id = agency.id,
                 name = agency.name,
             )
-        }
     }
 }

@@ -12,32 +12,33 @@ import org.springframework.web.client.body
 @Component
 @Profile("!test")
 class FlightsServiceHealthIndicator(
-	@Value("\${flights.service.url}") private val flightsServiceUrl: String,
-	restClientBuilder: RestClient.Builder,
+    @Value("\${flights.service.url}") private val flightsServiceUrl: String,
+    restClientBuilder: RestClient.Builder,
 ) : HealthIndicator {
+    private val logger = LoggerFactory.getLogger(javaClass)
+    private val restClient = restClientBuilder.build()
 
-	private val logger = LoggerFactory.getLogger(javaClass)
-	private val restClient = restClientBuilder.build()
+    override fun health(): Health {
+        logger.info("Checking external flights service health at {}", flightsServiceUrl)
 
-	override fun health(): Health {
-		logger.info("Checking external flights service health at {}", flightsServiceUrl)
+        return try {
+            val body =
+                restClient
+                    .get()
+                    .uri("$flightsServiceUrl/actuator/health")
+                    .retrieve()
+                    .body<String>()
 
-		return try {
-			val body = restClient.get()
-				.uri("$flightsServiceUrl/actuator/health")
-				.retrieve()
-				.body<String>()
-
-			if (body != null && body.contains("\"status\":\"UP\"")) {
-				logger.debug("Flights service health check succeeded for {}", flightsServiceUrl)
-				Health.up().withDetail("url", flightsServiceUrl).build()
-			} else {
-				logger.warn("Flights service health check returned non-UP status for {}", flightsServiceUrl)
-				Health.down().withDetail("url", flightsServiceUrl).build()
-			}
-		} catch (ex: Exception) {
-			logger.error("Flights service health check failed for {}", flightsServiceUrl, ex)
-			Health.down(ex).withDetail("url", flightsServiceUrl).build()
-		}
-	}
+            if (body != null && body.contains("\"status\":\"UP\"")) {
+                logger.debug("Flights service health check succeeded for {}", flightsServiceUrl)
+                Health.up().withDetail("url", flightsServiceUrl).build()
+            } else {
+                logger.warn("Flights service health check returned non-UP status for {}", flightsServiceUrl)
+                Health.down().withDetail("url", flightsServiceUrl).build()
+            }
+        } catch (ex: Exception) {
+            logger.error("Flights service health check failed for {}", flightsServiceUrl, ex)
+            Health.down(ex).withDetail("url", flightsServiceUrl).build()
+        }
+    }
 }

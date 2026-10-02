@@ -35,11 +35,11 @@ class TravelPackageController(
     private val reviewService: ReviewService,
     private val flightsClient: FlightsClient,
 ) {
-
     @Operation(
         summary = "Buscar paquetes",
-        description = "Filtra por nombre, origen, destino y rango de precio inclusivo. Admite paginación " +
-            "('page', 'size') y orden ('sort=name,asc' o 'sort=price,desc').",
+        description =
+            "Filtra por nombre, origen, destino y rango de precio inclusivo. Admite paginación " +
+                "('page', 'size') y orden ('sort=name,asc' o 'sort=price,desc').",
     )
     @GetMapping
     fun search(
@@ -52,14 +52,18 @@ class TravelPackageController(
 
     @Operation(summary = "Paquetes de la agencia", description = "Lista los paquetes de la agencia autenticada.")
     @GetMapping("/agency")
-    fun mine(@AuthenticationPrincipal principal: UserDetails): ResponseEntity<List<TravelPackageDto>> {
+    fun mine(
+        @AuthenticationPrincipal principal: UserDetails,
+    ): ResponseEntity<List<TravelPackageDto>> {
         val packages = travelPackageService.findMine(principal.username)
         return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it) })
     }
 
     @Operation(summary = "Detalle de paquete", description = "Incluye vuelos y reseñas cuando están disponibles.")
     @GetMapping("/{id}")
-    fun byId(@PathVariable id: Long): ResponseEntity<TravelPackageDetailDto> {
+    fun byId(
+        @PathVariable id: Long,
+    ): ResponseEntity<TravelPackageDetailDto> {
         val travelPackage = travelPackageService.findById(id)
         val reviews = reviewService.findByPackageId(id)
         val outbound = runCatching { flightsClient.findById(travelPackage.outboundFlightId) }.getOrNull()
@@ -73,14 +77,15 @@ class TravelPackageController(
         @AuthenticationPrincipal principal: UserDetails,
         @Valid @RequestBody request: TravelPackageRequestDto,
     ): ResponseEntity<TravelPackageDto> {
-        val travelPackage = travelPackageService.create(
-            username = principal.username,
-            name = request.name,
-            hotelId = request.hotelId,
-            outboundFlightId = request.outboundFlightId,
-            returnFlightId = request.returnFlightId,
-            price = request.price,
-        )
+        val travelPackage =
+            travelPackageService.create(
+                username = principal.username,
+                name = request.name,
+                hotelId = request.hotelId,
+                outboundFlightId = request.outboundFlightId,
+                returnFlightId = request.returnFlightId,
+                price = request.price,
+            )
         return ResponseEntity.status(HttpStatus.CREATED).body(TravelPackageDto.fromModel(travelPackage))
     }
 
@@ -91,15 +96,16 @@ class TravelPackageController(
         @PathVariable id: Long,
         @Valid @RequestBody request: TravelPackageRequestDto,
     ): ResponseEntity<TravelPackageDto> {
-        val travelPackage = travelPackageService.update(
-            username = principal.username,
-            id = id,
-            name = request.name,
-            hotelId = request.hotelId,
-            outboundFlightId = request.outboundFlightId,
-            returnFlightId = request.returnFlightId,
-            price = request.price,
-        )
+        val travelPackage =
+            travelPackageService.update(
+                username = principal.username,
+                id = id,
+                name = request.name,
+                hotelId = request.hotelId,
+                outboundFlightId = request.outboundFlightId,
+                returnFlightId = request.returnFlightId,
+                price = request.price,
+            )
         return ResponseEntity.ok(TravelPackageDto.fromModel(travelPackage))
     }
 

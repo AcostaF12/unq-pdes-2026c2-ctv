@@ -1,14 +1,13 @@
 package unq.pdes.backend.tests.unit.search
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import java.time.Duration
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import unq.pdes.backend.search.TravelPackageSearchCriteria
 import unq.pdes.backend.search.TravelPackageSearchMetrics
+import java.time.Duration
 
 class TravelPackageSearchMetricsTest {
-
     private val registry = SimpleMeterRegistry()
     private val metrics = TravelPackageSearchMetrics(registry)
 
@@ -18,12 +17,14 @@ class TravelPackageSearchMetricsTest {
 
         metrics.record(criteria, resultCount = 3, duration = Duration.ofMillis(120))
 
-        val timer = registry.get("package_search_duration")
-            .tag("filter_name", "true")
-            .tag("filter_origin", "false")
-            .tag("filter_destination", "true")
-            .tag("filter_price", "false")
-            .timer()
+        val timer =
+            registry
+                .get("package_search_duration")
+                .tag("filter_name", "true")
+                .tag("filter_origin", "false")
+                .tag("filter_destination", "true")
+                .tag("filter_price", "false")
+                .timer()
 
         assertEquals(1, timer.count())
     }

@@ -15,7 +15,6 @@ class ReviewService(
     private val travelPackageService: TravelPackageService,
     private val userService: UserService,
 ) {
-
     @Transactional(readOnly = true)
     fun findByPackageId(packageId: Long): List<Review> {
         travelPackageService.findById(packageId)
@@ -23,7 +22,12 @@ class ReviewService(
     }
 
     @Transactional
-    fun create(username: String, packageId: Long, score: Int, comment: String?): Review {
+    fun create(
+        username: String,
+        packageId: Long,
+        score: Int,
+        comment: String?,
+    ): Review {
         val buyer = userService.findByUsername(username)
         if (buyer.role != Role.BUYER) {
             throw AccessDeniedException("Only buyers can write reviews.")
@@ -36,7 +40,8 @@ class ReviewService(
             "You already reviewed this package."
         }
         return reviewRepository.save(
-            Review.Builder()
+            Review
+                .Builder()
                 .buyer(buyer)
                 .travelPackage(travelPackage)
                 .score(score)

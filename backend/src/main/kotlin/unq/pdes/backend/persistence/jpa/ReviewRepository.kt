@@ -4,10 +4,12 @@ import org.springframework.data.jpa.repository.JpaRepository
 import unq.pdes.backend.model.Review
 
 interface ReviewRepository : JpaRepository<Review, Long> {
-
     fun findByTravelPackageId(travelPackageId: Long): List<Review>
 
-    fun existsByBuyerIdAndTravelPackageId(buyerId: Long, travelPackageId: Long): Boolean
+    fun existsByBuyerIdAndTravelPackageId(
+        buyerId: Long,
+        travelPackageId: Long,
+    ): Boolean
 
     fun existsByTravelPackageId(travelPackageId: Long): Boolean
 }

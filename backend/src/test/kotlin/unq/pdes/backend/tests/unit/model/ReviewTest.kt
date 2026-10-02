@@ -1,6 +1,5 @@
 package unq.pdes.backend.tests.unit.model
 
-import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -16,25 +15,54 @@ import unq.pdes.backend.model.Review
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.model.user.User
+import java.math.BigDecimal
 
 @TestInstance(PER_CLASS)
 class ReviewTest {
-
-    private val buyer = User.Builder()
-        .id(1L).username("buyer").password("secret").role(Role.BUYER).firstName("Bruno").lastName("Buyer").build()
+    private val buyer =
+        User
+            .Builder()
+            .id(1L)
+            .username("buyer")
+            .password("secret")
+            .role(Role.BUYER)
+            .firstName("Bruno")
+            .lastName("Buyer")
+            .build()
 
     private val paris = City("PAR", "Paris")
-    private val travelPackage = TravelPackage.Builder()
-        .id(1L)
-        .agency(Agency.Builder().id(1L).name("Despegar").build())
-        .hotel(Hotel.Builder().id(1L).name("Hotel").city(paris).photoUrl("https://x.demo/h.jpg").build())
-        .origin(City("BUE", "Buenos Aires"))
-        .destination(paris)
-        .name("Paquete").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal("1000.00")).build()
+    private val travelPackage =
+        TravelPackage
+            .Builder()
+            .id(1L)
+            .agency(
+                Agency
+                    .Builder()
+                    .id(1L)
+                    .name("Despegar")
+                    .build(),
+            ).hotel(
+                Hotel
+                    .Builder()
+                    .id(1L)
+                    .name("Hotel")
+                    .city(paris)
+                    .photoUrl("https://x.demo/h.jpg")
+                    .build(),
+            ).origin(City("BUE", "Buenos Aires"))
+            .destination(paris)
+            .name("Paquete")
+            .outboundFlightId(1L)
+            .returnFlightId(2L)
+            .price(BigDecimal("1000.00"))
+            .build()
 
-    private fun validBuilder(): Review.Builder {
-        return Review.Builder().buyer(buyer).travelPackage(travelPackage).score(8)
-    }
+    private fun validBuilder(): Review.Builder =
+        Review
+            .Builder()
+            .buyer(buyer)
+            .travelPackage(travelPackage)
+            .score(8)
 
     @Test
     fun `01 - builder should create a valid review`() {
@@ -54,27 +82,34 @@ class ReviewTest {
 
     @Test
     fun `03 - score below 0 should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Review.Builder().score(-1)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Review.Builder().score(-1)
+            }
 
         assertEquals("The score must be between 0 and 10.", exception.message)
     }
 
     @Test
     fun `04 - score above 10 should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Review.Builder().score(11)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Review.Builder().score(11)
+            }
 
         assertEquals("The score must be between 0 and 10.", exception.message)
     }
 
     @Test
     fun `05 - building without score should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Review.Builder().buyer(buyer).travelPackage(travelPackage).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Review
+                    .Builder()
+                    .buyer(buyer)
+                    .travelPackage(travelPackage)
+                    .build()
+            }
 
         assertEquals("The review must have a score.", exception.message)
     }

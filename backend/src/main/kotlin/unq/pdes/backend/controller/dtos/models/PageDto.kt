@@ -10,14 +10,16 @@ data class PageDto<T>(
     val totalPages: Int,
 ) {
     companion object {
-        fun <T : Any, R> from(page: Page<T>, mapper: (T) -> R): PageDto<R> {
-            return PageDto(
+        fun <T : Any, R> from(
+            page: Page<T>,
+            mapper: (T) -> R,
+        ): PageDto<R> =
+            PageDto(
                 content = page.content.map(mapper),
                 page = page.number,
                 size = page.size,
                 totalElements = page.totalElements,
                 totalPages = page.totalPages,
             )
-        }
     }
 }

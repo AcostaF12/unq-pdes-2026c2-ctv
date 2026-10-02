@@ -19,7 +19,6 @@ import unq.pdes.backend.helpers.service.DataServiceH2
 
 @SpringBootTest
 class CityControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -33,9 +32,11 @@ class CityControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
     }
 
     @AfterEach
@@ -49,14 +50,16 @@ class CityControllerTest {
         factory.cityWith("BUE", "Buenos Aires")
         factory.cityWith("PAR", "Paris")
 
-        mvc.perform(get("/cities"))
+        mvc
+            .perform(get("/cities"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(2))
     }
 
     @Test
     fun `02 - GET cities without authentication should be rejected`() {
-        mvc.perform(get("/cities"))
+        mvc
+            .perform(get("/cities"))
             .andExpect(status().isForbidden)
     }
 }

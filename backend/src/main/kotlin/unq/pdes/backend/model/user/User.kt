@@ -23,8 +23,9 @@ private const val USER_PASSWORD_REQUIRED = "The user must have a password."
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("STANDARD")
-open class User protected constructor(builder: BaseBuilder<*>) {
-
+open class User protected constructor(
+    builder: BaseBuilder<*>,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -45,7 +46,10 @@ open class User protected constructor(builder: BaseBuilder<*>) {
     @Column(name = "last_name", nullable = false, length = 80)
     var lastName: String = builder.lastName!!
 
-    fun updateProfile(firstName: String, lastName: String) {
+    fun updateProfile(
+        firstName: String,
+        lastName: String,
+    ) {
         require(firstName.isNotBlank()) { USER_FIRST_NAME_REQUIRED }
         require(lastName.isNotBlank()) { USER_LAST_NAME_REQUIRED }
         this.firstName = firstName.trim()
@@ -57,17 +61,11 @@ open class User protected constructor(builder: BaseBuilder<*>) {
         this.password = encodedPassword
     }
 
-    override fun equals(other: Any?): Boolean {
-        return (other is User) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is User) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "User(id=$id, username='$username', role=$role)"
-    }
+    override fun toString(): String = "User(id=$id, username='$username', role=$role)"
 
     abstract class BaseBuilder<SELF : BaseBuilder<SELF>> {
         var id: Long? = null
@@ -82,25 +80,29 @@ open class User protected constructor(builder: BaseBuilder<*>) {
 
         fun id(id: Long?): SELF = self().apply { this.id = id }
 
-        fun username(username: String): SELF = self().apply {
-            require(username.isNotBlank()) { "The user must have a username." }
-            this.username = username
-        }
+        fun username(username: String): SELF =
+            self().apply {
+                require(username.isNotBlank()) { "The user must have a username." }
+                this.username = username
+            }
 
-        fun password(password: String): SELF = self().apply {
-            require(password.isNotBlank()) { USER_PASSWORD_REQUIRED }
-            this.password = password
-        }
+        fun password(password: String): SELF =
+            self().apply {
+                require(password.isNotBlank()) { USER_PASSWORD_REQUIRED }
+                this.password = password
+            }
 
-        fun firstName(firstName: String): SELF = self().apply {
-            require(firstName.isNotBlank()) { USER_FIRST_NAME_REQUIRED }
-            this.firstName = firstName
-        }
+        fun firstName(firstName: String): SELF =
+            self().apply {
+                require(firstName.isNotBlank()) { USER_FIRST_NAME_REQUIRED }
+                this.firstName = firstName
+            }
 
-        fun lastName(lastName: String): SELF = self().apply {
-            require(lastName.isNotBlank()) { USER_LAST_NAME_REQUIRED }
-            this.lastName = lastName
-        }
+        fun lastName(lastName: String): SELF =
+            self().apply {
+                require(lastName.isNotBlank()) { USER_LAST_NAME_REQUIRED }
+                this.lastName = lastName
+            }
 
         protected fun validateCommonFields() {
             requireNotNull(username) { "The user must have a username." }
@@ -111,11 +113,11 @@ open class User protected constructor(builder: BaseBuilder<*>) {
     }
 
     class Builder : BaseBuilder<Builder>() {
-
-        fun role(role: Role): Builder = self().apply {
-            require(role != Role.AGENCY) { "AGENCY users must be built with AgencyUser.Builder." }
-            this.role = role
-        }
+        fun role(role: Role): Builder =
+            self().apply {
+                require(role != Role.AGENCY) { "AGENCY users must be built with AgencyUser.Builder." }
+                this.role = role
+            }
 
         fun build(): User {
             validateCommonFields()

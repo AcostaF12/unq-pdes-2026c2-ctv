@@ -1,6 +1,5 @@
 package unq.pdes.backend.helpers.factory
 
-import java.math.BigDecimal
 import org.springframework.stereotype.Component
 import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.City
@@ -13,6 +12,7 @@ import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.service.CityService
 import unq.pdes.backend.service.HotelService
 import unq.pdes.backend.service.UserService
+import java.math.BigDecimal
 
 @Component
 class PersistentObjectsFactory(
@@ -22,23 +22,20 @@ class PersistentObjectsFactory(
     private val userService: UserService,
     private val travelPackageRepository: TravelPackageRepository,
 ) : ObjectsFactory() {
+    override fun anyCity(): City = persist(super.anyCity())
 
-    override fun anyCity(): City {
-        return persist(super.anyCity())
-    }
+    override fun cityWith(
+        code: String,
+        name: String,
+    ): City = persist(super.cityWith(code, name))
 
-    override fun cityWith(code: String, name: String): City {
-        return persist(super.cityWith(code, name))
-    }
-
-    override fun anyHotel(): Hotel {
-        return hotelService.save(super.hotelIn(anyCity()))
-    }
+    override fun anyHotel(): Hotel = hotelService.save(super.hotelIn(anyCity()))
 
     override fun hotelNamed(name: String): Hotel {
         val city = anyCity()
         return hotelService.save(
-            Hotel.Builder()
+            Hotel
+                .Builder()
                 .name(name)
                 .city(city)
                 .photoUrl(SOME_PHOTO_URL)
@@ -46,30 +43,28 @@ class PersistentObjectsFactory(
         )
     }
 
-    override fun hotelIn(city: City): Hotel {
-        return hotelService.save(super.hotelIn(city))
-    }
+    override fun hotelIn(city: City): Hotel = hotelService.save(super.hotelIn(city))
 
-    fun agencyNamed(name: String): Agency {
-        return agencyRepository.findByName(name)
+    fun agencyNamed(name: String): Agency =
+        agencyRepository.findByName(name)
             ?: agencyRepository.save(Agency.Builder().name(name).build())
-    }
 
-    fun buyerNamed(username: String): User {
-        return try {
+    fun buyerNamed(username: String): User =
+        try {
             userService.findByUsername(username)
         } catch (_: Exception) {
             userService.register(username, "buyer123", "Bruno", "Buyer")
         }
-    }
 
-    fun agencyUserNamed(username: String, agencyName: String = "Despegar"): AgencyUser {
-        return try {
+    fun agencyUserNamed(
+        username: String,
+        agencyName: String = "Despegar",
+    ): AgencyUser =
+        try {
             userService.findByUsername(username) as AgencyUser
         } catch (_: Exception) {
             userService.createAgencyUser(username, "agency123", "Agus", "Agency", agencyNamed(agencyName))
         }
-    }
 
     fun packageNamed(
         name: String,
@@ -84,7 +79,8 @@ class PersistentObjectsFactory(
         val destination = cityWith(destinationCode, destinationCity)
         val hotel = hotelIn(destination)
         return travelPackageRepository.save(
-            TravelPackage.Builder()
+            TravelPackage
+                .Builder()
                 .agency(agencyNamed(agencyName))
                 .hotel(hotel)
                 .origin(origin)
@@ -97,11 +93,10 @@ class PersistentObjectsFactory(
         )
     }
 
-    private fun persist(city: City): City {
-        return if (cityService.existsByCode(city.code)) {
+    private fun persist(city: City): City =
+        if (cityService.existsByCode(city.code)) {
             cityService.findByCode(city.code)
         } else {
             cityService.save(city)
         }
-    }
 }

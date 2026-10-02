@@ -9,16 +9,17 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import java.math.BigDecimal
-import java.time.LocalDateTime
 import unq.pdes.backend.model.history.PurchaseBuyerSnapshot
 import unq.pdes.backend.model.history.PurchaseTravelSnapshot
 import unq.pdes.backend.model.user.User
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "purchases")
-class Purchase private constructor(builder: Builder) {
-
+class Purchase private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -47,18 +48,13 @@ class Purchase private constructor(builder: Builder) {
     @Column(name = "purchased_at", nullable = false)
     var purchasedAt: LocalDateTime = builder.purchasedAt!!
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Purchase) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is Purchase) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Purchase(id=$id, buyer=${buyer.id}, package=${travelPackage.id}, " +
+    override fun toString(): String =
+        "Purchase(id=$id, buyer=${buyer.id}, package=${travelPackage.id}, " +
             "price=$purchasePrice, at=$purchasedAt)"
-    }
 
     class Builder {
         var id: Long? = null
@@ -68,30 +64,36 @@ class Purchase private constructor(builder: Builder) {
         var purchasePrice: BigDecimal? = null
         var purchasedAt: LocalDateTime? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun buyer(buyer: User) = apply {
-            this.buyer = buyer
-        }
+        fun buyer(buyer: User) =
+            apply {
+                this.buyer = buyer
+            }
 
-        fun travelPackage(travelPackage: TravelPackage) = apply {
-            this.travelPackage = travelPackage
-        }
+        fun travelPackage(travelPackage: TravelPackage) =
+            apply {
+                this.travelPackage = travelPackage
+            }
 
-        fun agency(agency: Agency) = apply {
-            this.agency = agency
-        }
+        fun agency(agency: Agency) =
+            apply {
+                this.agency = agency
+            }
 
-        fun purchasePrice(purchasePrice: BigDecimal) = apply {
-            require(purchasePrice.signum() > 0) { "The purchase price must be greater than zero." }
-            this.purchasePrice = purchasePrice
-        }
+        fun purchasePrice(purchasePrice: BigDecimal) =
+            apply {
+                require(purchasePrice.signum() > 0) { "The purchase price must be greater than zero." }
+                this.purchasePrice = purchasePrice
+            }
 
-        fun purchasedAt(purchasedAt: LocalDateTime) = apply {
-            this.purchasedAt = purchasedAt
-        }
+        fun purchasedAt(purchasedAt: LocalDateTime) =
+            apply {
+                this.purchasedAt = purchasedAt
+            }
 
         fun build(): Purchase {
             requireNotNull(buyer) { "The purchase must have a buyer." }

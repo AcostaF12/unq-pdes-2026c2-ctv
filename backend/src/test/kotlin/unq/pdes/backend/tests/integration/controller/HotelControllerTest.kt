@@ -1,24 +1,24 @@
 package unq.pdes.backend.tests.integration.controller
 
-import tools.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import tools.jackson.databind.ObjectMapper
 import unq.pdes.backend.controller.dtos.requests.HotelRequestDto
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
@@ -26,7 +26,6 @@ import unq.pdes.backend.helpers.service.DataServiceH2
 @SpringBootTest
 @WithMockUser(roles = ["ADMIN"])
 class HotelControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -43,9 +42,11 @@ class HotelControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
     }
 
     @AfterEach
@@ -59,7 +60,8 @@ class HotelControllerTest {
     fun `01 - GET hotels should return the list of hotels`() {
         factory.hotelNamed("The Savoy")
 
-        mvc.perform(get("/hotels"))
+        mvc
+            .perform(get("/hotels"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].name").value("The Savoy"))
@@ -69,7 +71,8 @@ class HotelControllerTest {
     fun `02 - GET hotel by id should return the hotel`() {
         val hotel = factory.hotelNamed("The Savoy")
 
-        mvc.perform(get("/hotels/{id}", hotel.id))
+        mvc
+            .perform(get("/hotels/{id}", hotel.id))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(hotel.id))
             .andExpect(jsonPath("$.name").value("The Savoy"))
@@ -78,7 +81,8 @@ class HotelControllerTest {
 
     @Test
     fun `03 - GET hotel by id should return 404 when not found`() {
-        mvc.perform(get("/hotels/{id}", 999))
+        mvc
+            .perform(get("/hotels/{id}", 999))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.httpCode").value(404))
             .andExpect(jsonPath("$.errorData.description").value("There is no Hotel with id: 999."))
@@ -89,7 +93,8 @@ class HotelControllerTest {
         factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
 
-        mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
+        mvc
+            .perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNotEmpty)
             .andExpect(jsonPath("$.name").value("Hotel Le Meurice"))
@@ -101,7 +106,8 @@ class HotelControllerTest {
         factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("  ", "PAR", "https://x.demo/lm.jpg")
 
-        mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
+        mvc
+            .perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.errorData.description").value("The hotel must have a name."))
@@ -111,7 +117,8 @@ class HotelControllerTest {
     fun `06 - POST hotels with unknown city should return 404`() {
         val request = HotelRequestDto("Some hotel", "ZZZ", "https://x.demo/p.jpg")
 
-        mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
+        mvc
+            .perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.errorData.description").value("There is no City with code: ZZZ."))
     }
@@ -121,7 +128,8 @@ class HotelControllerTest {
         val hotel = factory.hotelNamed("Old name")
         val request = HotelRequestDto("New name", "BUE", "https://x.demo/new.jpg")
 
-        mvc.perform(put("/hotels/{id}", hotel.id).contentType(MediaType.APPLICATION_JSON).content(json(request)))
+        mvc
+            .perform(put("/hotels/{id}", hotel.id).contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(hotel.id))
             .andExpect(jsonPath("$.name").value("New name"))
@@ -131,10 +139,12 @@ class HotelControllerTest {
     fun `08 - DELETE hotels should remove the hotel and return 204`() {
         val hotel = factory.hotelNamed("The Savoy")
 
-        mvc.perform(delete("/hotels/{id}", hotel.id))
+        mvc
+            .perform(delete("/hotels/{id}", hotel.id))
             .andExpect(status().isNoContent)
 
-        mvc.perform(get("/hotels/{id}", hotel.id))
+        mvc
+            .perform(get("/hotels/{id}", hotel.id))
             .andExpect(status().isNotFound)
     }
 
@@ -144,7 +154,8 @@ class HotelControllerTest {
         factory.cityWith("PAR", "Paris")
         val request = HotelRequestDto("Hotel Le Meurice", "PAR", "https://x.demo/lm.jpg")
 
-        mvc.perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
+        mvc
+            .perform(post("/hotels").contentType(MediaType.APPLICATION_JSON).content(json(request)))
             .andExpect(status().isForbidden)
     }
 }

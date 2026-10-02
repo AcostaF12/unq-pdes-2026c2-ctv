@@ -11,17 +11,17 @@ open class UserDto(
     val lastName: String,
 ) {
     companion object {
-        fun fromModel(user: User): UserDto {
-            return when (user) {
+        fun fromModel(user: User): UserDto =
+            when (user) {
                 is AgencyUser -> AgencyUserDto.fromModel(user)
-                else -> UserDto(
-                    id = user.id,
-                    username = user.username,
-                    role = user.role.name,
-                    firstName = user.firstName,
-                    lastName = user.lastName,
-                )
+                else ->
+                    UserDto(
+                        id = user.id,
+                        username = user.username,
+                        role = user.role.name,
+                        firstName = user.firstName,
+                        lastName = user.lastName,
+                    )
             }
-        }
     }
 }

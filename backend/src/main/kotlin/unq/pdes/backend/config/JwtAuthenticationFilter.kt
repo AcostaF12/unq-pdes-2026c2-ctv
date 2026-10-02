@@ -17,7 +17,6 @@ class JwtAuthenticationFilter(
     private val jwtService: JwtService,
     private val userDetailsService: UserDetailsService,
 ) : OncePerRequestFilter() {
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -35,11 +34,12 @@ class JwtAuthenticationFilter(
         return if (header.startsWith(BEARER_PREFIX)) header.removePrefix(BEARER_PREFIX) else null
     }
 
-    private fun isNotAuthenticated(): Boolean {
-        return SecurityContextHolder.getContext().authentication == null
-    }
+    private fun isNotAuthenticated(): Boolean = SecurityContextHolder.getContext().authentication == null
 
-    private fun authenticateWithToken(token: String, request: HttpServletRequest) {
+    private fun authenticateWithToken(
+        token: String,
+        request: HttpServletRequest,
+    ) {
         val username = runCatching { jwtService.extractUsername(token) }.getOrNull() ?: return
         val userDetails = userDetailsService.loadUserByUsername(username)
         if (jwtService.isValid(token, userDetails)) {
@@ -50,11 +50,10 @@ class JwtAuthenticationFilter(
     private fun buildAuthentication(
         userDetails: UserDetails,
         request: HttpServletRequest,
-    ): UsernamePasswordAuthenticationToken {
-        return UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities).apply {
+    ): UsernamePasswordAuthenticationToken =
+        UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities).apply {
             details = WebAuthenticationDetailsSource().buildDetails(request)
         }
-    }
 
     companion object {
         private const val AUTHORIZATION_HEADER = "Authorization"

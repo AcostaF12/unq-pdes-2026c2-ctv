@@ -12,15 +12,14 @@ import unq.pdes.backend.model.user.User
 
 @TestInstance(PER_CLASS)
 class UserTest {
-
-    private fun validBuilder(): User.Builder {
-        return User.Builder()
+    private fun validBuilder(): User.Builder =
+        User
+            .Builder()
             .username("jdoe")
             .password("secret")
             .role(Role.BUYER)
             .firstName("John")
             .lastName("Doe")
-    }
 
     @Test
     fun `01 - builder should create a valid user`() {
@@ -36,63 +35,82 @@ class UserTest {
 
     @Test
     fun `02 - blank username should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().username("  ")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User.Builder().username("  ")
+            }
 
         assertEquals("The user must have a username.", exception.message)
     }
 
     @Test
     fun `03 - blank password should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().password("")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User.Builder().password("")
+            }
 
         assertEquals("The user must have a password.", exception.message)
     }
 
     @Test
     fun `04 - blank first name should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().firstName(" ")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User.Builder().firstName(" ")
+            }
 
         assertEquals("The user must have a first name.", exception.message)
     }
 
     @Test
     fun `05 - blank last name should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().lastName(" ")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User.Builder().lastName(" ")
+            }
 
         assertEquals("The user must have a last name.", exception.message)
     }
 
     @Test
     fun `06 - building without username should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().password("secret").role(Role.BUYER).firstName("John").lastName("Doe").build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User
+                    .Builder()
+                    .password("secret")
+                    .role(Role.BUYER)
+                    .firstName("John")
+                    .lastName("Doe")
+                    .build()
+            }
 
         assertEquals("The user must have a username.", exception.message)
     }
 
     @Test
     fun `07 - building without role should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().username("jdoe").password("secret").firstName("John").lastName("Doe").build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User
+                    .Builder()
+                    .username("jdoe")
+                    .password("secret")
+                    .firstName("John")
+                    .lastName("Doe")
+                    .build()
+            }
 
         assertEquals("The user must have a role.", exception.message)
     }
 
     @Test
     fun `08 - AGENCY role should not be allowed for a standard user`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            User.Builder().role(Role.AGENCY)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                User.Builder().role(Role.AGENCY)
+            }
 
         assertEquals("AGENCY users must be built with AgencyUser.Builder.", exception.message)
     }
@@ -148,9 +166,10 @@ class UserTest {
     fun `15 - updateProfile should reject a blank first name`() {
         val user = validBuilder().id(1L).build()
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            user.updateProfile("  ", "Roe")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                user.updateProfile("  ", "Roe")
+            }
 
         assertEquals("The user must have a first name.", exception.message)
     }

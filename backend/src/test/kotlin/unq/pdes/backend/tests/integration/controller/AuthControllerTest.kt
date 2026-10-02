@@ -21,7 +21,6 @@ import unq.pdes.backend.helpers.service.DataServiceH2
 
 @SpringBootTest
 class AuthControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -35,9 +34,11 @@ class AuthControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
     }
 
     @AfterEach
@@ -46,19 +47,22 @@ class AuthControllerTest {
     }
 
     private fun register(username: String) {
-        mvc.perform(
-            post("/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequestDto(username, "secret", "John", "Doe"))),
-        ).andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(RegisterRequestDto(username, "secret", "John", "Doe"))),
+            ).andExpect(status().isCreated)
     }
 
     @Test
     fun `01 - POST register should create a buyer and return 201 with a token`() {
-        mvc.perform(
-            post("/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequestDto("jdoe", "secret", "John", "Doe"))),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(RegisterRequestDto("jdoe", "secret", "John", "Doe"))),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.token").isNotEmpty)
             .andExpect(jsonPath("$.user.username").value("jdoe"))
             .andExpect(jsonPath("$.user.role").value("BUYER"))
@@ -68,11 +72,12 @@ class AuthControllerTest {
     fun `02 - POST login with valid credentials should return 200 with a token`() {
         register("jdoe")
 
-        mvc.perform(
-            post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(LoginRequestDto("jdoe", "secret"))),
-        )
-            .andExpect(status().isOk)
+        mvc
+            .perform(
+                post("/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(LoginRequestDto("jdoe", "secret"))),
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.token").isNotEmpty)
             .andExpect(jsonPath("$.user.username").value("jdoe"))
     }
@@ -81,32 +86,35 @@ class AuthControllerTest {
     fun `03 - POST login with wrong password should return 401`() {
         register("jdoe")
 
-        mvc.perform(
-            post("/auth/login").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(LoginRequestDto("jdoe", "wrong"))),
-        )
-            .andExpect(status().isUnauthorized)
+        mvc
+            .perform(
+                post("/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(LoginRequestDto("jdoe", "wrong"))),
+            ).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `04 - POST register with a taken username should return 400`() {
         register("jdoe")
 
-        mvc.perform(
-            post("/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequestDto("jdoe", "other", "Jane", "Doe"))),
-        )
-            .andExpect(status().isBadRequest)
+        mvc
+            .perform(
+                post("/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(RegisterRequestDto("jdoe", "other", "Jane", "Doe"))),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("The username 'jdoe' is already taken."))
     }
 
     @Test
     fun `05 - POST register with blank username should return 400`() {
-        mvc.perform(
-            post("/auth/register").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(RegisterRequestDto("  ", "secret", "John", "Doe"))),
-        )
-            .andExpect(status().isBadRequest)
+        mvc
+            .perform(
+                post("/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(RegisterRequestDto("  ", "secret", "John", "Doe"))),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.errorData.description").value("The user must have a username."))
     }

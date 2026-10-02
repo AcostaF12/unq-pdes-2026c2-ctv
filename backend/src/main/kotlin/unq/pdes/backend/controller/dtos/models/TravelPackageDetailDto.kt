@@ -26,8 +26,8 @@ data class TravelPackageDetailDto(
             outboundFlight: ExternalFlightDto?,
             returnFlight: ExternalFlightDto?,
             reviews: List<Review>,
-        ): TravelPackageDetailDto {
-            return TravelPackageDetailDto(
+        ): TravelPackageDetailDto =
+            TravelPackageDetailDto(
                 id = travelPackage.id,
                 name = travelPackage.name,
                 price = travelPackage.price,
@@ -42,6 +42,5 @@ data class TravelPackageDetailDto(
                 reviews = reviews.map { ReviewDto.fromModel(it) },
                 averageScore = reviews.takeIf { it.isNotEmpty() }?.map { it.score }?.average(),
             )
-        }
     }
 }

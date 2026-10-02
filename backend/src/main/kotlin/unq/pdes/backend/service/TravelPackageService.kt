@@ -1,8 +1,6 @@
 package unq.pdes.backend.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.math.BigDecimal
-import java.time.Duration
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.AccessDeniedException
@@ -21,6 +19,8 @@ import unq.pdes.backend.search.TravelPackageSearchCriteria
 import unq.pdes.backend.search.TravelPackageSearchMetrics
 import unq.pdes.backend.search.TravelPackageSearchPageable
 import unq.pdes.backend.search.TravelPackageSearchSpecification
+import java.math.BigDecimal
+import java.time.Duration
 
 @Service
 class TravelPackageService(
@@ -34,9 +34,11 @@ class TravelPackageService(
     private val reviewRepository: ReviewRepository,
     private val searchMetrics: TravelPackageSearchMetrics,
 ) {
-
     @Transactional(readOnly = true)
-    fun search(criteria: TravelPackageSearchCriteria, pageable: Pageable): Page<TravelPackage> {
+    fun search(
+        criteria: TravelPackageSearchCriteria,
+        pageable: Pageable,
+    ): Page<TravelPackage> {
         val sanitizedPageable = TravelPackageSearchPageable.sanitize(pageable)
         val startedAt = System.nanoTime()
         val result = travelPackageRepository.findAll(TravelPackageSearchSpecification.matching(criteria), sanitizedPageable)
@@ -45,10 +47,10 @@ class TravelPackageService(
     }
 
     @Transactional(readOnly = true)
-    fun findById(id: Long): TravelPackage {
-        return travelPackageRepository.findById(id)
+    fun findById(id: Long): TravelPackage =
+        travelPackageRepository
+            .findById(id)
             .orElseThrow { EntityNotFoundException("There is no TravelPackage with id: $id.") }
-    }
 
     @Transactional(readOnly = true)
     fun findMine(username: String): List<TravelPackage> {
@@ -69,16 +71,18 @@ class TravelPackageService(
         requireUniqueName(agencyUser.agency.id!!, name, null)
         val hotel = hotelService.findById(hotelId)
         val (origin, destination) = resolveCities(hotel, outboundFlightId, returnFlightId)
-        val travelPackage = TravelPackage.Builder()
-            .agency(agencyUser.agency)
-            .hotel(hotel)
-            .origin(origin)
-            .destination(destination)
-            .name(name)
-            .outboundFlightId(outboundFlightId)
-            .returnFlightId(returnFlightId)
-            .price(price)
-            .build()
+        val travelPackage =
+            TravelPackage
+                .Builder()
+                .agency(agencyUser.agency)
+                .hotel(hotel)
+                .origin(origin)
+                .destination(destination)
+                .name(name)
+                .outboundFlightId(outboundFlightId)
+                .returnFlightId(returnFlightId)
+                .price(price)
+                .build()
         return travelPackageRepository.save(travelPackage)
     }
 
@@ -97,22 +101,27 @@ class TravelPackageService(
         requireUniqueName(existing.agency.id!!, name, id)
         val hotel = hotelService.findById(hotelId)
         val (origin, destination) = resolveCities(hotel, outboundFlightId, returnFlightId)
-        val travelPackage = TravelPackage.Builder()
-            .id(id)
-            .agency(existing.agency)
-            .hotel(hotel)
-            .origin(origin)
-            .destination(destination)
-            .name(name)
-            .outboundFlightId(outboundFlightId)
-            .returnFlightId(returnFlightId)
-            .price(price)
-            .build()
+        val travelPackage =
+            TravelPackage
+                .Builder()
+                .id(id)
+                .agency(existing.agency)
+                .hotel(hotel)
+                .origin(origin)
+                .destination(destination)
+                .name(name)
+                .outboundFlightId(outboundFlightId)
+                .returnFlightId(returnFlightId)
+                .price(price)
+                .build()
         return travelPackageRepository.save(travelPackage)
     }
 
     @Transactional
-    fun deleteById(username: String, id: Long) {
+    fun deleteById(
+        username: String,
+        id: Long,
+    ) {
         val travelPackage = findById(id)
         requireOwnedBy(username, travelPackage)
         require(!purchaseRepository.existsByTravelPackageId(id)) {
@@ -147,16 +156,24 @@ class TravelPackageService(
             cityService.findByCode(outbound.destination)
     }
 
-    private fun requireUniqueName(agencyId: Long, name: String, currentId: Long?) {
-        val taken = if (currentId == null) {
-            travelPackageRepository.existsByAgencyIdAndName(agencyId, name)
-        } else {
-            travelPackageRepository.existsByAgencyIdAndNameAndIdNot(agencyId, name, currentId)
-        }
+    private fun requireUniqueName(
+        agencyId: Long,
+        name: String,
+        currentId: Long?,
+    ) {
+        val taken =
+            if (currentId == null) {
+                travelPackageRepository.existsByAgencyIdAndName(agencyId, name)
+            } else {
+                travelPackageRepository.existsByAgencyIdAndNameAndIdNot(agencyId, name, currentId)
+            }
         require(!taken) { "The agency already has a package named '$name'." }
     }
 
-    private fun requireOwnedBy(username: String, travelPackage: TravelPackage) {
+    private fun requireOwnedBy(
+        username: String,
+        travelPackage: TravelPackage,
+    ) {
         val agencyUser = requireAgencyUser(username)
         if (agencyUser.agency.id != travelPackage.agency.id) {
             throw AccessDeniedException("Only the owning agency can modify this package.")

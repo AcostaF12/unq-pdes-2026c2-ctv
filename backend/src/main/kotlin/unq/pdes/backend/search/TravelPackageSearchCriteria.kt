@@ -27,15 +27,14 @@ data class TravelPackageSearchCriteria(
             destination: String?,
             minPrice: BigDecimal?,
             maxPrice: BigDecimal?,
-        ): TravelPackageSearchCriteria {
-            return TravelPackageSearchCriteria(
+        ): TravelPackageSearchCriteria =
+            TravelPackageSearchCriteria(
                 name = name.trimmedOrNull(),
                 origin = origin.trimmedOrNull()?.uppercase(Locale.ROOT),
                 destination = destination.trimmedOrNull()?.uppercase(Locale.ROOT),
                 minPrice = minPrice,
                 maxPrice = maxPrice,
             )
-        }
 
         private fun String?.trimmedOrNull(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
     }

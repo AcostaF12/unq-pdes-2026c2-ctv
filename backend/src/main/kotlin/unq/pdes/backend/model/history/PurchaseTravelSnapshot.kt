@@ -6,8 +6,9 @@ import unq.pdes.backend.model.TravelPackage
 import java.math.BigDecimal
 
 @Embeddable
-class PurchaseTravelSnapshot private constructor(travelPackage: TravelPackage) {
-
+class PurchaseTravelSnapshot private constructor(
+    travelPackage: TravelPackage,
+) {
     @Column(name = "package_snapshot_id", nullable = false)
     var id: Long = travelPackage.id!!
 

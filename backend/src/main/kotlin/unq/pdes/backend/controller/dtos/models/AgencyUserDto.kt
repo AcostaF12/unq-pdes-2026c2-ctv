@@ -11,8 +11,8 @@ class AgencyUserDto(
     val agency: AgencyDto,
 ) : UserDto(id, username, role, firstName, lastName) {
     companion object {
-        fun fromModel(user: AgencyUser): AgencyUserDto {
-            return AgencyUserDto(
+        fun fromModel(user: AgencyUser): AgencyUserDto =
+            AgencyUserDto(
                 id = user.id,
                 username = user.username,
                 role = user.role.name,
@@ -20,6 +20,5 @@ class AgencyUserDto(
                 lastName = user.lastName,
                 agency = AgencyDto.fromModel(user.agency),
             )
-        }
     }
 }

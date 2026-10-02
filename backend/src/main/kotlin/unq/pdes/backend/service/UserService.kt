@@ -15,22 +15,26 @@ class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
-
     @Transactional(readOnly = true)
-    fun findByUsername(username: String): User {
-        return userRepository.findByUsername(username)
+    fun findByUsername(username: String): User =
+        userRepository.findByUsername(username)
             ?: throw EntityNotFoundException("There is no user with username: $username.")
-    }
 
     @Transactional
-    fun register(username: String, rawPassword: String, firstName: String, lastName: String): User {
-        return createStandard(username, rawPassword, Role.BUYER, firstName, lastName)
-    }
+    fun register(
+        username: String,
+        rawPassword: String,
+        firstName: String,
+        lastName: String,
+    ): User = createStandard(username, rawPassword, Role.BUYER, firstName, lastName)
 
     @Transactional
-    fun createAdmin(username: String, rawPassword: String, firstName: String, lastName: String): User {
-        return createStandard(username, rawPassword, Role.ADMIN, firstName, lastName)
-    }
+    fun createAdmin(
+        username: String,
+        rawPassword: String,
+        firstName: String,
+        lastName: String,
+    ): User = createStandard(username, rawPassword, Role.ADMIN, firstName, lastName)
 
     @Transactional
     fun createAgencyUser(
@@ -41,13 +45,15 @@ class UserService(
         agency: Agency,
     ): AgencyUser {
         requireUsernameAvailable(username)
-        val user = AgencyUser.Builder()
-            .username(username)
-            .password(passwordEncoder.encode(rawPassword)!!)
-            .firstName(firstName)
-            .lastName(lastName)
-            .agency(agency)
-            .build()
+        val user =
+            AgencyUser
+                .Builder()
+                .username(username)
+                .password(passwordEncoder.encode(rawPassword)!!)
+                .firstName(firstName)
+                .lastName(lastName)
+                .agency(agency)
+                .build()
         return userRepository.save(user)
     }
 
@@ -59,25 +65,35 @@ class UserService(
         lastName: String,
     ): User {
         requireUsernameAvailable(username)
-        val user = User.Builder()
-            .username(username)
-            .password(passwordEncoder.encode(rawPassword)!!)
-            .role(role)
-            .firstName(firstName)
-            .lastName(lastName)
-            .build()
+        val user =
+            User
+                .Builder()
+                .username(username)
+                .password(passwordEncoder.encode(rawPassword)!!)
+                .role(role)
+                .firstName(firstName)
+                .lastName(lastName)
+                .build()
         return userRepository.save(user)
     }
 
     @Transactional
-    fun updateProfile(username: String, firstName: String, lastName: String): User {
+    fun updateProfile(
+        username: String,
+        firstName: String,
+        lastName: String,
+    ): User {
         val user = findByUsername(username)
         user.updateProfile(firstName, lastName)
         return userRepository.save(user)
     }
 
     @Transactional
-    fun changePassword(username: String, currentPassword: String, newPassword: String) {
+    fun changePassword(
+        username: String,
+        currentPassword: String,
+        newPassword: String,
+    ) {
         require(newPassword.isNotBlank()) { "The user must have a password." }
         require(newPassword.length >= 6) { "The password must be at least 6 characters." }
         val user = findByUsername(username)

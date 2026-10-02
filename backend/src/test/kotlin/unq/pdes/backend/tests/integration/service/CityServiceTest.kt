@@ -15,7 +15,6 @@ import unq.pdes.backend.service.CityService
 
 @SpringBootTest
 class CityServiceTest {
-
     @Autowired
     private lateinit var cityService: CityService
 
@@ -46,9 +45,10 @@ class CityServiceTest {
 
     @Test
     fun `03 - findByCode should throw EntityNotFoundException when not found`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            cityService.findByCode("ZZZ")
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                cityService.findByCode("ZZZ")
+            }
 
         assertEquals("There is no City with code: ZZZ.", exception.message)
     }

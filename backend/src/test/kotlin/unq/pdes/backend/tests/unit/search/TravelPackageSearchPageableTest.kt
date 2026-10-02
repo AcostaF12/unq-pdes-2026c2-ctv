@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort
 import unq.pdes.backend.search.TravelPackageSearchPageable
 
 class TravelPackageSearchPageableTest {
-
     @Test
     fun `sanitize should default to sorting by name ascending when unsorted`() {
         val sanitized = TravelPackageSearchPageable.sanitize(PageRequest.of(0, 20))
@@ -32,9 +31,10 @@ class TravelPackageSearchPageableTest {
 
     @Test
     fun `sanitize should reject sorting by a non whitelisted property`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            TravelPackageSearchPageable.sanitize(PageRequest.of(0, 20, Sort.by("agency.id")))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                TravelPackageSearchPageable.sanitize(PageRequest.of(0, 20, Sort.by("agency.id")))
+            }
 
         assertEquals("Cannot sort packages by 'agency.id'.", exception.message)
     }

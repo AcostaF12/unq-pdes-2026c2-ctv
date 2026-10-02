@@ -24,12 +24,11 @@ import unq.pdes.backend.service.FavoriteService
 class FavoriteController(
     private val favoriteService: FavoriteService,
 ) {
-
     @Operation(summary = "Mis favoritos", description = "Lista los paquetes favoritos del comprador.")
     @GetMapping
-    fun mine(@AuthenticationPrincipal principal: UserDetails): ResponseEntity<List<FavoriteDto>> {
-        return ResponseEntity.ok(favoriteService.findMine(principal.username).map { FavoriteDto.fromModel(it) })
-    }
+    fun mine(
+        @AuthenticationPrincipal principal: UserDetails,
+    ): ResponseEntity<List<FavoriteDto>> = ResponseEntity.ok(favoriteService.findMine(principal.username).map { FavoriteDto.fromModel(it) })
 
     @Operation(summary = "Agregar favorito", description = "Guarda un paquete como favorito.")
     @PostMapping

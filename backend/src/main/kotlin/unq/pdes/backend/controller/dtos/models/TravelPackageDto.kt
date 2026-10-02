@@ -15,8 +15,8 @@ data class TravelPackageDto(
     val returnFlightId: Long,
 ) {
     companion object {
-        fun fromModel(travelPackage: TravelPackage): TravelPackageDto {
-            return TravelPackageDto(
+        fun fromModel(travelPackage: TravelPackage): TravelPackageDto =
+            TravelPackageDto(
                 id = travelPackage.id,
                 name = travelPackage.name,
                 price = travelPackage.price,
@@ -27,6 +27,5 @@ data class TravelPackageDto(
                 outboundFlightId = travelPackage.outboundFlightId,
                 returnFlightId = travelPackage.returnFlightId,
             )
-        }
     }
 }
