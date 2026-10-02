@@ -24,6 +24,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  workflow-validation:
+    if: inputs.action == 'deploy'
+    uses: ./.github/workflows/workflow-validation.yml
+
   # Reusable workflows declare a publish job, so callers must allow its permissions.
   # checks-only skips that job; their build jobs use read-only tokens.
   backend:
@@ -62,7 +66,7 @@ jobs:
     uses: ./.github/workflows/e2e.yml
 
   publish:
-    needs: [backend, flights-service, frontend, tests]
+    needs: [backend, flights-service, frontend, tests, workflow-validation]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
