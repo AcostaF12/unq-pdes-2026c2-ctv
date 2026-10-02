@@ -13,9 +13,9 @@ import java.time.LocalTime
 
 @TestInstance(PER_CLASS)
 class FlightTest {
-
-    private fun validBuilder(): Flight.Builder {
-        return Flight.Builder()
+    private fun validBuilder(): Flight.Builder =
+        Flight
+            .Builder()
             .airline("Aerolineas Argentinas")
             .flightDate(LocalDate.of(2026, 12, 1))
             .departureTime(LocalTime.of(8, 0))
@@ -23,7 +23,6 @@ class FlightTest {
             .destination("PAR")
             .capacity(180)
             .availability(180)
-    }
 
     @Test
     fun `01 - builder should create a valid flight`() {
@@ -39,79 +38,88 @@ class FlightTest {
 
     @Test
     fun `02 - blank airline should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder().airline("  ")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight.Builder().airline("  ")
+            }
 
         assertEquals("The flight must have an airline.", exception.message)
     }
 
     @Test
     fun `03 - blank origin should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder().origin("")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight.Builder().origin("")
+            }
 
         assertEquals("The flight must have an origin.", exception.message)
     }
 
     @Test
     fun `04 - blank destination should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder().destination("")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight.Builder().destination("")
+            }
 
         assertEquals("The flight must have a destination.", exception.message)
     }
 
     @Test
     fun `05 - non positive capacity should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder().capacity(0)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight.Builder().capacity(0)
+            }
 
         assertEquals("The flight capacity must be greater than zero.", exception.message)
     }
 
     @Test
     fun `06 - negative availability should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder().availability(-1)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight.Builder().availability(-1)
+            }
 
         assertEquals("The flight availability cannot be negative.", exception.message)
     }
 
     @Test
     fun `07 - availability greater than capacity should throw on build`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            validBuilder().capacity(100).availability(150).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                validBuilder().capacity(100).availability(150).build()
+            }
 
         assertEquals("Availability cannot exceed capacity.", exception.message)
     }
 
     @Test
     fun `08 - same origin and destination should throw on build`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            validBuilder().origin("BUE").destination("BUE").build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                validBuilder().origin("BUE").destination("BUE").build()
+            }
 
         assertEquals("Origin and destination must be different.", exception.message)
     }
 
     @Test
     fun `09 - building without airline should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Flight.Builder()
-                .flightDate(LocalDate.of(2026, 12, 1))
-                .departureTime(LocalTime.of(8, 0))
-                .origin("BUE")
-                .destination("PAR")
-                .capacity(180)
-                .availability(180)
-                .build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Flight
+                    .Builder()
+                    .flightDate(LocalDate.of(2026, 12, 1))
+                    .departureTime(LocalTime.of(8, 0))
+                    .origin("BUE")
+                    .destination("PAR")
+                    .capacity(180)
+                    .availability(180)
+                    .build()
+            }
 
         assertEquals("The flight must have an airline.", exception.message)
     }

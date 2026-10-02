@@ -22,7 +22,6 @@ import java.time.LocalTime
 
 @SpringBootTest
 class FlightControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -47,8 +46,8 @@ class FlightControllerTest {
         dataServiceH2.deleteAll()
     }
 
-    private fun anyRequest(): FlightRequestDto {
-        return FlightRequestDto(
+    private fun anyRequest(): FlightRequestDto =
+        FlightRequestDto(
             airline = "Aerolineas Argentinas",
             flightDate = LocalDate.of(2026, 12, 1),
             departureTime = LocalTime.of(8, 0),
@@ -57,15 +56,15 @@ class FlightControllerTest {
             capacity = 180,
             availability = 180,
         )
-    }
 
     @Test
     fun `01 - POST vuelos should create the flight and return 201`() {
-        mvc.perform(
-            post("/flights").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(anyRequest())),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/flights")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(anyRequest())),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNotEmpty)
             .andExpect(jsonPath("$.origin").value("BUE"))
             .andExpect(jsonPath("$.destination").value("PAR"))
@@ -76,11 +75,12 @@ class FlightControllerTest {
     fun `02 - POST vuelos with blank airline should return 400`() {
         val request = anyRequest().copy(airline = "  ")
 
-        mvc.perform(
-            post("/flights").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)),
-        )
-            .andExpect(status().isBadRequest)
+        mvc
+            .perform(
+                post("/flights")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.errorData.description").value("The flight must have an airline."))
     }
@@ -89,11 +89,12 @@ class FlightControllerTest {
     fun `03 - POST vuelos with same origin and destination should return 400`() {
         val request = anyRequest().copy(origin = "BUE", destination = "BUE")
 
-        mvc.perform(
-            post("/flights").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)),
-        )
-            .andExpect(status().isBadRequest)
+        mvc
+            .perform(
+                post("/flights")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("Origin and destination must be different."))
     }
 
@@ -102,7 +103,8 @@ class FlightControllerTest {
         factory.flightWithAvailability(0)
         factory.flightWithAvailability(30)
 
-        mvc.perform(get("/flights"))
+        mvc
+            .perform(get("/flights"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].availability").value(30))
@@ -113,7 +115,8 @@ class FlightControllerTest {
         factory.flightFrom("BUE", "PAR")
         factory.flightFrom("BUE", "LON")
 
-        mvc.perform(get("/flights").param("destination", "LON"))
+        mvc
+            .perform(get("/flights").param("destination", "LON"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].destination").value("LON"))
@@ -124,7 +127,8 @@ class FlightControllerTest {
         factory.flightOn(LocalDate.of(2026, 12, 25))
         factory.flightOn(LocalDate.of(2026, 12, 1))
 
-        mvc.perform(get("/flights").param("date", "2026-12-25"))
+        mvc
+            .perform(get("/flights").param("date", "2026-12-25"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].flightDate").value("2026-12-25"))
@@ -134,7 +138,8 @@ class FlightControllerTest {
     fun `07 - GET vuelo by id should return the flight`() {
         val flight = factory.anyFlight()
 
-        mvc.perform(get("/flights/{id}", flight.id))
+        mvc
+            .perform(get("/flights/{id}", flight.id))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(flight.id))
             .andExpect(jsonPath("$.origin").value("BUE"))
@@ -142,7 +147,8 @@ class FlightControllerTest {
 
     @Test
     fun `08 - GET vuelo by id should return 404 when not found`() {
-        mvc.perform(get("/flights/{id}", 999))
+        mvc
+            .perform(get("/flights/{id}", 999))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.errorData.description").value("There is no Flight with id: 999."))
     }
@@ -152,17 +158,18 @@ class FlightControllerTest {
         val flight = factory.flightWithAvailability(5)
         val body = """{"passengerName":"Bruno Buyer"}"""
 
-        mvc.perform(
-            post("/flights/{id}/sales", flight.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/flights/{id}/sales", flight.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNotEmpty)
             .andExpect(jsonPath("$.passengerName").value("Bruno Buyer"))
             .andExpect(jsonPath("$.flightId").value(flight.id))
 
-        mvc.perform(get("/flights/{id}", flight.id))
+        mvc
+            .perform(get("/flights/{id}", flight.id))
             .andExpect(jsonPath("$.availability").value(4))
     }
 
@@ -171,12 +178,12 @@ class FlightControllerTest {
         val flight = factory.flightWithAvailability(0)
         val body = """{"passengerName":"Bruno Buyer"}"""
 
-        mvc.perform(
-            post("/flights/{id}/sales", flight.id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body),
-        )
-            .andExpect(status().isBadRequest)
+        mvc
+            .perform(
+                post("/flights/{id}/sales", flight.id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("The flight has no availability."))
     }
 }

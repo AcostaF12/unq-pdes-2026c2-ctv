@@ -22,7 +22,6 @@ import java.time.LocalDate
 class FlightController(
     private val flightService: FlightService,
 ) {
-
     @GetMapping("/flights")
     fun search(
         @RequestParam(required = false) origin: String?,
@@ -34,21 +33,24 @@ class FlightController(
     }
 
     @GetMapping("/flights/{id}")
-    fun byId(@PathVariable id: Long): ResponseEntity<FlightDto> {
-        return ResponseEntity.ok(FlightDto.fromModel(flightService.findById(id)))
-    }
+    fun byId(
+        @PathVariable id: Long,
+    ): ResponseEntity<FlightDto> = ResponseEntity.ok(FlightDto.fromModel(flightService.findById(id)))
 
     @PostMapping("/flights")
-    fun create(@Valid @RequestBody request: FlightRequestDto): ResponseEntity<FlightDto> {
-        val flight = flightService.create(
-            airline = request.airline,
-            flightDate = request.flightDate,
-            departureTime = request.departureTime,
-            origin = request.origin,
-            destination = request.destination,
-            capacity = request.capacity,
-            availability = request.availability,
-        )
+    fun create(
+        @Valid @RequestBody request: FlightRequestDto,
+    ): ResponseEntity<FlightDto> {
+        val flight =
+            flightService.create(
+                airline = request.airline,
+                flightDate = request.flightDate,
+                departureTime = request.departureTime,
+                origin = request.origin,
+                destination = request.destination,
+                capacity = request.capacity,
+                availability = request.availability,
+            )
         return ResponseEntity.status(HttpStatus.CREATED).body(FlightDto.fromModel(flight))
     }
 
@@ -62,7 +64,9 @@ class FlightController(
     }
 
     @DeleteMapping("/flights/sales/{id}")
-    fun cancelSale(@PathVariable id: Long): ResponseEntity<Void> {
+    fun cancelSale(
+        @PathVariable id: Long,
+    ): ResponseEntity<Void> {
         flightService.cancelSale(id)
         return ResponseEntity.noContent().build()
     }
