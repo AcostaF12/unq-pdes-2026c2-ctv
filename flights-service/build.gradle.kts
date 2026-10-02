@@ -5,7 +5,16 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "2.3.21"
     id("org.sonarqube") version "7.3.1.8318"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     jacoco
+}
+
+ktlint {
+    outputToConsole.set(true)
+}
+
+tasks.named("check") {
+    dependsOn("ktlintCheck")
 }
 
 group = "unq.pdes"
