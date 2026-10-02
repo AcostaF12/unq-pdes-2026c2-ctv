@@ -1,6 +1,15 @@
 name: Flights Service CI
 
 on:
+  workflow_call:
+    inputs:
+      checks-only:
+        description: "Run checks without publishing images"
+        type: boolean
+        default: true
+    secrets:
+      SONAR_TOKEN:
+        required: false
   push:
     branches: [main, dev]
     paths:
@@ -48,7 +57,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.checks-only != true
     runs-on: ubuntu-latest
     permissions:
       contents: read

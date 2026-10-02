@@ -11,6 +11,26 @@ def check(condition, message)
   raise message unless condition
 end
 
+%w[backend flights-service frontend].each do |mod|
+  workflow = YAML.load_file(File.join(ROOT, ".github/workflows/#{mod}.yml"))
+  triggers = workflow['on'] || workflow[true]
+  call = triggers.fetch('workflow_call')
+  check(call.dig('inputs', 'checks-only', 'type') == 'boolean', "#{mod} must support checks-only calls")
+  check(call.dig('inputs', 'checks-only', 'default') == true, "#{mod} calls must skip publishing by default")
+  check(workflow.dig('jobs', 'publish', 'needs') == 'build', "#{mod} publishing must require build")
+  condition = workflow.dig('jobs', 'publish', 'if')
+  check(condition == "github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.checks-only != true", "#{mod} must guard publishing")
+  # Evaluate the actual guard for direct events and reusable calls from main.
+  [['main', 'push', false, true], ['main', 'push', true, false],
+   ['dev', 'push', false, false], ['main', 'pull_request', false, false],
+   ['main', 'workflow_dispatch', true, false]].each do |branch, event, checks_only, expected|
+    expression = condition.gsub('github.ref', "'refs/heads/#{branch}'")
+                          .gsub('github.event_name', event.inspect)
+                          .gsub('inputs.checks-only', checks_only.to_s)
+    check(eval(expression) == expected, "#{mod} publishing guard failed for #{branch}/#{event}/#{checks_only}")
+  end
+end
+
 check(events.key?('workflow_call'), 'Test workflow must be reusable')
 %w[pull_request push].each do |event|
   check(events.fetch(event).fetch('branches').sort == %w[dev main], "Missing #{event} triggers")
