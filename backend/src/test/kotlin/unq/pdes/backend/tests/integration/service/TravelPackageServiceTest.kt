@@ -1,9 +1,6 @@
 package unq.pdes.backend.tests.integration.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalTime
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -24,14 +21,16 @@ import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
 import unq.pdes.backend.model.Review
 import unq.pdes.backend.persistence.jpa.ReviewRepository
+import unq.pdes.backend.search.TravelPackageSearchCriteria
 import unq.pdes.backend.service.FavoriteService
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.TravelPackageService
-import unq.pdes.backend.search.TravelPackageSearchCriteria
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalTime
 
 @SpringBootTest
 class TravelPackageServiceTest {
-
     @Autowired
     private lateinit var travelPackageService: TravelPackageService
 
@@ -69,9 +68,15 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val travelPackage = travelPackageService.create(
-            "agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"),
-        )
+        val travelPackage =
+            travelPackageService.create(
+                "agency",
+                "París Romántico",
+                hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1500.00"),
+            )
 
         assertNotNull(travelPackage.id)
         assertEquals("BUE", travelPackage.origin.code)
@@ -86,9 +91,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The return flight origin must match the outbound destination.", exception.message)
     }
@@ -100,9 +106,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelNamed("Hotel en Buenos Aires")
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The hotel must be located in the destination city.", exception.message)
     }
@@ -112,10 +119,11 @@ class TravelPackageServiceTest {
         factory.packageNamed("París Romántico", destinationCode = "PAR", destinationCity = "Paris")
         factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
 
-        val result = travelPackageService.search(
-            TravelPackageSearchCriteria.from(null, null, "LON", null, null),
-            PageRequest.of(0, 20),
-        )
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from(null, null, "LON", null, null),
+                PageRequest.of(0, 20),
+            )
 
         assertEquals(1, result.totalElements)
         assertEquals("Londres Clásico", result.content.first().name)
@@ -127,28 +135,31 @@ class TravelPackageServiceTest {
         factory.packageNamed("Paris Romantic", price = BigDecimal("1500.00"))
         factory.packageNamed("Paris Premium", price = BigDecimal("2100.00"))
 
-        val result = travelPackageService.search(
-            TravelPackageSearchCriteria.from("Paris", "BUE", "PAR", BigDecimal("900.00"), BigDecimal("1500.00")),
-            PageRequest.of(0, 20, Sort.by("price")),
-        )
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from("Paris", "BUE", "PAR", BigDecimal("900.00"), BigDecimal("1500.00")),
+                PageRequest.of(0, 20, Sort.by("price")),
+            )
 
         assertEquals(listOf("Paris Economic", "Paris Romantic"), result.content.map { it.name })
     }
 
     @Test
     fun `04b - search should reject an inverted price range`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            TravelPackageSearchCriteria.from(null, null, null, BigDecimal("1500.00"), BigDecimal("900.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                TravelPackageSearchCriteria.from(null, null, null, BigDecimal("1500.00"), BigDecimal("900.00"))
+            }
 
         assertEquals("The minimum price cannot be greater than the maximum price.", exception.message)
     }
 
     @Test
     fun `05 - findById should throw when the package does not exist`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            travelPackageService.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.findById(999L)
+            }
 
         assertEquals("There is no TravelPackage with id: 999.", exception.message)
     }
@@ -160,11 +171,18 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         val hotelId = travelPackage.hotel.id!!
 
-        val exception = assertThrows(AccessDeniedException::class.java) {
-            travelPackageService.update(
-                "other", travelPackage.id!!, "Nuevo", hotelId, 1L, 2L, BigDecimal("1600.00"),
-            )
-        }
+        val exception =
+            assertThrows(AccessDeniedException::class.java) {
+                travelPackageService.update(
+                    "other",
+                    travelPackage.id!!,
+                    "Nuevo",
+                    hotelId,
+                    1L,
+                    2L,
+                    BigDecimal("1600.00"),
+                )
+            }
 
         assertEquals("Only the owning agency can modify this package.", exception.message)
     }
@@ -176,9 +194,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The return flight destination must match the outbound origin.", exception.message)
     }
@@ -190,9 +209,10 @@ class TravelPackageServiceTest {
         factory.agencyUserNamed("agency")
         travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"))
+            }
 
         assertEquals("The agency already has a package named 'París Romántico'.", exception.message)
     }
@@ -203,9 +223,10 @@ class TravelPackageServiceTest {
         factory.cityWith("BUE", "Buenos Aires")
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
 
-        val exception = assertThrows(AccessDeniedException::class.java) {
-            travelPackageService.create("buyer", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(AccessDeniedException::class.java) {
+                travelPackageService.create("buyer", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("Only agency users can manage packages.", exception.message)
     }
@@ -225,10 +246,11 @@ class TravelPackageServiceTest {
     fun `11 - search should treat blank filters as absent`() {
         factory.packageNamed("París Romántico")
 
-        val result = travelPackageService.search(
-            TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null),
-            PageRequest.of(0, 20),
-        )
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null),
+                PageRequest.of(0, 20),
+            )
 
         assertEquals(1, result.totalElements)
     }
@@ -241,18 +263,32 @@ class TravelPackageServiceTest {
         val first = travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
         val second = travelPackageService.create("agency", "París Express", hotel.id!!, 1L, 2L, BigDecimal("1200.00"))
 
-        val updated = travelPackageService.update(
-            "agency", first.id!!, "París Premium", hotel.id!!, 1L, 2L, BigDecimal("1800.00"),
-        )
+        val updated =
+            travelPackageService.update(
+                "agency",
+                first.id!!,
+                "París Premium",
+                hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+            )
 
         assertEquals("París Premium", updated.name)
         assertEquals(BigDecimal("1800.00"), updated.price)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.update(
-                "agency", second.id!!, "París Premium", hotel.id!!, 1L, 2L, BigDecimal("1200.00"),
-            )
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "agency",
+                    second.id!!,
+                    "París Premium",
+                    hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1200.00"),
+                )
+            }
         assertEquals("The agency already has a package named 'París Premium'.", exception.message)
     }
 
@@ -263,9 +299,10 @@ class TravelPackageServiceTest {
 
         travelPackageService.deleteById("agency", travelPackage.id!!)
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            travelPackageService.findById(travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.findById(travelPackage.id!!)
+            }
         assertEquals("There is no TravelPackage with id: ${travelPackage.id}.", exception.message)
     }
 
@@ -277,9 +314,10 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that already has purchases.", exception.message)
     }
@@ -291,9 +329,10 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         favoriteService.add(buyer.username, travelPackage.id!!)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that is marked as favorite.", exception.message)
     }
@@ -304,7 +343,8 @@ class TravelPackageServiceTest {
         val buyer = factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
         reviewRepository.save(
-            Review.Builder()
+            Review
+                .Builder()
                 .buyer(buyer)
                 .travelPackage(travelPackage)
                 .score(9)
@@ -312,9 +352,10 @@ class TravelPackageServiceTest {
                 .build(),
         )
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that already has reviews.", exception.message)
     }
@@ -343,10 +384,11 @@ class TravelPackageServiceTest {
         factory.packageNamed("Paris B", price = BigDecimal("300.00"))
         val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
 
-        val result = travelPackageService.search(
-            emptyCriteria,
-            PageRequest.of(0, 20, Sort.by(Sort.Order.desc("price"))),
-        )
+        val result =
+            travelPackageService.search(
+                emptyCriteria,
+                PageRequest.of(0, 20, Sort.by(Sort.Order.desc("price"))),
+            )
 
         assertEquals(listOf("Paris B", "Paris A"), result.content.map { it.name })
     }
@@ -365,17 +407,20 @@ class TravelPackageServiceTest {
     fun `20 - search should reject sorting by a non whitelisted property`() {
         val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.search(emptyCriteria, PageRequest.of(0, 20, Sort.by("agency.id")))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.search(emptyCriteria, PageRequest.of(0, 20, Sort.by("agency.id")))
+            }
 
         assertEquals("Cannot sort packages by 'agency.id'.", exception.message)
     }
 
     private fun stubSales() {
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -391,8 +436,12 @@ class TravelPackageServiceTest {
         Mockito.`when`(flightsClient.findById(returnId)).thenReturn(flight(returnId, returnOrigin, returnDestination))
     }
 
-    private fun flight(id: Long, origin: String, destination: String): ExternalFlightDto {
-        return ExternalFlightDto(
+    private fun flight(
+        id: Long,
+        origin: String,
+        destination: String,
+    ): ExternalFlightDto =
+        ExternalFlightDto(
             id = id,
             airline = "Aerolineas Argentinas",
             flightDate = LocalDate.of(2026, 12, 1),
@@ -402,5 +451,4 @@ class TravelPackageServiceTest {
             capacity = 180,
             availability = 180,
         )
-    }
 }

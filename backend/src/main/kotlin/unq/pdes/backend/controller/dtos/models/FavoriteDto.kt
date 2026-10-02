@@ -8,12 +8,11 @@ data class FavoriteDto(
     val travelPackage: TravelPackageDto,
 ) {
     companion object {
-        fun fromModel(favorite: Favorite): FavoriteDto {
-            return FavoriteDto(
+        fun fromModel(favorite: Favorite): FavoriteDto =
+            FavoriteDto(
                 id = favorite.id,
                 packageId = favorite.travelPackage.id,
                 travelPackage = TravelPackageDto.fromModel(favorite.travelPackage),
             )
-        }
     }
 }

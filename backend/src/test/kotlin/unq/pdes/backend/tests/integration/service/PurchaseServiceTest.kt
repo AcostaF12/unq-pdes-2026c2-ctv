@@ -1,7 +1,5 @@
 package unq.pdes.backend.tests.integration.service
 
-import java.time.LocalDate
-import java.time.LocalTime
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -12,17 +10,17 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import unq.pdes.backend.controller.dtos.models.PurchaseDto
 import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
-import unq.pdes.backend.controller.dtos.models.PurchaseDto
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
 import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.service.PurchaseService
+import java.time.LocalDate
 
 @SpringBootTest
 class PurchaseServiceTest {
-
     @Autowired
     private lateinit var purchaseService: PurchaseService
 
@@ -40,9 +38,11 @@ class PurchaseServiceTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -86,12 +86,14 @@ class PurchaseServiceTest {
     fun `02 - purchase should compensate outbound sale when return sale fails`() {
         val buyer = factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenThrow(IllegalArgumentException("The flight has no availability."))
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            purchaseService.purchase(buyer.username, travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                purchaseService.purchase(buyer.username, travelPackage.id!!)
+            }
 
         assertEquals("The flight has no availability.", exception.message)
         Mockito.verify(flightsClient).cancelSale(10L)
@@ -102,9 +104,10 @@ class PurchaseServiceTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
-            purchaseService.purchase("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+                purchaseService.purchase("agency", travelPackage.id!!)
+            }
 
         assertEquals("Only buyers can purchase packages.", exception.message)
     }
@@ -118,7 +121,12 @@ class PurchaseServiceTest {
         val purchases = purchaseService.findMine(buyer.username)
 
         assertEquals(1, purchases.totalElements)
-        assertEquals("París Romántico", purchases.content.first().travelPackage.name)
+        assertEquals(
+            "París Romántico",
+            purchases.content
+                .first()
+                .travelPackage.name,
+        )
     }
 
     @Test
@@ -139,9 +147,10 @@ class PurchaseServiceTest {
     fun `04b - findMine should reject users that are not buyers`() {
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
-            purchaseService.findMine("agency")
-        }
+        val exception =
+            assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+                purchaseService.findMine("agency")
+            }
 
         assertEquals("Only buyers can list their purchase history.", exception.message)
     }
@@ -165,7 +174,8 @@ class PurchaseServiceTest {
         assertEquals(1, secondPage.content.size)
         assertNotNull(firstPage.content.single().id)
         assertNotNull(secondPage.content.single().id)
-        org.junit.jupiter.api.Assertions.assertNotEquals(firstPage.content.single().id, secondPage.content.single().id)
+        org.junit.jupiter.api.Assertions
+            .assertNotEquals(firstPage.content.single().id, secondPage.content.single().id)
     }
 
     @Test
@@ -178,7 +188,12 @@ class PurchaseServiceTest {
         val sales = purchaseService.findForAgency("agency")
 
         assertEquals(1, sales.totalElements)
-        assertEquals(buyer.username, sales.content.first().buyer.username)
+        assertEquals(
+            buyer.username,
+            sales.content
+                .first()
+                .buyer.username,
+        )
     }
 
     @Test
@@ -192,19 +207,30 @@ class PurchaseServiceTest {
         purchaseService.purchase(otherBuyer.username, otherPackage.id!!)
         val today = LocalDate.now()
 
-        val results = purchaseService.findForAgency(
-            username = "agency",
-            page = 0,
-            size = 5,
-            buyerUsername = buyer.username,
-            packageName = "románt",
-            from = today,
-            to = today,
-        )
+        val results =
+            purchaseService.findForAgency(
+                username = "agency",
+                page = 0,
+                size = 5,
+                buyerUsername = buyer.username,
+                packageName = "románt",
+                from = today,
+                to = today,
+            )
 
         assertEquals(1, results.totalElements)
-        assertEquals(buyer.username, results.content.single().buyer.username)
-        assertEquals("París Romántico", results.content.single().travelPackage.name)
+        assertEquals(
+            buyer.username,
+            results.content
+                .single()
+                .buyer.username,
+        )
+        assertEquals(
+            "París Romántico",
+            results.content
+                .single()
+                .travelPackage.name,
+        )
     }
 
     @Test
@@ -226,12 +252,13 @@ class PurchaseServiceTest {
         val buyer = factory.buyerNamed("buyer")
         val otherBuyer = factory.buyerNamed("other-buyer")
         val agencyPackage = factory.packageNamed("París Romántico")
-        val otherAgencyPackage = factory.packageNamed(
-            "Londres Clásico",
-            destinationCode = "LON",
-            destinationCity = "London",
-            agencyName = "Otra agencia",
-        )
+        val otherAgencyPackage =
+            factory.packageNamed(
+                "Londres Clásico",
+                destinationCode = "LON",
+                destinationCity = "London",
+                agencyName = "Otra agencia",
+            )
         purchaseService.purchase(buyer.username, agencyPackage.id!!)
         purchaseService.purchase(otherBuyer.username, otherAgencyPackage.id!!)
 
@@ -244,9 +271,10 @@ class PurchaseServiceTest {
     fun `06 - buyers cannot list agency purchases`() {
         val buyer = factory.buyerNamed("buyer")
 
-        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
-            purchaseService.findForAgency(buyer.username)
-        }
+        val exception =
+            assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+                purchaseService.findForAgency(buyer.username)
+            }
 
         assertEquals("Only agency users can list agency purchases.", exception.message)
     }

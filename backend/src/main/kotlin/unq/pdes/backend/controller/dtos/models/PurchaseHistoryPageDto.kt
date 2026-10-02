@@ -13,14 +13,15 @@ data class PurchaseHistoryPageDto(
     val last: Boolean,
 ) {
     companion object {
-        fun from(page: Page<Purchase>) = PurchaseHistoryPageDto(
-            content = page.content.map(PurchaseDto::fromModel),
-            page = page.number,
-            size = page.size,
-            totalElements = page.totalElements,
-            totalPages = page.totalPages,
-            first = page.isFirst,
-            last = page.isLast,
-        )
+        fun from(page: Page<Purchase>) =
+            PurchaseHistoryPageDto(
+                content = page.content.map(PurchaseDto::fromModel),
+                page = page.number,
+                size = page.size,
+                totalElements = page.totalElements,
+                totalPages = page.totalPages,
+                first = page.isFirst,
+                last = page.isLast,
+            )
     }
 }

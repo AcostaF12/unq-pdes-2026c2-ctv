@@ -7,15 +7,12 @@ data class CityDto(
     val name: String,
 ) {
     companion object {
-        fun fromModel(city: City): CityDto {
-            return CityDto(
+        fun fromModel(city: City): CityDto =
+            CityDto(
                 code = city.code,
                 name = city.name,
             )
-        }
     }
 
-    fun toModel(): City {
-        return City(code, name)
-    }
+    fun toModel(): City = City(code, name)
 }

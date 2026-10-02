@@ -11,8 +11,9 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "flight_sales")
-class FlightSale private constructor(builder: Builder) {
-
+class FlightSale private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -24,35 +25,32 @@ class FlightSale private constructor(builder: Builder) {
     @Column(name = "passenger_name", nullable = false, length = 160)
     var passengerName: String = builder.passengerName!!
 
-    override fun equals(other: Any?): Boolean {
-        return (other is FlightSale) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is FlightSale) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "FlightSale(id=$id, flight=${flight.id}, passengerName='$passengerName')"
-    }
+    override fun toString(): String = "FlightSale(id=$id, flight=${flight.id}, passengerName='$passengerName')"
 
     class Builder {
         var id: Long? = null
         var flight: Flight? = null
         var passengerName: String? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun flight(flight: Flight) = apply {
-            this.flight = flight
-        }
+        fun flight(flight: Flight) =
+            apply {
+                this.flight = flight
+            }
 
-        fun passengerName(passengerName: String) = apply {
-            require(passengerName.isNotBlank()) { "The sale must have a passenger name." }
-            this.passengerName = passengerName
-        }
+        fun passengerName(passengerName: String) =
+            apply {
+                require(passengerName.isNotBlank()) { "The sale must have a passenger name." }
+                this.passengerName = passengerName
+            }
 
         fun build(): FlightSale {
             requireNotNull(flight) { "The sale must reference a flight." }

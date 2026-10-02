@@ -1,6 +1,15 @@
 name: Frontend CI
 
 on:
+  workflow_call:
+    inputs:
+      checks-only:
+        description: "Run checks without publishing images"
+        type: boolean
+        default: true
+    secrets:
+      VM_HOST:
+        required: false
   push:
     branches: [main, dev]
     paths:
@@ -18,6 +27,8 @@ defaults:
 
 jobs:
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,7 +55,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.checks-only != true
     runs-on: ubuntu-latest
     permissions:
       contents: read

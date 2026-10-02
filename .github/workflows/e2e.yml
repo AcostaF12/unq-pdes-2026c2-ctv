@@ -1,6 +1,7 @@
-name: E2E CI
+name: Acceptance and E2E CI
 
 on:
+  workflow_call:
   pull_request:
     branches: [main, dev]
   push:
@@ -10,6 +11,30 @@ permissions:
   contents: read
 
 jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: acceptance-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start isolated application
+        run: docker compose -p ctv-acceptance-ci up --build -d --wait --wait-timeout 180 backend
+
+      - name: Run Cucumber
+        run: docker compose -p ctv-acceptance-ci run --rm --no-deps acceptance-tests sh -c 'npm install --no-package-lock && npm test -- --profile ci'
+
+      - name: Show application logs on failure
+        if: failure()
+        run: docker compose -p ctv-acceptance-ci logs --no-color --tail=200
+
+      - name: Stop application
+        if: always()
+        run: docker compose -p ctv-acceptance-ci down
+
   e2e:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

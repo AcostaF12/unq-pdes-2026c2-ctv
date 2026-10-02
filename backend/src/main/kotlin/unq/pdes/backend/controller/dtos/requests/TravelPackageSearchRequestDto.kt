@@ -1,7 +1,7 @@
 package unq.pdes.backend.controller.dtos.requests
 
-import java.math.BigDecimal
 import unq.pdes.backend.search.TravelPackageSearchCriteria
+import java.math.BigDecimal
 
 data class TravelPackageSearchRequestDto(
     val name: String? = null,
@@ -10,7 +10,5 @@ data class TravelPackageSearchRequestDto(
     val minPrice: BigDecimal? = null,
     val maxPrice: BigDecimal? = null,
 ) {
-    fun toCriteria(): TravelPackageSearchCriteria {
-        return TravelPackageSearchCriteria.from(name, origin, destination, minPrice, maxPrice)
-    }
+    fun toCriteria(): TravelPackageSearchCriteria = TravelPackageSearchCriteria.from(name, origin, destination, minPrice, maxPrice)
 }

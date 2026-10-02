@@ -1,9 +1,6 @@
 package unq.pdes.backend.tests.unit.external
 
 import jakarta.persistence.EntityNotFoundException
-import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -23,9 +20,11 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.web.client.RestClient
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
+import java.io.IOException
+import java.time.LocalDate
+import java.time.LocalTime
 
 class FlightsClientTest {
-
     private lateinit var server: MockRestServiceServer
     private lateinit var client: FlightsClient
 
@@ -38,7 +37,8 @@ class FlightsClientTest {
 
     @Test
     fun `01 - findById should map the flight payload`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(
                 withSuccess(
@@ -71,106 +71,125 @@ class FlightsClientTest {
 
     @Test
     fun `02 - findById should throw EntityNotFoundException on 404`() {
-        server.expect(requestTo("http://flights/flights/999"))
+        server
+            .expect(requestTo("http://flights/flights/999"))
             .andRespond(
-                withResourceNotFound().body(
-                    """{"httpCode":404,"httpStatus":"NOT_FOUND","errorData":{"description":"There is no Flight with id: 999."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withResourceNotFound()
+                    .body(
+                        """{"httpCode":404,"httpStatus":"NOT_FOUND","errorData":{"description":"There is no Flight with id: 999."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(999L)
+            }
 
         assertEquals("There is no Flight with id: 999.", exception.message)
     }
 
     @Test
     fun `03 - findById should throw EntityNotFoundException when the body is empty`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("There is no Flight with id: 7.", exception.message)
     }
 
     @Test
     fun `04 - findById should use status text when the error body has no description`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withResourceNotFound().body("{}").contentType(MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Not Found", exception.message)
     }
 
     @Test
     fun `05 - findById should ignore a truncated description in the error body`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withResourceNotFound().body("""{"errorData":{"description":"broken}}""")
+                withResourceNotFound()
+                    .body("""{"errorData":{"description":"broken}}""")
                     .contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Not Found", exception.message)
     }
 
     @Test
     fun `06 - findById should map 4xx errors to IllegalArgumentException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withBadRequest().body(
-                    """{"errorData":{"description":"Invalid flight id."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withBadRequest()
+                    .body(
+                        """{"errorData":{"description":"Invalid flight id."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Invalid flight id.", exception.message)
     }
 
     @Test
     fun `07 - findById should map 5xx errors to FlightsServiceUnavailableException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withServerError().body(
-                    """{"errorData":{"description":"Flights exploded."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withServerError()
+                    .body(
+                        """{"errorData":{"description":"Flights exploded."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Flights exploded.", exception.message)
     }
 
     @Test
     fun `08 - findById should map connectivity errors to FlightsServiceUnavailableException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withException(IOException("I/O error")))
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Flights service is unavailable.", exception.message)
     }
 
     @Test
     fun `09 - sell should map the sale payload`() {
-        server.expect(requestTo("http://flights/flights/1/sales"))
+        server
+            .expect(requestTo("http://flights/flights/1/sales"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(
                 withSuccess(
@@ -189,19 +208,22 @@ class FlightsClientTest {
 
     @Test
     fun `10 - sell should throw when the body is empty`() {
-        server.expect(requestTo("http://flights/flights/1/sales"))
+        server
+            .expect(requestTo("http://flights/flights/1/sales"))
             .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.sell(1L, "Bruno Buyer")
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.sell(1L, "Bruno Buyer")
+            }
 
         assertEquals("Could not sell a seat for flight 1.", exception.message)
     }
 
     @Test
     fun `11 - cancelSale should call the flights service`() {
-        server.expect(requestTo("http://flights/flights/sales/10"))
+        server
+            .expect(requestTo("http://flights/flights/sales/10"))
             .andExpect(method(HttpMethod.DELETE))
             .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
@@ -212,15 +234,18 @@ class FlightsClientTest {
 
     @Test
     fun `12 - findById should use the fallback message when description is blank`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withResourceNotFound().body("""{"errorData":{"description":""}}""")
+                withResourceNotFound()
+                    .body("""{"errorData":{"description":""}}""")
                     .contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("There is no Flight with id: 7.", exception.message)
     }

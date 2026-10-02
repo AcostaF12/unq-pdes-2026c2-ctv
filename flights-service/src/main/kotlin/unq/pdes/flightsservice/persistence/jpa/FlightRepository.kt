@@ -7,7 +7,6 @@ import unq.pdes.flightsservice.model.Flight
 import java.time.LocalDate
 
 interface FlightRepository : JpaRepository<Flight, Long> {
-
     @Query(
         """
         SELECT f FROM Flight f

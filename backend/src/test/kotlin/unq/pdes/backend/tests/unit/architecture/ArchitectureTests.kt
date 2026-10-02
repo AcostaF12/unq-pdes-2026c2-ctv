@@ -12,57 +12,80 @@ import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 
 @TestInstance(PER_CLASS)
 class ArchitectureTests {
-
     private lateinit var baseClasses: JavaClasses
 
     @BeforeAll
     fun setup() {
-        baseClasses = ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("unq.pdes.backend")
+        baseClasses =
+            ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("unq.pdes.backend")
     }
 
     @Test
     fun `01 - repository classes should end with Repository`() {
-        classes().that().resideInAPackage("..persistence..")
-            .should().haveSimpleNameEndingWith("Repository")
+        classes()
+            .that()
+            .resideInAPackage("..persistence..")
+            .should()
+            .haveSimpleNameEndingWith("Repository")
             .check(baseClasses)
     }
 
     @Test
     fun `02 - model dto classes should end with Dto`() {
-        classes().that().resideInAPackage("..controller.dtos.models..")
-            .and().haveSimpleNameNotContaining("Companion")
-            .should().haveSimpleNameEndingWith("Dto")
+        classes()
+            .that()
+            .resideInAPackage("..controller.dtos.models..")
+            .and()
+            .haveSimpleNameNotContaining("Companion")
+            .should()
+            .haveSimpleNameEndingWith("Dto")
             .check(baseClasses)
     }
 
     @Test
     fun `03 - service classes should end with Service`() {
-        classes().that().resideInAPackage("..service..")
-            .and().areNotAnonymousClasses()
-            .should().haveSimpleNameEndingWith("Service")
+        classes()
+            .that()
+            .resideInAPackage("..service..")
+            .and()
+            .areNotAnonymousClasses()
+            .should()
+            .haveSimpleNameEndingWith("Service")
             .check(baseClasses)
     }
 
     @Test
     fun `04 - controller classes should end with Controller`() {
-        classes().that().resideInAPackage("..controller")
-            .and().haveSimpleNameNotContaining("Companion")
-            .should().haveSimpleNameEndingWith("Controller")
+        classes()
+            .that()
+            .resideInAPackage("..controller")
+            .and()
+            .haveSimpleNameNotContaining("Companion")
+            .should()
+            .haveSimpleNameEndingWith("Controller")
             .check(baseClasses)
     }
 
     @Test
     fun `05 - the layers must be respected without dependencies between them`() {
-        layeredArchitecture().consideringAllDependencies()
-            .layer("Controller").definedBy("..controller..")
-            .layer("Service").definedBy("..service..")
-            .layer("Persistence").definedBy("..persistence..")
-            .layer("Config").definedBy("..config..")
-            .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
-            .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller", "Config")
-            .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service", "Config")
+        layeredArchitecture()
+            .consideringAllDependencies()
+            .layer("Controller")
+            .definedBy("..controller..")
+            .layer("Service")
+            .definedBy("..service..")
+            .layer("Persistence")
+            .definedBy("..persistence..")
+            .layer("Config")
+            .definedBy("..config..")
+            .whereLayer("Controller")
+            .mayNotBeAccessedByAnyLayer()
+            .whereLayer("Service")
+            .mayOnlyBeAccessedByLayers("Controller", "Config")
+            .whereLayer("Persistence")
+            .mayOnlyBeAccessedByLayers("Service", "Config")
             .check(baseClasses)
     }
 }

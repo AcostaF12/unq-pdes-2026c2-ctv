@@ -9,20 +9,14 @@ import java.time.LocalDate
 class PersistentObjectsFactory(
     private val flightService: FlightService,
 ) : ObjectsFactory() {
+    override fun anyFlight(): Flight = flightService.save(super.anyFlight())
 
-    override fun anyFlight(): Flight {
-        return flightService.save(super.anyFlight())
-    }
+    override fun flightFrom(
+        origin: String,
+        destination: String,
+    ): Flight = flightService.save(super.flightFrom(origin, destination))
 
-    override fun flightFrom(origin: String, destination: String): Flight {
-        return flightService.save(super.flightFrom(origin, destination))
-    }
+    override fun flightOn(date: LocalDate): Flight = flightService.save(super.flightOn(date))
 
-    override fun flightOn(date: LocalDate): Flight {
-        return flightService.save(super.flightOn(date))
-    }
-
-    override fun flightWithAvailability(availability: Int): Flight {
-        return flightService.save(super.flightWithAvailability(availability))
-    }
+    override fun flightWithAvailability(availability: Int): Flight = flightService.save(super.flightWithAvailability(availability))
 }

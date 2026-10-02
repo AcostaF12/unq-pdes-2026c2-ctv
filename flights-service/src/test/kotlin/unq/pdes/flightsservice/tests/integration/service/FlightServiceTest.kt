@@ -17,7 +17,6 @@ import java.time.LocalTime
 
 @SpringBootTest
 class FlightServiceTest {
-
     @Autowired
     private lateinit var flightService: FlightService
 
@@ -34,9 +33,16 @@ class FlightServiceTest {
 
     @Test
     fun `01 - create should return the flight with an id`() {
-        val flight = flightService.create(
-            "Aerolineas Argentinas", LocalDate.of(2026, 12, 1), LocalTime.of(8, 0), "BUE", "PAR", 180, 180,
-        )
+        val flight =
+            flightService.create(
+                "Aerolineas Argentinas",
+                LocalDate.of(2026, 12, 1),
+                LocalTime.of(8, 0),
+                "BUE",
+                "PAR",
+                180,
+                180,
+            )
 
         assertNotNull(flight.id)
         assertEquals("BUE", flight.origin)
@@ -46,11 +52,18 @@ class FlightServiceTest {
 
     @Test
     fun `02 - create with invalid data should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            flightService.create(
-                "Aerolineas Argentinas", LocalDate.of(2026, 12, 1), LocalTime.of(8, 0), "BUE", "BUE", 180, 180,
-            )
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                flightService.create(
+                    "Aerolineas Argentinas",
+                    LocalDate.of(2026, 12, 1),
+                    LocalTime.of(8, 0),
+                    "BUE",
+                    "BUE",
+                    180,
+                    180,
+                )
+            }
 
         assertEquals("Origin and destination must be different.", exception.message)
     }
@@ -66,9 +79,10 @@ class FlightServiceTest {
 
     @Test
     fun `04 - findById should throw EntityNotFoundException when not found`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            flightService.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                flightService.findById(999L)
+            }
 
         assertEquals("There is no Flight with id: 999.", exception.message)
     }
@@ -149,9 +163,10 @@ class FlightServiceTest {
     fun `12 - sell without availability should throw IllegalArgumentException`() {
         val flight = factory.flightWithAvailability(0)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            flightService.sell(flight.id!!, "Bruno Buyer")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                flightService.sell(flight.id!!, "Bruno Buyer")
+            }
 
         assertEquals("The flight has no availability.", exception.message)
     }

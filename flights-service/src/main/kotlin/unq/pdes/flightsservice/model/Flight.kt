@@ -11,8 +11,9 @@ import java.time.LocalTime
 
 @Entity
 @Table(name = "flights")
-class Flight private constructor(builder: Builder) {
-
+class Flight private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -38,18 +39,13 @@ class Flight private constructor(builder: Builder) {
     @Column(nullable = false)
     var availability: Int = builder.availability!!
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Flight) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is Flight) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Flight(id=$id, airline='$airline', origin='$origin', destination='$destination', " +
+    override fun toString(): String =
+        "Flight(id=$id, airline='$airline', origin='$origin', destination='$destination', " +
             "date=$flightDate, time=$departureTime, capacity=$capacity, availability=$availability)"
-    }
 
     class Builder {
         var id: Long? = null
@@ -61,42 +57,50 @@ class Flight private constructor(builder: Builder) {
         var capacity: Int? = null
         var availability: Int? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun airline(airline: String) = apply {
-            require(airline.isNotBlank()) { "The flight must have an airline." }
-            this.airline = airline
-        }
+        fun airline(airline: String) =
+            apply {
+                require(airline.isNotBlank()) { "The flight must have an airline." }
+                this.airline = airline
+            }
 
-        fun flightDate(flightDate: LocalDate) = apply {
-            this.flightDate = flightDate
-        }
+        fun flightDate(flightDate: LocalDate) =
+            apply {
+                this.flightDate = flightDate
+            }
 
-        fun departureTime(departureTime: LocalTime) = apply {
-            this.departureTime = departureTime
-        }
+        fun departureTime(departureTime: LocalTime) =
+            apply {
+                this.departureTime = departureTime
+            }
 
-        fun origin(origin: String) = apply {
-            require(origin.isNotBlank()) { "The flight must have an origin." }
-            this.origin = origin
-        }
+        fun origin(origin: String) =
+            apply {
+                require(origin.isNotBlank()) { "The flight must have an origin." }
+                this.origin = origin
+            }
 
-        fun destination(destination: String) = apply {
-            require(destination.isNotBlank()) { "The flight must have a destination." }
-            this.destination = destination
-        }
+        fun destination(destination: String) =
+            apply {
+                require(destination.isNotBlank()) { "The flight must have a destination." }
+                this.destination = destination
+            }
 
-        fun capacity(capacity: Int) = apply {
-            require(capacity > 0) { "The flight capacity must be greater than zero." }
-            this.capacity = capacity
-        }
+        fun capacity(capacity: Int) =
+            apply {
+                require(capacity > 0) { "The flight capacity must be greater than zero." }
+                this.capacity = capacity
+            }
 
-        fun availability(availability: Int) = apply {
-            require(availability >= 0) { "The flight availability cannot be negative." }
-            this.availability = availability
-        }
+        fun availability(availability: Int) =
+            apply {
+                require(availability >= 0) { "The flight availability cannot be negative." }
+                this.availability = availability
+            }
 
         fun build(): Flight {
             requireNotNull(airline) { "The flight must have an airline." }

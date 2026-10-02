@@ -15,8 +15,9 @@ import unq.pdes.backend.model.user.User
     name = "favorites",
     uniqueConstraints = [UniqueConstraint(columnNames = ["buyer_id", "package_id"])],
 )
-class Favorite private constructor(builder: Builder) {
-
+class Favorite private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -29,34 +30,31 @@ class Favorite private constructor(builder: Builder) {
     @JoinColumn(name = "package_id", nullable = false)
     var travelPackage: TravelPackage = builder.travelPackage!!
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Favorite) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is Favorite) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Favorite(id=$id, buyer=${buyer.id}, package=${travelPackage.id})"
-    }
+    override fun toString(): String = "Favorite(id=$id, buyer=${buyer.id}, package=${travelPackage.id})"
 
     class Builder {
         var id: Long? = null
         var buyer: User? = null
         var travelPackage: TravelPackage? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun buyer(buyer: User) = apply {
-            this.buyer = buyer
-        }
+        fun buyer(buyer: User) =
+            apply {
+                this.buyer = buyer
+            }
 
-        fun travelPackage(travelPackage: TravelPackage) = apply {
-            this.travelPackage = travelPackage
-        }
+        fun travelPackage(travelPackage: TravelPackage) =
+            apply {
+                this.travelPackage = travelPackage
+            }
 
         fun build(): Favorite {
             requireNotNull(buyer) { "The favorite must have a buyer." }

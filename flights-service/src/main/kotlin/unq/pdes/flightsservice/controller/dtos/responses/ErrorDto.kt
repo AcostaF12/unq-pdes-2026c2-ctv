@@ -8,6 +8,7 @@ data class ErrorDto(
     val errorData: ErrorDataDto,
     val timestamp: LocalDateTime = LocalDateTime.now(),
 ) {
-
-    data class ErrorDataDto(val description: String)
+    data class ErrorDataDto(
+        val description: String,
+    )
 }

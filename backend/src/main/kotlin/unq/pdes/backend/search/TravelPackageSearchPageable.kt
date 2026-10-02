@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 
 object TravelPackageSearchPageable {
-
     private const val MAX_PAGE_SIZE = 50
     private val SORTABLE_PROPERTIES = setOf("name", "price")
     private val DEFAULT_SORT: Sort = Sort.by(Sort.Order.asc("name"))

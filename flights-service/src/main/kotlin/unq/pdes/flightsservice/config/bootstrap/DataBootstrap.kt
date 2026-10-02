@@ -17,7 +17,6 @@ class DataBootstrap(
     private val flightService: FlightService,
     private val flightRepository: FlightRepository,
 ) : ApplicationRunner {
-
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
@@ -54,8 +53,9 @@ class DataBootstrap(
         destination: String,
         capacity: Int,
         availability: Int,
-    ): Flight {
-        return Flight.Builder()
+    ): Flight =
+        Flight
+            .Builder()
             .airline(airline)
             .flightDate(date)
             .departureTime(time)
@@ -64,5 +64,4 @@ class DataBootstrap(
             .capacity(capacity)
             .availability(availability)
             .build()
-    }
 }

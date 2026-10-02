@@ -5,8 +5,9 @@ import jakarta.persistence.Embeddable
 import unq.pdes.backend.model.user.User
 
 @Embeddable
-class PurchaseBuyerSnapshot private constructor(user: User) {
-
+class PurchaseBuyerSnapshot private constructor(
+    user: User,
+) {
     @Column(name = "buyer_snapshot_id", nullable = false)
     var id: Long = user.id!!
 

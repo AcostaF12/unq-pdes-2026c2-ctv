@@ -28,7 +28,6 @@ import unq.pdes.backend.service.PurchaseService
 
 @SpringBootTest
 class PurchaseControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -51,12 +50,16 @@ class PurchaseControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -71,11 +74,12 @@ class PurchaseControllerTest {
         factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/purchases").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/purchases")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.buyer.username").value("buyer"))
             .andExpect(jsonPath("$.travelPackage.name").value("París Romántico"))
             .andExpect(jsonPath("$.travelPackage.agency.name").value("Despegar"))
@@ -89,7 +93,8 @@ class PurchaseControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(get("/purchases/me"))
+        mvc
+            .perform(get("/purchases/me"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.page").value(0))
@@ -106,7 +111,8 @@ class PurchaseControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(get("/purchases/agency"))
+        mvc
+            .perform(get("/purchases/agency"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].buyer.username").value("buyer"))
@@ -123,7 +129,8 @@ class PurchaseControllerTest {
         purchaseService.purchase(buyer.username, first.id!!)
         purchaseService.purchase(buyer.username, second.id!!)
 
-        mvc.perform(get("/purchases/me").param("page", "0").param("size", "1"))
+        mvc
+            .perform(get("/purchases/me").param("page", "0").param("size", "1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.totalElements").value(2))
@@ -138,9 +145,14 @@ class PurchaseControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(get("/purchases/me/packages/${travelPackage.id}"))
+        mvc
+            .perform(get("/purchases/me/packages/${travelPackage.id}"))
             .andExpect(status().isOk)
-            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("true"))
+            .andExpect(
+                org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                    .content()
+                    .string("true"),
+            )
     }
 
     @Test
@@ -153,7 +165,8 @@ class PurchaseControllerTest {
         purchaseService.purchase(buyer.username, matching.id!!)
         purchaseService.purchase(buyer.username, other.id!!)
 
-        mvc.perform(get("/purchases/agency").param("buyerUsername", "buyer").param("packageName", "románt"))
+        mvc
+            .perform(get("/purchases/agency").param("buyerUsername", "buyer").param("packageName", "románt"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
@@ -165,11 +178,12 @@ class PurchaseControllerTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/purchases").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
-        )
-            .andExpect(status().isForbidden)
+        mvc
+            .perform(
+                post("/purchases")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -177,7 +191,8 @@ class PurchaseControllerTest {
     fun `05 - GET purchases me as agency should return 403`() {
         factory.agencyUserNamed("agency")
 
-        mvc.perform(get("/purchases/me"))
+        mvc
+            .perform(get("/purchases/me"))
             .andExpect(status().isForbidden)
     }
 
@@ -186,7 +201,8 @@ class PurchaseControllerTest {
     fun `06 - GET purchases agency as buyer should return 403`() {
         factory.buyerNamed("buyer")
 
-        mvc.perform(get("/purchases/agency"))
+        mvc
+            .perform(get("/purchases/agency"))
             .andExpect(status().isForbidden)
     }
 }
