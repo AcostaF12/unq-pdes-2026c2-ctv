@@ -91,4 +91,24 @@ describe('AppShell', () => {
     expect(await screen.findByText('Cuenta')).toBeInTheDocument()
     expect(screen.getByRole('main')).toHaveFocus()
   })
+
+  it('marks only the sales link as current on the agency sales page', async () => {
+    const currentUser = { ...buyer, role: 'AGENCY' }
+    persistSession('token', currentUser)
+    mockedGetCurrentUser.mockResolvedValue(currentUser)
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/agency/sales']}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/agency/sales" element={<div>Ventas</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    )
+
+    expect(await screen.findByRole('link', { name: 'Ventas' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Agencia' })).not.toHaveAttribute('aria-current')
+  })
 })

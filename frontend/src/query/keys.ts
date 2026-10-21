@@ -35,6 +35,7 @@ export const queryKeys = {
   },
   favorites: ['favorites'] as const,
   purchases: {
+    all: ['purchases'] as const,
     mine: ['purchases', 'me'] as const,
     agency: ['purchases', 'agency'] as const,
     minePage: (filters: PurchaseHistoryQueryFilters) => ['purchases', 'me', 'page', filters] as const,

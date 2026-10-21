@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../api/errors'
 import { getMyPurchases, type MyPurchasesFilters } from '../../api/purchases'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { HeroScene } from '../../components/HeroScene/HeroScene'
 import { Input } from '../../components/Input/Input'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { Select } from '../../components/Select/Select'
@@ -123,10 +124,12 @@ export function Purchases() {
 
   return (
     <section className="page">
-      <header className="purchase-intro">
-        <p className="purchase-intro__eyebrow">Tu historial</p>
-        <h1 className="page__title">Mis compras</h1>
-      </header>
+      <HeroScene
+        compact
+        eyebrow="Tu historial"
+        title="Mis compras"
+        subtitle="Todos tus viajes y comprobantes en un solo lugar."
+      />
       <form className="history-filters" onSubmit={applyFilters}>
         <Input
           label="Paquete"

@@ -21,14 +21,20 @@ interface UseFavoritesOptions {
   notify?: boolean
 }
 
+const TOGGLE_MUTATION_KEY = ['favorites', 'toggle'] as const
+
 /**
  * Single source of truth for favorites: one cached list, optimistic toggling
  * with rollback and a stable `isFavorite` lookup for cards and the detail page.
+ *
+ * Toggling is only possible once the list has loaded (`ready`): before that every
+ * heart would look empty and adding an existing favorite is rejected by the API.
  */
 export function useFavorites({ enabled = true, notify = true }: UseFavoritesOptions = {}) {
   const queryClient = useQueryClient()
   const toast = useToast()
   const [error, setError] = useState<string | null>(null)
+  const [pendingIds, setPendingIds] = useState<ReadonlySet<number>>(() => new Set())
 
   const favoritesQuery = useQuery({
     queryKey: queryKeys.favorites,
@@ -37,12 +43,26 @@ export function useFavorites({ enabled = true, notify = true }: UseFavoritesOpti
   })
 
   const favorites = favoritesQuery.data
+  const ready = favoritesQuery.isSuccess
   const favoriteIds = useMemo(
     () => new Set((favorites ?? []).map((favorite) => favorite.packageId)),
     [favorites],
   )
 
+  const setPending = useCallback((packageId: number, pending: boolean) => {
+    setPendingIds((current) => {
+      const next = new Set(current)
+      if (pending) {
+        next.add(packageId)
+      } else {
+        next.delete(packageId)
+      }
+      return next
+    })
+  }, [])
+
   const mutation = useMutation<void, unknown, ToggleVariables, ToggleContext>({
+    mutationKey: TOGGLE_MUTATION_KEY,
     mutationFn: async ({ travelPackage, isFavorite }) => {
       if (isFavorite) {
         await removeFavorite(travelPackage.id)
@@ -52,6 +72,7 @@ export function useFavorites({ enabled = true, notify = true }: UseFavoritesOpti
     },
     onMutate: async ({ travelPackage, isFavorite }) => {
       setError(null)
+      setPending(travelPackage.id, true)
       await queryClient.cancelQueries({ queryKey: queryKeys.favorites })
       const previous = queryClient.getQueryData<Favorite[]>(queryKeys.favorites)
       const current = previous ?? []
@@ -82,27 +103,35 @@ export function useFavorites({ enabled = true, notify = true }: UseFavoritesOpti
         )
       }
     },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.favorites })
+    onSettled: async (_data, _error, variables) => {
+      setPending(variables.travelPackage.id, false)
+      // While other toggles are still in flight, refetching now would overwrite their
+      // optimistic state with a response that does not include them yet.
+      if (queryClient.isMutating({ mutationKey: TOGGLE_MUTATION_KEY }) <= 1) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.favorites })
+      }
     },
   })
 
   const { mutate } = mutation
   const toggle = useCallback(
     (travelPackage: TravelPackage) => {
+      if (!ready) {
+        return
+      }
       mutate({ travelPackage, isFavorite: favoriteIds.has(travelPackage.id) })
     },
-    [mutate, favoriteIds],
+    [mutate, favoriteIds, ready],
   )
 
   const isFavorite = useCallback((packageId: number) => favoriteIds.has(packageId), [favoriteIds])
-  const isToggling = (packageId: number) =>
-    mutation.isPending && mutation.variables?.travelPackage.id === packageId
+  const isToggling = useCallback((packageId: number) => pendingIds.has(packageId), [pendingIds])
 
   return {
     favoritesQuery,
     favorites: favorites ?? [],
     favoriteIds,
+    ready,
     isFavorite,
     isToggling,
     toggle,

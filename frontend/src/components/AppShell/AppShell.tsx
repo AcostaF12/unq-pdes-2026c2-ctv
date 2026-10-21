@@ -39,7 +39,7 @@ export function AppShell() {
           </NavLink>
           {isBuyer ? <NavLink to="/favorites">Favoritos</NavLink> : null}
           {isBuyer ? <NavLink to="/purchases">Mis compras</NavLink> : null}
-          {isAgency ? <NavLink to="/agency">Agencia</NavLink> : null}
+          {isAgency ? <NavLink to="/agency" end>Agencia</NavLink> : null}
           {isAgency ? <NavLink to="/agency/sales">Ventas</NavLink> : null}
           {isAdmin ? <NavLink to={ADMIN_PATH}>Administración</NavLink> : null}
         </nav>
@@ -59,6 +59,14 @@ export function AppShell() {
           <Outlet />
         </div>
       </main>
+      <footer className="app-shell__footer">
+        <div className="app-shell__footer-inner">
+          <span>
+            <strong>Compra Tu Viaje</strong> · Vuelo y hotel en un solo lugar
+          </span>
+          <span>Proyecto UNQ · Prácticas de Desarrollo de Software 2026</span>
+        </div>
+      </footer>
     </div>
   )
 }

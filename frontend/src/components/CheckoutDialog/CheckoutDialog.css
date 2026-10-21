@@ -18,19 +18,18 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface);
-  border: var(--border-width-lg) solid var(--color-ink);
+  border: var(--border-width-lg) solid var(--color-line);
   box-shadow: var(--shadow-hard);
   padding: var(--space-4);
   overflow: hidden;
   animation: pop-in 420ms var(--ease-spring);
   outline: none;
+  border-radius: var(--radius);
 }
 
 .checkout__eyebrow {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
@@ -42,8 +41,9 @@
   display: flex;
   flex-direction: column;
   margin: 0;
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   background: var(--color-bg);
+  border-radius: var(--radius);
 }
 
 .checkout__summary > div {
@@ -61,8 +61,6 @@
 .checkout__summary dt {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: color-mix(in srgb, var(--color-ink) 70%, transparent);
   padding-top: 2px;
 }
@@ -95,14 +93,13 @@
   gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
 .checkout__total strong {
   font-family: var(--font-display);
   font-size: 30px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .checkout__actions {
@@ -133,7 +130,7 @@
   left: 0;
   right: 0;
   top: 50%;
-  border-top: 4px dashed var(--color-ink);
+  border-top: 2px dashed var(--color-line);
   background-image: none;
   animation: runway-dash 600ms linear infinite;
 }
@@ -172,10 +169,11 @@
 .checkout__step-dot {
   width: 14px;
   height: 14px;
-  border: 3px solid var(--color-ink);
+  border: 3px solid var(--color-line);
   background: var(--color-surface);
   animation: step-dot 500ms var(--ease-out) forwards;
   animation-delay: calc(var(--step) * 900ms);
+  border-radius: var(--radius);
 }
 
 @keyframes step-in {
@@ -232,8 +230,9 @@
   top: -12px;
   width: 10px;
   height: 14px;
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   animation: confetti-fall 1700ms var(--ease-out) backwards;
+  border-radius: var(--radius);
 }
 
 .checkout__confetti-piece--0 {
@@ -264,9 +263,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 128px;
   background: var(--color-bg);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   animation: pass-in 700ms var(--ease-spring) 180ms backwards;
+  border-radius: var(--radius);
 }
 
 .boarding-pass__main {
@@ -280,14 +280,12 @@
 .boarding-pass__label {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 .boarding-pass__code {
   font-family: var(--font-display);
   font-size: 24px;
-  letter-spacing: 2px;
+  font-weight: 700;
 }
 
 .boarding-pass__route {
@@ -297,13 +295,14 @@
   font-family: var(--font-display);
   font-size: 22px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .boarding-pass__plane {
   flex: 1;
   text-align: center;
   color: var(--color-ink);
-  border-bottom: 2px dashed var(--color-ink);
+  border-bottom: 2px dashed var(--color-line);
   line-height: 0.9;
   animation: plane-bob 2.2s ease-in-out infinite;
 }
@@ -327,12 +326,13 @@
   padding: var(--space-3) var(--space-2);
   text-align: center;
   background: var(--color-secondary);
-  border-left: 3px dashed var(--color-ink);
+  border-left: 2px dashed var(--color-line);
 }
 
 .boarding-pass__price {
   font-family: var(--font-display);
   font-size: 18px;
+  font-weight: 700;
 }
 
 .boarding-pass__barcode {
@@ -355,14 +355,14 @@
   top: 12px;
   font-family: var(--font-display);
   font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--color-primary);
   border: 3px solid var(--color-primary);
   padding: 2px 8px;
   background: var(--color-bg);
   transform: rotate(-9deg);
   animation: stamp-in 420ms var(--ease-spring) 900ms backwards;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 @keyframes pass-in {
@@ -408,7 +408,7 @@
 
   .boarding-pass__stub {
     border-left: none;
-    border-top: 3px dashed var(--color-ink);
+    border-top: 2px dashed var(--color-line);
     flex-direction: row;
     justify-content: space-between;
     padding: var(--space-2) var(--space-3);
@@ -422,4 +422,94 @@
   .checkout__summary > div {
     grid-template-columns: 76px 1fr;
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.checkout {
+  border-radius: 26px;
+  border: 0;
+}
+
+.checkout__eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.checkout__summary {
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.checkout__summary dt,
+.checkout__seats,
+.checkout__total,
+.boarding-pass__label,
+.boarding-pass__meta {
+  font-family: var(--font-body);
+}
+
+.checkout__summary dt {
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.boarding-pass {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.boarding-pass__stub {
+  background: linear-gradient(160deg, var(--color-secondary), #cfe0ff);
+}
+
+.boarding-pass__route {
+  color: var(--color-brand);
+}
+
+.boarding-pass__stamp {
+  color: var(--color-success);
+  border-color: var(--color-success);
+  border-radius: 8px;
+}
+
+.checkout__confetti-piece {
+  border: 0;
+  border-radius: 3px;
+}
+
+.checkout__confetti-piece--0 {
+  background: var(--color-primary);
+}
+
+.checkout__confetti-piece--1 {
+  background: var(--color-brand);
+}
+
+.checkout__confetti-piece--2 {
+  background: #ffb400;
+}
+
+.checkout__step-dot {
+  border-radius: 50%;
+  border-color: var(--color-line);
+}
+
+@keyframes step-dot {
+  to {
+    background: var(--color-brand);
+    border-color: var(--color-brand);
+    transform: scale(1.15);
+  }
+}
+
+.checkout__runway-line {
+  border-top-color: var(--color-line);
+}
+
+.checkout__runway-plane {
+  color: var(--color-brand);
+  -webkit-text-stroke: 0;
 }

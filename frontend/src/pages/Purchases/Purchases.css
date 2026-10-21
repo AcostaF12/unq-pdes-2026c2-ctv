@@ -7,8 +7,6 @@
 .purchase-intro__eyebrow {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
@@ -21,9 +19,10 @@
 .purchase-empty__cloud {
   position: absolute;
   background: var(--color-bg);
-  border: var(--border-width) solid var(--color-ink);
-  box-shadow: 3px 3px 0 0 var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
+  box-shadow: var(--shadow-sm);
   animation: purchase-empty-drift 5.5s ease-in-out infinite;
+  border-radius: var(--radius);
 }
 
 .purchase-empty__cloud--a {
@@ -51,9 +50,10 @@
   width: min(220px, 70%);
   margin-left: -110px;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   animation: purchase-empty-float 3.2s ease-in-out infinite;
+  border-radius: var(--radius);
 }
 
 .purchase-empty__body {
@@ -67,11 +67,11 @@
   align-self: flex-start;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.18em;
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
   padding: 2px 6px;
   transform: rotate(-8deg);
+  border-radius: var(--radius-sm);
 }
 
 .purchase-empty__bar,
@@ -88,14 +88,14 @@
 .purchase-empty__stub {
   display: grid;
   place-items: center;
-  border-left: 3px dashed var(--color-ink);
+  border-left: 2px dashed var(--color-line);
   background: var(--color-secondary);
 }
 
 .purchase-empty__code {
   font-family: var(--font-display);
   font-size: 14px;
-  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 @keyframes purchase-empty-drift {
@@ -138,8 +138,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 148px;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
+  border-radius: var(--radius);
 }
 
 .purchase-ticket {
@@ -149,7 +150,7 @@
 }
 
 .purchase-ticket:hover {
-  transform: translate(-3px, -3px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hard);
 }
 
@@ -163,10 +164,10 @@
 .purchase-ticket__code {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1px;
   padding: 1px 6px;
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   background: var(--color-bg);
+  border-radius: var(--radius-sm);
 }
 
 .purchase-ticket__body {
@@ -180,15 +181,12 @@
 .purchase-ticket__meta {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
 .purchase-ticket__name {
   font-size: 22px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .purchase-ticket__name a {
@@ -205,9 +203,10 @@
   align-items: end;
   gap: var(--space-3);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-4);
+  border-radius: var(--radius);
 }
 
 .history-filters__actions {
@@ -272,7 +271,7 @@
   gap: var(--space-1);
   padding: var(--space-4) var(--space-3);
   background: var(--color-secondary);
-  border-left: 3px dashed var(--color-ink);
+  border-left: 2px dashed var(--color-line);
   text-align: center;
 }
 
@@ -284,7 +283,8 @@
   width: 14px;
   height: 14px;
   background: var(--color-bg);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius);
 }
 
 .purchase-ticket__stub::before {
@@ -299,6 +299,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   color: var(--color-ink);
+  font-weight: 700;
 }
 
 .purchase-ticket__price-label {
@@ -306,15 +307,11 @@
   margin-bottom: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .purchase-ticket__link {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   text-decoration: none;
 }
 
@@ -331,7 +328,7 @@
     flex-direction: row;
     justify-content: space-between;
     border-left: none;
-    border-top: 3px dashed var(--color-ink);
+    border-top: 2px dashed var(--color-line);
   }
 
   .purchase-ticket__stub::before,
@@ -349,4 +346,67 @@
     right: -10px;
     left: auto;
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.purchase-ticket {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.purchase-ticket__stub {
+  background: var(--color-secondary);
+}
+
+.purchase-ticket__stub::before,
+.purchase-ticket__stub::after {
+  border-radius: 50%;
+  border: 0;
+  background: var(--color-bg);
+  box-shadow: inset 0 1px 3px rgb(20 34 74 / 0.12);
+}
+
+.purchase-ticket__meta,
+.purchase-intro__eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.purchase-ticket__date,
+.purchase-ticket__price-label,
+.purchase-ticket__link {
+  font-family: var(--font-body);
+}
+
+.purchase-ticket__link {
+  font-weight: 700;
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+.purchase-ticket__link:hover {
+  text-decoration: underline;
+}
+
+.purchase-ticket__code {
+  font-family: var(--font-body);
+  font-weight: 700;
+  background: var(--color-secondary);
+  color: var(--color-brand);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+}
+
+.history-filters {
+  border-radius: 20px;
+}
+
+.purchase-ticket__name a {
+  color: var(--color-ink);
+}
+
+.purchase-ticket__name a:hover {
+  color: var(--color-brand);
 }

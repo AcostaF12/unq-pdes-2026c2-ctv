@@ -10,9 +10,10 @@
   gap: var(--space-3);
   align-items: end;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
 }
 
 .favorites__toolbar .catalog__count {

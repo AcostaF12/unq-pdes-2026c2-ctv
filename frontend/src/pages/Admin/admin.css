@@ -9,9 +9,10 @@
   flex-direction: column;
   gap: var(--space-2);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-4);
+  border-radius: var(--radius);
 }
 
 .admin-card h2 {
@@ -22,13 +23,12 @@
   font-family: var(--font-display);
   font-size: 32px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .admin-card__count-label {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-ink);
 }
 
@@ -40,14 +40,14 @@
 .admin-card__link {
   font-family: var(--font-display);
   font-size: 14px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   text-decoration: none;
   color: var(--color-ink);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  font-weight: 700;
 }
 
 .admin-card__link:first-child {
@@ -61,7 +61,7 @@
 }
 
 .admin-card__link:focus-visible {
-  outline: 3px solid var(--color-secondary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -69,10 +69,11 @@
   font-family: var(--font-mono);
   font-size: 13px;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-2) var(--space-3);
   width: fit-content;
   max-width: 100%;
+  border-radius: var(--radius);
 }
 
 .admin-form__grid {
@@ -91,8 +92,9 @@
   gap: var(--space-3);
   align-items: end;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-3);
+  border-radius: var(--radius);
 }
 
 .admin-filters .field {
@@ -114,9 +116,10 @@
   gap: var(--space-2);
   align-items: center;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-3);
+  border-radius: var(--radius);
 }
 
 .admin-row__main {
@@ -129,13 +132,13 @@
 .admin-row__title {
   font-size: 18px;
   text-transform: none;
-  letter-spacing: 0;
   overflow-wrap: anywhere;
 }
 
 .admin-row__meta {
   font-family: var(--font-display);
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .admin-row__actions {
@@ -152,6 +155,7 @@
   background: var(--color-error-bg);
   border: var(--border-width) solid var(--color-error);
   padding: var(--space-3);
+  border-radius: var(--radius);
 }
 
 @media (min-width: 640px) {

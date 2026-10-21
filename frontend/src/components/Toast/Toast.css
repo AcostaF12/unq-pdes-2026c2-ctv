@@ -17,12 +17,13 @@
   gap: var(--space-2);
   padding: 10px 12px;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   font-family: var(--font-mono);
   font-size: 13px;
   pointer-events: auto;
   animation: toast-in 380ms var(--ease-spring) both;
+  border-radius: var(--radius-sm);
 }
 
 .toast__icon {
@@ -34,7 +35,9 @@
   font-size: 12px;
   color: var(--color-ink);
   background: var(--color-secondary);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 .toast--error {
@@ -81,4 +84,24 @@
     max-width: none;
     align-items: stretch;
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.toast {
+  border-radius: 14px;
+  border: 0;
+  box-shadow: var(--shadow-hard);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.toast__icon {
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--color-success);
+}
+
+.toast--error .toast__icon {
+  background: var(--color-error);
 }

@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { PackageList } from './PackageList'
@@ -268,11 +268,37 @@ describe('PackageList', () => {
     expect(await screen.findByLabelText('Puntaje 8.5 de 10 · 2 reseñas')).toBeInTheDocument()
     expect(screen.getByText('paquete encontrado')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Agregar a favoritos' }))
-    expect(await screen.findByRole('button', { name: 'Quitar de favoritos' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    await user.click(await screen.findByRole('button', { name: 'Agregar a favoritos' }))
+    expect(await screen.findByRole('button', { name: 'Quitar de favoritos' })).toBeInTheDocument()
     expect(mockedAddFavorite).toHaveBeenCalledWith(1)
+  })
+
+  it('clears every filter, including the origin from the saved preference', async () => {
+    const user = userEvent.setup()
+    writePreferences(buyer.id, { originCityCode: 'BUE', maxBudget: '', applyOriginOnSearch: true })
+    renderPackageList()
+
+    expect(await screen.findByText('Desde Buenos Aires')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpiar todo' }))
+
+    expect(screen.queryByText('Desde Buenos Aires')).not.toBeInTheDocument()
+    expect(mockedSearchPackages).toHaveBeenLastCalledWith({})
+  })
+
+  it('keeps the hearts disabled until the favorites list has loaded', async () => {
+    let resolveFavorites: (value: never[]) => void = () => undefined
+    mockedGetFavorites.mockReturnValue(new Promise((resolve) => (resolveFavorites = resolve)))
+    mockedSearchPackages.mockResolvedValue({
+      content: [travelPackage()],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    })
+    renderPackageList()
+
+    expect(await screen.findByRole('button', { name: 'Agregar a favoritos' })).toBeDisabled()
+    resolveFavorites([])
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Agregar a favoritos' })).toBeEnabled())
   })
 })

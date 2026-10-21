@@ -4,21 +4,22 @@
   flex: 1;
   min-width: 0;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   overflow: hidden;
   transition:
     transform var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
+  border-radius: var(--radius);
 }
 
 .package-card:hover {
-  transform: translate(-3px, -3px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hard);
 }
 
 .package-card:has(.package-card__link:focus-visible) {
-  outline: 3px solid var(--color-secondary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 
@@ -51,7 +52,6 @@
 .package-card__title {
   font-size: 18px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .package-card__price {
@@ -60,6 +60,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .package-card__favorite {
@@ -81,12 +82,46 @@
   z-index: 2;
   font-family: var(--font-display);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-ink);
   background: var(--color-secondary);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   padding: 2px 8px;
   transform: rotate(-3deg);
   animation: pop-in 420ms var(--ease-spring) 240ms backwards;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+/* ---- Modern theme refinements ---- */
+.package-card {
+  border-radius: 20px;
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-sm);
+}
+
+.package-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hard);
+}
+
+.package-card__title {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.package-card__price {
+  font-size: 22px;
+}
+
+.package-card__badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b00, #ff9a3d);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  transform: none;
+  box-shadow: 0 6px 14px rgb(255 107 0 / 0.35);
 }

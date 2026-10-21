@@ -4,6 +4,7 @@ import { getApiErrorMessage } from '../../api/errors'
 import { getAgencyPurchases } from '../../api/purchases'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { HeroScene } from '../../components/HeroScene/HeroScene'
 import { Input } from '../../components/Input/Input'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { queryKeys } from '../../query/keys'
@@ -36,10 +37,12 @@ export function AgencySales() {
 
   return (
     <section className="page">
-      <header className="purchase-intro">
-        <p className="purchase-intro__eyebrow">Tu agencia</p>
-        <h1 className="page__title">Ventas de la agencia</h1>
-      </header>
+      <HeroScene
+        compact
+        eyebrow="Tu agencia"
+        title="Ventas de la agencia"
+        subtitle="Seguí cada compra de tus paquetes."
+      />
       <form className="history-filters" onSubmit={applyFilters}>
         <Input
           label="Usuario comprador"

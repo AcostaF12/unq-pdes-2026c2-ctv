@@ -120,6 +120,10 @@ export function PackageDetail() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.purchases.ownsPackage(packageId) })
       await queryClient.invalidateQueries({ queryKey: queryKeys.packages.detail(packageId) })
     },
+    onError: async () => {
+      // Seats may have just run out: refresh the flights so the dialog shows the real numbers.
+      await queryClient.invalidateQueries({ queryKey: queryKeys.packages.detail(packageId) })
+    },
   })
 
   const reviewMutation = useMutation({
@@ -129,9 +133,8 @@ export function PackageDetail() {
       toast.show('Reseña publicada. ¡Gracias por contar tu experiencia!')
       await queryClient.invalidateQueries({ queryKey: queryKeys.packages.detail(packageId) })
       await queryClient.invalidateQueries({ queryKey: queryKeys.packages.all })
-    },
-    onError: (reason: unknown) => {
-      setError(getApiErrorMessage(reason) ?? 'No se pudo publicar la reseña.')
+      await queryClient.invalidateQueries({ queryKey: queryKeys.purchases.all })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.favorites })
     },
   })
 
@@ -148,7 +151,6 @@ export function PackageDetail() {
 
   const onReview = (event: FormEvent) => {
     event.preventDefault()
-    setError(null)
     reviewMutation.mutate()
   }
 
@@ -255,7 +257,7 @@ export function PackageDetail() {
                 active={favorited}
                 activeLabel="Quitar favorito"
                 inactiveLabel="Favorito"
-                disabled={favorites.isToggling(packageId)}
+                disabled={!favorites.ready || favorites.isToggling(packageId)}
                 onClick={() => favorites.toggle(detail)}
               />
               {purchased ? (
@@ -319,6 +321,11 @@ export function PackageDetail() {
               value={comment}
               onChange={(event) => setComment(event.target.value)}
             />
+            {reviewMutation.isError ? (
+              <p className="catalog__error" role="alert">
+                {getApiErrorMessage(reviewMutation.error) ?? 'No se pudo publicar la reseña.'}
+              </p>
+            ) : null}
             <Button type="submit" loading={reviewMutation.isPending}>
               Publicar reseña
             </Button>

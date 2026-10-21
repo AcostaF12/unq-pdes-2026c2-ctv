@@ -12,6 +12,7 @@
   background: var(--color-error-bg);
   border: var(--border-width) solid var(--color-error);
   padding: var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .flight-picker .field {

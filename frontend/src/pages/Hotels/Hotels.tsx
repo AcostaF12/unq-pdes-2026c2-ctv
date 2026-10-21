@@ -7,6 +7,7 @@ import { getApiErrorMessage } from '../../api/errors'
 import { useAuth } from '../../auth/AuthContext'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { HeroScene } from '../../components/HeroScene/HeroScene'
 import { HotelCard } from '../../components/HotelCard/HotelCard'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { Input } from '../../components/Input/Input'
@@ -80,14 +81,18 @@ export function Hotels() {
 
   return (
     <section className="page">
-      <div className="page__header">
-        <h1 className="page__title">Hoteles</h1>
+      <HeroScene
+        compact
+        eyebrow="Dónde alojarte"
+        title="Hoteles"
+        subtitle="Alojamientos seleccionados en cada destino."
+      >
         {isAdmin ? (
-          <Link className="hotels__new" to="/hotels/new">
+          <Link className="hero__cta" to="/hotels/new">
             Nuevo hotel
           </Link>
         ) : null}
-      </div>
+      </HeroScene>
 
       <div className="hotels__filters">
         <Input

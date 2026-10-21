@@ -5,6 +5,7 @@ import { getApiErrorMessage } from '../../api/errors'
 import { searchPackages } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { HeroScene } from '../../components/HeroScene/HeroScene'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { PackageCard } from '../../components/PackageCard/PackageCard'
 import { Pagination } from '../../components/Pagination/Pagination'
@@ -115,10 +116,11 @@ export function PackageList() {
 
   return (
     <section className="page">
-      <header className="catalog__intro">
-        <p className="catalog__eyebrow">Elegí tu escape</p>
-        <h1 className="page__title">Paquetes</h1>
-      </header>
+      <HeroScene
+        eyebrow="Vuelo + hotel"
+        title="Paquetes"
+        subtitle="Elegí tu próximo escape y comprá en un solo paso."
+      />
       <PackageSearchForm
         cities={cities}
         agencies={agencies}
@@ -221,7 +223,7 @@ export function PackageList() {
                   isBuyer
                     ? {
                         active: favorites.isFavorite(item.id),
-                        pending: favorites.isToggling(item.id),
+                        pending: !favorites.ready || favorites.isToggling(item.id),
                         onToggle: () => favorites.toggle(item),
                       }
                     : undefined

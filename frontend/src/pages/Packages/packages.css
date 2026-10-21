@@ -7,8 +7,6 @@
 .catalog__eyebrow {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
@@ -17,15 +15,15 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface);
-  border: var(--border-width-lg) solid var(--color-ink);
+  border: var(--border-width-lg) solid var(--color-line);
   box-shadow: var(--shadow-hard);
   padding: var(--space-4);
+  border-radius: var(--radius);
 }
 
 .catalog__search-copy h2 {
   font-size: 22px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .catalog__search-copy p {
@@ -74,8 +72,6 @@
 .catalog__route {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
@@ -94,7 +90,8 @@
   width: 100%;
   max-height: 280px;
   object-fit: cover;
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius);
 }
 
 .catalog__error {
@@ -106,6 +103,7 @@
   padding: var(--space-3);
   width: fit-content;
   max-width: min(100%, 520px);
+  border-radius: var(--radius-sm);
 }
 
 .catalog-empty {
@@ -117,9 +115,10 @@
 .catalog-empty__cloud {
   position: absolute;
   background: var(--color-bg);
-  border: var(--border-width) solid var(--color-ink);
-  box-shadow: 3px 3px 0 0 var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
+  box-shadow: var(--shadow-sm);
   animation: catalog-empty-drift 5.5s ease-in-out infinite;
+  border-radius: var(--radius);
 }
 
 .catalog-empty__cloud--a {
@@ -216,15 +215,14 @@
   flex-direction: column;
   gap: var(--space-3);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-4);
+  border-radius: var(--radius);
 }
 
 .catalog__back {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   text-decoration: none;
   width: fit-content;
 }
@@ -235,9 +233,10 @@
 
 .package-detail {
   background: var(--color-surface);
-  border: var(--border-width-lg) solid var(--color-ink);
+  border: var(--border-width-lg) solid var(--color-line);
   box-shadow: var(--shadow-hard);
   overflow: hidden;
+  border-radius: var(--radius);
 }
 
 .package-detail__hero {
@@ -256,12 +255,11 @@
   z-index: 3;
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-ink);
   background: var(--color-secondary);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
 }
 
 .package-detail__body {
@@ -290,6 +288,7 @@
   font-family: var(--font-display);
   font-size: 28px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .package-detail__flights {
@@ -302,16 +301,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-3);
   background: var(--color-bg);
+  border-radius: var(--radius);
 }
 
 .flight-card__label {
   font-family: var(--font-display);
   font-size: 13px;
-  letter-spacing: 1px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .flight-card__route {
@@ -338,8 +338,9 @@
   gap: var(--space-3);
   align-items: flex-start;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-3);
+  border-radius: var(--radius);
 }
 
 .review-item__head {
@@ -348,7 +349,6 @@
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 0.4px;
 }
 
 @media (min-width: 640px) {
@@ -389,11 +389,11 @@
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.5px;
   color: var(--color-ink);
   background: var(--color-surface);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   padding: 4px 10px;
+  border-radius: var(--radius-pill);
 }
 
 .chip--toggle {
@@ -407,11 +407,11 @@
 .chip--toggle:hover {
   background: var(--color-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 3px 0 0 var(--color-ink);
+  box-shadow: var(--shadow-sm);
 }
 
 .chip--toggle:focus-visible {
-  outline: 3px solid var(--color-secondary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -436,9 +436,10 @@
   line-height: 1;
   color: var(--color-ink);
   background: var(--color-surface);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-out);
+  border-radius: var(--radius-pill);
 }
 
 .chip__remove:hover {
@@ -454,8 +455,6 @@
   padding: 0;
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-ink);
   background: transparent;
   border: 0;
@@ -467,7 +466,7 @@
 }
 
 .catalog__advanced-toggle:focus-visible {
-  outline: 3px solid var(--color-secondary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 4px;
 }
 
@@ -493,7 +492,8 @@
   font-size: 11px;
   color: var(--color-surface);
   background: var(--color-primary);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius);
 }
 
 .catalog__advanced-panel {
@@ -536,14 +536,13 @@
 .catalog__count {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
 .catalog__count strong {
   font-family: var(--font-display);
   font-size: 18px;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .catalog__chips {
@@ -555,7 +554,6 @@
 .catalog__clear {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.5px;
   text-decoration: underline;
   color: var(--color-ink);
   background: transparent;
@@ -599,8 +597,6 @@
   align-self: center;
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
 .package-detail__link:hover {
@@ -619,7 +615,7 @@
 }
 
 .flight-card:hover {
-  transform: translate(-2px, -2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hard-sm);
 }
 
@@ -650,8 +646,9 @@
   grid-template-columns: 1fr;
   gap: var(--space-4);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: var(--space-4);
+  border-radius: var(--radius);
 }
 
 .review-summary__score {
@@ -666,13 +663,12 @@
   font-size: 56px;
   line-height: 1;
   color: var(--color-primary);
+  font-weight: 700;
 }
 
 .review-summary__score > span {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
 .review-summary__bars {
@@ -697,15 +693,16 @@
 .review-summary__track {
   height: 12px;
   background: var(--color-bg);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
   overflow: hidden;
+  border-radius: var(--radius);
 }
 
 .review-summary__fill {
   display: block;
   height: 100%;
   background: var(--color-secondary);
-  border-right: 2px solid var(--color-ink);
+  border-right: 2px solid var(--color-line);
   transform-origin: left;
   animation: bar-grow 900ms var(--ease-out) backwards;
 }
@@ -724,6 +721,7 @@
   font-family: var(--font-display);
   color: var(--color-surface);
   background: var(--color-ink);
+  font-weight: 700;
 }
 
 .review-item__content {
@@ -737,7 +735,8 @@
   padding: 1px 8px;
   color: var(--color-ink);
   background: var(--color-secondary);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius);
 }
 
 .score-picker {
@@ -751,8 +750,6 @@
   margin-bottom: var(--space-1);
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
 .score-picker__options {
@@ -780,10 +777,12 @@
   height: 38px;
   font-family: var(--font-display);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   transition:
     transform var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 .score-picker__option:hover span {
@@ -798,7 +797,7 @@
 }
 
 .score-picker__option input:focus-visible + span {
-  outline: 3px solid var(--color-secondary);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -817,28 +816,253 @@ li.catalog__card {
   flex: 1;
   min-width: 0;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-3);
   overflow: hidden;
   transition:
     transform var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
+  border-radius: var(--radius);
 }
 
 li.catalog__card:hover {
-  transform: translate(-2px, -2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hard);
 }
 
 li.catalog__card h2 {
   font-size: 18px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .catalog__price {
   font-family: var(--font-display);
   color: var(--color-primary);
   margin-top: var(--space-1);
+  font-weight: 700;
+}
+
+/* ---- Modern theme refinements ---- */
+.catalog__search {
+  position: relative;
+  z-index: 2;
+  margin: -68px var(--space-3) 0;
+  padding: var(--space-4);
+  border-radius: 22px;
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-hard);
+}
+
+.catalog__search-copy h2 {
+  font-size: 18px;
+}
+
+.catalog__search-copy p {
+  color: var(--color-muted);
+}
+
+.catalog__route {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.catalog__muted {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.catalog__filters-submit {
+  min-height: 50px;
+  border-radius: var(--radius-pill);
+}
+
+.chip {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+}
+
+.chip--toggle:hover {
+  color: var(--color-brand);
+  background: var(--color-secondary);
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.chip--active,
+.chip--active:hover {
+  color: #fff;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.chip--removable {
+  color: var(--color-brand);
+  background: var(--color-secondary);
+  border-color: transparent;
+}
+
+.chip__remove {
+  width: 20px;
+  height: 20px;
+  font-size: 15px;
+  color: var(--color-brand);
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+}
+
+.chip__remove:hover {
+  color: #fff;
+  background: var(--color-brand);
+}
+
+.catalog__advanced-toggle {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.catalog__advanced-count {
+  color: #fff;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.catalog__count {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.catalog__count strong {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.catalog__clear {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.package-detail {
+  border-radius: 24px;
+  border: 1px solid var(--color-line);
+}
+
+.package-detail__route {
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 0.92);
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+
+.package-detail__price {
+  font-size: 34px;
+}
+
+.package-detail__meta {
+  font-family: var(--font-body);
+  color: var(--color-muted);
+}
+
+.flight-card {
+  background: var(--color-bg);
+  border-color: var(--color-line);
+}
+
+.flight-card__label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.flight-card__route {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.flight-card__meta {
+  font-family: var(--font-body);
+}
+
+.review-summary__fill {
+  background: var(--color-brand);
+  border-right: 0;
+}
+
+.review-summary__track {
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-secondary);
+}
+
+.review-summary__fill {
+  border-radius: var(--radius-pill);
+}
+
+.review-summary__bars li,
+.review-item__head {
+  font-family: var(--font-body);
+}
+
+.review-item__avatar {
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-brand), #5b8cff);
+}
+
+.review-item__score {
+  color: var(--color-brand);
+  background: var(--color-secondary);
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.score-picker legend {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.score-picker__option span {
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.score-picker__option input:checked + span {
+  background: var(--color-brand);
+}
+
+.catalog__back {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+  text-decoration: none;
+}
+
+.catalog__back:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .catalog__search {
+    margin: -56px 0 0;
+    padding: var(--space-3);
+  }
 }

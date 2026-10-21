@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { PackageDetail } from './PackageDetail'
@@ -10,6 +10,7 @@ import { getCurrentUser } from '../../api/auth'
 import { addFavorite, getFavorites, type Favorite } from '../../api/favorites'
 import { getPackage, searchPackages, type TravelPackageDetail } from '../../api/packages'
 import { buyPackage, hasPurchasedPackage } from '../../api/purchases'
+import { createReview } from '../../api/reviews'
 import { createTestQueryClient } from '../../test/queryClient'
 
 vi.mock('../../api/auth', () => ({
@@ -72,6 +73,7 @@ const mockedGetFavorites = vi.mocked(getFavorites)
 const mockedAddFavorite = vi.mocked(addFavorite)
 const mockedHasPurchasedPackage = vi.mocked(hasPurchasedPackage)
 const mockedBuyPackage = vi.mocked(buyPackage)
+const mockedCreateReview = vi.mocked(createReview)
 
 describe('PackageDetail page', () => {
   beforeEach(() => {
@@ -115,6 +117,7 @@ describe('PackageDetail page', () => {
     )
 
     expect(await screen.findByRole('button', { name: 'Favorito' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Favorito' })).toBeEnabled())
     await user.click(screen.getByRole('button', { name: 'Favorito' }))
     expect(await screen.findByRole('button', { name: 'Quitar favorito' })).toBeInTheDocument()
     expect(mockedAddFavorite).toHaveBeenCalledWith(10)
@@ -280,5 +283,44 @@ describe('PackageDetail page', () => {
     expect(mockedSearchPackages).toHaveBeenCalledWith({ destination: 'PAR', size: 4 })
     // the current package only appears as the page heading, not as a suggestion
     expect(screen.getAllByRole('heading', { name: 'París Romántico' })).toHaveLength(1)
+  })
+
+  it('shows a failed review inside the form instead of at the top of the page', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedHasPurchasedPackage.mockResolvedValue(true)
+    mockedCreateReview.mockRejectedValue(new Error('boom'))
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Publicar reseña' }))
+
+    const alert = await screen.findByText('No se pudo publicar la reseña.')
+    expect(alert.closest('form')).not.toBeNull()
+  })
+
+  it('refreshes the flights after a purchase fails so seat numbers are not stale', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedBuyPackage.mockRejectedValue(new Error('boom'))
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Comprar' }))
+    await user.click(await screen.findByRole('button', { name: 'Confirmar compra' }))
+    await screen.findByText('No se pudo completar la compra.')
+
+    await waitFor(() => expect(mockedGetPackage.mock.calls.length).toBeGreaterThan(1))
+  })
+
+  it('closes the checkout with Escape even when the focus is outside the dialog', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Comprar' }))
+    await screen.findByRole('dialog')
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

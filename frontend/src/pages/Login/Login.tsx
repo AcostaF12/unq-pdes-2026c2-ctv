@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { AuthLayout } from '../../components/AuthLayout/AuthLayout'
 import { BrandMark } from '../../components/BrandMark/BrandMark'
 import { Button } from '../../components/Button/Button'
 import { Input } from '../../components/Input/Input'
@@ -43,7 +44,7 @@ export function Login() {
   }
 
   return (
-    <div className="page-center">
+    <AuthLayout>
       <div className="login-card">
         <BrandMark variant="auth" />
         <h1 className="login-card__title">Ingresar</h1>
@@ -85,6 +86,6 @@ export function Login() {
           ¿No tenés cuenta? <Link to="/register">Registrate</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   )
 }

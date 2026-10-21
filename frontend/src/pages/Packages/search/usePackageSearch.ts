@@ -82,7 +82,8 @@ export function usePackageSearch(initialOrigin = '') {
 
   const clear = () => {
     setError('')
-    setSearchParams(new URLSearchParams())
+    // With a saved origin preference, an explicit empty origin is what "no filters" means.
+    setSearchParams(initialOrigin ? new URLSearchParams({ origin: '' }) : new URLSearchParams())
   }
 
   const setPage = (nextPage: number) => {

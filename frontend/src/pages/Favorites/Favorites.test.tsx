@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { Favorites } from './Favorites'
@@ -126,5 +126,38 @@ describe('Favorites page', () => {
 
     expect(await screen.findByRole('link', { name: /explorar paquetes/i })).toBeInTheDocument()
     expect(mockedRemoveFavorite).toHaveBeenCalledWith(10)
+  })
+
+  it('removes two favorites clicked in quick succession exactly once each', async () => {
+    const user = userEvent.setup()
+    const second: Favorite = {
+      id: 2,
+      packageId: 11,
+      travelPackage: { ...travelPackage, id: 11, name: 'Roma Imperial' },
+    }
+    mockedGetFavorites.mockResolvedValueOnce([favorite, second])
+    mockedGetFavorites.mockResolvedValue([])
+    mockedRemoveFavorite.mockResolvedValue(undefined)
+    renderFavorites()
+
+    const hearts = await screen.findAllByRole('button', { name: 'Quitar de favoritos' })
+    await user.click(hearts[0])
+    await user.click(hearts[1])
+
+    expect(await screen.findByRole('link', { name: /explorar paquetes/i })).toBeInTheDocument()
+    await waitFor(() => expect(mockedRemoveFavorite).toHaveBeenCalledTimes(2))
+    expect(mockedRemoveFavorite).toHaveBeenCalledWith(10)
+    expect(mockedRemoveFavorite).toHaveBeenCalledWith(11)
+  })
+
+  it('lists the most recently saved favorite first', async () => {
+    mockedGetFavorites.mockResolvedValue([
+      favorite,
+      { id: 9, packageId: 11, travelPackage: { ...travelPackage, id: 11, name: 'Roma Imperial' } },
+    ])
+    renderFavorites()
+
+    const titles = (await screen.findAllByRole('heading', { level: 2 })).map((node) => node.textContent)
+    expect(titles).toEqual(['Roma Imperial', 'París Romántico'])
   })
 })

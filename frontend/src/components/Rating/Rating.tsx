@@ -23,7 +23,7 @@ export function Rating({ score, count, size = 'sm', className }: RatingProps) {
     count == null ? '' : ` · ${count} ${count === 1 ? 'reseña' : 'reseñas'}`
 
   return (
-    <p className={classes} aria-label={`Puntaje ${formatScore(score)} de 10${countLabel}`}>
+    <p className={classes} role="img" aria-label={`Puntaje ${formatScore(score)} de 10${countLabel}`}>
       <span className="rating__stars" aria-hidden="true">
         <span className="rating__stars-base">{STARS}</span>
         <span className="rating__stars-fill" style={{ width: `${percent}%` }}>

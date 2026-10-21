@@ -7,7 +7,7 @@
   background:
     linear-gradient(110deg, transparent 30%, rgb(250 246 236 / 0.14) 50%, transparent 70%) 0 0 / 200% 100%,
     var(--color-ink);
-  border-bottom: var(--border-width) solid var(--color-ink);
+  border-bottom: var(--border-width) solid var(--color-line);
   animation: photo-shimmer 1.4s linear infinite;
 }
 
@@ -35,12 +35,11 @@
   z-index: 1;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-ink);
   background: var(--color-secondary);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   padding: 2px 8px;
+  border-radius: var(--radius-sm);
 }
 
 .hotel-photo--fallback {
@@ -50,7 +49,7 @@
   color: var(--color-secondary);
   font-family: var(--font-display);
   font-size: 24px;
-  letter-spacing: 2px;
+  font-weight: 700;
 }
 
 .hotel-photo--fallback {
@@ -70,4 +69,29 @@
   to {
     background-position: -200% 0, 0 0;
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.hotel-photo {
+  border-bottom: 0;
+}
+
+.hotel-photo::after {
+  height: 38%;
+  background: linear-gradient(transparent, rgb(20 34 74 / 0.5));
+}
+
+.hotel-photo__badge {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 0.94);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+}
+
+.hotel-photo--fallback {
+  background: linear-gradient(135deg, var(--color-brand-dark), var(--color-brand));
+  color: #fff;
 }

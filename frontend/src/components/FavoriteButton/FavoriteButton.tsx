@@ -44,7 +44,6 @@ export function FavoriteButton({
     <button
       type="button"
       className={classes}
-      aria-pressed={active}
       aria-label={variant === 'icon' ? label : undefined}
       title={variant === 'icon' ? label : undefined}
       {...rest}

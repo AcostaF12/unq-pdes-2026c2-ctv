@@ -22,7 +22,6 @@
   position: relative;
   display: inline-block;
   line-height: 1;
-  letter-spacing: 1px;
   white-space: nowrap;
 }
 
@@ -51,4 +50,18 @@
 .rating__count {
   font-weight: 400;
   opacity: 0.7;
+}
+
+/* ---- Modern theme refinements ---- */
+.rating__stars-base {
+  color: #d5dcec;
+}
+
+.rating__stars-fill {
+  color: #ffb400;
+  -webkit-text-stroke: 0;
+}
+
+.rating--empty {
+  color: var(--color-muted);
 }

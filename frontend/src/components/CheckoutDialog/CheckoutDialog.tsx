@@ -52,7 +52,13 @@ export function CheckoutDialog({
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = previousOverflow
-      returnFocusRef.current?.focus?.()
+      // The opener may have become disabled (e.g. "Comprar" after buying): fall back to <main>.
+      const opener = returnFocusRef.current
+      if (opener?.isConnected && !opener.hasAttribute('disabled')) {
+        opener.focus()
+      } else {
+        document.getElementById('main-content')?.focus()
+      }
     }
   }, [])
 
@@ -62,25 +68,33 @@ export function CheckoutDialog({
     ;(target ?? dialogRef.current)?.focus()
   }, [status])
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape' && !busy) {
-      event.stopPropagation()
-      onClose()
-      return
+  // Escape closes the dialog wherever the focus is, except while the purchase is in flight.
+  useEffect(() => {
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) {
+        onClose()
+      }
     }
+    document.addEventListener('keydown', onEscape)
+    return () => document.removeEventListener('keydown', onEscape)
+  }, [busy, onClose])
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Tab' || !dialogRef.current) {
       return
     }
     const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE))
     if (items.length === 0) {
+      event.preventDefault()
       return
     }
     const first = items[0]
     const last = items[items.length - 1]
-    if (event.shiftKey && document.activeElement === first) {
+    const active = document.activeElement
+    if (event.shiftKey && (active === first || active === dialogRef.current)) {
       event.preventDefault()
       last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
+    } else if (!event.shiftKey && active === last) {
       event.preventDefault()
       first.focus()
     }

@@ -2,11 +2,12 @@
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   text-decoration: none;
   color: inherit;
   overflow: hidden;
+  border-radius: var(--radius);
 }
 
 .hotel-card {
@@ -16,7 +17,7 @@
 }
 
 .hotel-card:hover {
-  transform: translate(-3px, -3px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hard);
 }
 
@@ -38,7 +39,6 @@
 .hotel-card__title {
   font-size: 18px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .hotel-card__meta {
@@ -53,4 +53,19 @@
 .hotel-card {
   flex: 1;
   min-width: 0;
+}
+
+/* ---- Modern theme refinements ---- */
+.hotel-card {
+  border-radius: 20px;
+  border: 1px solid var(--color-line);
+}
+
+.hotel-card:hover {
+  transform: translateY(-6px);
+}
+
+.hotel-card__meta {
+  font-family: var(--font-body);
+  color: var(--color-muted);
 }

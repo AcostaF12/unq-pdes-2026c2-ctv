@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getApiErrorMessage } from '../../api/errors'
 import type { TravelPackage } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { HeroScene } from '../../components/HeroScene/HeroScene'
 import { Input } from '../../components/Input/Input'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { PackageCard } from '../../components/PackageCard/PackageCard'
@@ -33,7 +34,7 @@ function sortPackages(items: TravelPackage[], sort: FavoriteSort): TravelPackage
     case 'name':
       return sorted.sort((a, b) => a.name.localeCompare(b.name, 'es'))
     default:
-      return sorted.reverse()
+      return sorted
   }
 }
 
@@ -41,14 +42,23 @@ export function Favorites() {
   const favorites = useFavorites({ notify: false })
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<FavoriteSort>('recent')
-  const [leavingId, setLeavingId] = useState<number | null>(null)
+  const [leavingIds, setLeavingIds] = useState<ReadonlySet<number>>(() => new Set())
+  const timers = useRef(new Map<number, number>())
+
+  useEffect(() => {
+    const pending = timers.current
+    return () => pending.forEach((timer) => window.clearTimeout(timer))
+  }, [])
 
   const { favoritesQuery } = favorites
   const loadError = favoritesQuery.error
 
   const packages = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    const all = favorites.favorites.map((favorite) => favorite.travelPackage)
+    // Newest first by favorite id (the API does not guarantee any order).
+    const all = [...favorites.favorites]
+      .sort((a, b) => b.id - a.id)
+      .map((favorite) => favorite.travelPackage)
     const filtered = needle
       ? all.filter((item) =>
           [item.name, item.hotel.name, item.destination.name, item.agency.name].some((field) =>
@@ -60,11 +70,20 @@ export function Favorites() {
   }, [favorites.favorites, query, sort])
 
   const onRemove = (item: TravelPackage) => {
-    setLeavingId(item.id)
-    window.setTimeout(() => {
+    if (timers.current.has(item.id)) {
+      return
+    }
+    setLeavingIds((current) => new Set(current).add(item.id))
+    const timer = window.setTimeout(() => {
+      timers.current.delete(item.id)
       favorites.toggle(item)
-      setLeavingId(null)
+      setLeavingIds((current) => {
+        const next = new Set(current)
+        next.delete(item.id)
+        return next
+      })
     }, LEAVE_ANIMATION_MS)
+    timers.current.set(item.id, timer)
   }
 
   const total = favorites.favorites.length
@@ -72,10 +91,12 @@ export function Favorites() {
 
   return (
     <section className="page">
-      <header className="favorites__intro">
-        <p className="catalog__eyebrow">Guardados para después</p>
-        <h1 className="page__title">Favoritos</h1>
-      </header>
+      <HeroScene
+        compact
+        eyebrow="Guardados para después"
+        title="Favoritos"
+        subtitle="Tu lista de deseos, lista para cuando quieras reservar."
+      />
       {favorites.error && !loadError ? (
         <p className="catalog__error" role="alert">
           {favorites.error}
@@ -148,10 +169,10 @@ export function Favorites() {
               <PackageCard
                 travelPackage={item}
                 index={index}
-                leaving={leavingId === item.id}
+                leaving={leavingIds.has(item.id)}
                 favorite={{
                   active: true,
-                  pending: favorites.isToggling(item.id) || leavingId === item.id,
+                  pending: !favorites.ready || favorites.isToggling(item.id) || leavingIds.has(item.id),
                   onToggle: () => onRemove(item),
                 }}
               />
