@@ -70,6 +70,15 @@
   overflow: hidden;
 }
 
+.catalog__grid > li {
+  display: flex;
+}
+
+a.catalog__card {
+  flex: 1;
+  min-width: 0;
+}
+
 a.catalog__card:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-hard);

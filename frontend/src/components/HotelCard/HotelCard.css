@@ -31,3 +31,12 @@
   font-family: var(--font-mono);
   font-size: 13px;
 }
+
+.hotels__grid > li {
+  display: flex;
+}
+
+.hotel-card {
+  flex: 1;
+  min-width: 0;
+}
