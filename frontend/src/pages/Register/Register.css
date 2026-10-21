@@ -6,6 +6,7 @@
   box-shadow: var(--shadow-hard);
   padding: var(--space-5);
   text-align: left;
+  animation: pop-in 520ms var(--ease-spring) backwards;
 }
 
 .register-card__title {

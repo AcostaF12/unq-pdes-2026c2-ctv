@@ -9,13 +9,16 @@ import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HotelCard } from '../../components/HotelCard/HotelCard'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { Input } from '../../components/Input/Input'
 import { Select } from '../../components/Select/Select'
 import { queryKeys } from '../../query/keys'
+import '../Packages/packages.css'
 import './Hotels.css'
 
 export function Hotels() {
   const { isAdmin } = useAuth()
   const [cityCode, setCityCode] = useState('')
+  const [nameQuery, setNameQuery] = useState('')
 
   const hotelsQuery = useQuery({
     queryKey: queryKeys.hotels.all,
@@ -35,11 +38,13 @@ export function Hotels() {
     if (!hotels) {
       return []
     }
-    if (!cityCode) {
-      return hotels
-    }
-    return hotels.filter((hotel) => hotel.city.code === cityCode)
-  }, [hotels, cityCode])
+    const needle = nameQuery.trim().toLowerCase()
+    return hotels.filter(
+      (hotel) =>
+        (!cityCode || hotel.city.code === cityCode) &&
+        (!needle || hotel.name.toLowerCase().includes(needle)),
+    )
+  }, [hotels, cityCode, nameQuery])
 
   const retry = () => {
     void hotelsQuery.refetch()
@@ -84,34 +89,46 @@ export function Hotels() {
         ) : null}
       </div>
 
-      <Select
-        label="Filtrar por ciudad"
-        value={cityCode}
-        onChange={(event) => {
-          setCityCode(event.target.value)
-        }}
-      >
-        <option value="">Todos</option>
-        {cities.map((city) => (
-          <option key={city.code} value={city.code}>
-            {city.name} ({city.code})
-          </option>
-        ))}
-      </Select>
+      <div className="hotels__filters">
+        <Input
+          label="Buscar por nombre"
+          value={nameQuery}
+          onChange={(event) => setNameQuery(event.target.value)}
+        />
+        <Select
+          label="Filtrar por ciudad"
+          value={cityCode}
+          onChange={(event) => {
+            setCityCode(event.target.value)
+          }}
+        >
+          <option value="">Todos</option>
+          {cities.map((city) => (
+            <option key={city.code} value={city.code}>
+              {city.name} ({city.code})
+            </option>
+          ))}
+        </Select>
+        <p className="catalog__count" aria-live="polite">
+          <strong>{visibleHotels.length}</strong> {visibleHotels.length === 1 ? 'hotel' : 'hoteles'}
+        </p>
+      </div>
 
       {visibleHotels.length === 0 ? (
         <EmptyState
           title="Nada por acá"
           message={
-            cityCode
-              ? 'No hay hoteles para esa ciudad.'
-              : 'Todavía no hay hoteles cargados.'
+            nameQuery.trim()
+              ? 'Ningún hotel coincide con esa búsqueda.'
+              : cityCode
+                ? 'No hay hoteles para esa ciudad.'
+                : 'Todavía no hay hoteles cargados.'
           }
         />
       ) : (
         <ul className="hotels__grid">
-          {visibleHotels.map((hotel) => (
-            <li key={hotel.id}>
+          {visibleHotels.map((hotel, index) => (
+            <li key={hotel.id} className="reveal" style={{ ['--i' as string]: index }}>
               <HotelCard hotel={hotel} />
             </li>
           ))}

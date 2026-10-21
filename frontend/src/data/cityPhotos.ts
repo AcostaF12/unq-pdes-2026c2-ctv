@@ -88,3 +88,25 @@ export function isUnusableHotelPhotoUrl(src: string): boolean {
     return true
   }
 }
+
+const SRCSET_WIDTHS = [480, 800, 1200]
+
+/**
+ * Unsplash serves any width on demand, so cards can fetch a small rendition instead
+ * of the 1200px hero. Returns undefined for any other host (the plain src is used).
+ */
+export function responsiveSrcSet(src: string): string | undefined {
+  try {
+    const url = new URL(src)
+    if (url.hostname !== 'images.unsplash.com') {
+      return undefined
+    }
+    return SRCSET_WIDTHS.map((width) => {
+      const variant = new URL(url)
+      variant.searchParams.set('w', String(width))
+      return `${variant.toString()} ${width}w`
+    }).join(', ')
+  } catch {
+    return undefined
+  }
+}

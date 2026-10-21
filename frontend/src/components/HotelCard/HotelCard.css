@@ -9,9 +9,23 @@
   overflow: hidden;
 }
 
+.hotel-card {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
 .hotel-card:hover {
-  transform: translate(-2px, -2px);
+  transform: translate(-3px, -3px);
   box-shadow: var(--shadow-hard);
+}
+
+.hotel-card .hotel-photo__img {
+  transition: transform 700ms var(--ease-out);
+}
+
+.hotel-card:hover .hotel-photo__img {
+  transform: scale(1.06);
 }
 
 .hotel-card__body {

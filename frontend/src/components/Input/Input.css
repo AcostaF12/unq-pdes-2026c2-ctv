@@ -28,6 +28,9 @@
   border: var(--border-width) solid var(--color-ink);
   border-radius: var(--radius);
   padding: var(--space-3);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .field__input--with-icon {
