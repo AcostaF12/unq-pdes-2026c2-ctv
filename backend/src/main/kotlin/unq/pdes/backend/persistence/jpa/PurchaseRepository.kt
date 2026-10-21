@@ -3,12 +3,15 @@ package unq.pdes.backend.persistence.jpa
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import unq.pdes.backend.model.Purchase
 import java.time.LocalDateTime
 
-interface PurchaseRepository : JpaRepository<Purchase, Long> {
+interface PurchaseRepository :
+    JpaRepository<Purchase, Long>,
+    JpaSpecificationExecutor<Purchase> {
     fun findByBuyerId(
         buyerId: Long,
         pageable: Pageable,
