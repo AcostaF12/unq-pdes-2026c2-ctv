@@ -39,6 +39,7 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 ## 3. Administrador (`vferreyra` / `vferreyra`)
 
 1. **Hoteles** (`/hotels`): alta, edición y baja desde la interfaz. Esas rutas solo existen para el rol administrador.
+2. Más funciones de administración (paquetes de cualquier agencia y carga de vuelos): ver [Sección Administración](admin.md).
 
 ## 4. Lo que hay detrás
 

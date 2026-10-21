@@ -77,6 +77,10 @@ El entorno Docker anterior debe estar levantado. Los escenarios se escribirán
 en `frontend/cypress/e2e/` con nombres terminados en `.cy.js` o `.cy.ts`;
 La suite verifica login/búsqueda/detalle, compra/historial, creación/edición/eliminación
 de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios reales.
+`admin-management.cy.js` cubre la sección Administración: acceso por rol, alta de vuelos de ida y
+vuelta, alta de un paquete para una agencia, su compra por un comprador, edición y eliminación
+(incluido el rechazo al borrar un paquete ya comprado) y el alta de paquetes desde la agencia con
+el selector de vuelos. Los vuelos no tienen endpoint de baja: quedan hasta ejecutar `down`.
 La compra prepara un comprador, dos vuelos y un paquete propios mediante APIs;
 la operación de compra se hace desde la interfaz. El hotel usa un nombre único
 y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `down`.

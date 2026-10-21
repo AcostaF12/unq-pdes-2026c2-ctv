@@ -36,7 +36,27 @@ En progreso...
 
 ## 📝 Release Notes - Entrega 2
 
-En progreso...
+Resumen de lo que contiene el repositorio en esta entrega.
+
+**Aplicación**
+- **Backend** (Spring Boot + Kotlin): registro, login con token y perfil de usuario; hoteles (alta, edición y baja solo para administradores) y ciudades; paquetes turísticos con búsqueda avanzada (filtros combinados, paginación y orden resueltos en el backend); favoritos; compras con historial que conserva una copia inmutable de lo pagado; reseñas (solo con compra previa y una por comprador); ventas por agencia. Contrato documentado con Swagger/OpenAPI.
+- **flights-service** (Spring Boot + Kotlin): servicio interno de vuelos con su propia base de datos. Al comprar, el backend reserva los asientos de ida y de vuelta y, si falla la segunda reserva, cancela la primera. Las llamadas están protegidas con Resilience4j (reintentos, timeout y circuit breaker).
+- **Frontend** (React + TypeScript + Vite): login y registro, catálogo con filtros y detalle de paquete, favoritos, compras, panel de agencia (paquetes y ventas), gestión de hoteles para administradores y perfil. Cada rol ve solo la navegación que puede usar.
+- Datos de ejemplo y usuarios de prueba cargados por `DataBootstrap`; el schema lo administra Flyway.
+
+**Calidad**
+- Tests unitarios y de integración (JUnit 5 + JaCoCo en los servicios Kotlin, Vitest en el frontend) y ktlint en ambos servicios Kotlin.
+- Análisis de Sonar con Quality Gate bloqueante en backend y flights-service.
+- 11 escenarios de aceptación con Cucumber contra las APIs reales y pruebas end-to-end con Cypress sobre un entorno Docker aislado.
+- `actionlint` y `scripts/check-ci.rb` validan los workflows y las reglas del CI.
+
+**CI/CD y operación**
+- Un workflow de GitHub Actions por módulo (lint, tests y build en cada PR) más el de aceptación/e2e y el de validación de workflows.
+- En cada push a `main`, y solo después de que pasan los controles, se publican las imágenes de `backend`, `flights-service` y `frontend` en GitHub Container Registry y en Docker Hub (ver [Imágenes en Docker Hub](#-imágenes-en-docker-hub)).
+- Deploy manual a una VM de Azure para las demos (ver [Deploy Cloud](#️-deploy-cloud-azure)).
+- Docker Compose para levantar todo el stack, con bases, Prometheus, Grafana, Zipkin y ELK (Elasticsearch, Logstash y Kibana).
+
+Más detalle: [guion de demo](docs/demo.md) y [sección de administración](docs/admin.md).
 
 ## 📝 Release Notes - Entrega 3
 
@@ -118,6 +138,8 @@ El schema lo administra Flyway. En `dev`, el backend borra y vuelve a cargar los
 
 Para presentar la aplicación, ver el [guion de demo](docs/demo.md).
 
+La sección de administración (login `vferreyra` / `vferreyra`) está descripta en [docs/admin.md](docs/admin.md).
+
 ### Usuarios de prueba
 
 Los carga `DataBootstrap` en `dev` y `prod`.
@@ -128,6 +150,30 @@ Los carga `DataBootstrap` en `dev` y `prod`.
 | Comprador | `buyer2` | `buyer123` |
 | Agencia (Despegar) | `agency` | `agency123` |
 | Admin | `facosta`, `vferreyra`, `adisanto` | igual al usuario |
+
+---
+
+## 🐳 Imágenes en Docker Hub
+
+En cada push a `main` (una vez que pasan los controles de cada módulo, incluido el Quality Gate de Sonar) el CI publica tres imágenes, con las etiquetas `latest` y el SHA del commit:
+
+| Imagen | Contenido |
+|--------|-----------|
+| `<usuario>/ctv-backend` | API principal |
+| `<usuario>/ctv-flights-service` | servicio de vuelos |
+| `<usuario>/ctv-frontend` | frontend servido con nginx (apunta a `http://localhost:8080`) |
+
+Para levantar todo el stack desde esas imágenes, sin compilar nada:
+
+```bash
+docker compose -f docker-compose.hub.yml up -d --wait
+```
+
+Los puertos y usuarios son los mismos que en la sección anterior. Variables opcionales: `DOCKERHUB_NAMESPACE` (por defecto `acostaf12`; cambiarlo si las imágenes viven en otro usuario u organización) y `CTV_IMAGE_TAG` (por defecto `latest`; también se puede usar un SHA).
+
+Para publicar hay que cargar en el repositorio los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` (un access token de Docker Hub con permiso de escritura). Opcionalmente, la variable `DOCKERHUB_NAMESPACE` reemplaza al usuario como namespace. Si faltan, el job de publicación en `main` falla con un mensaje explícito; los PR no publican nada.
+
+Las imágenes de GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) siguen publicándose porque las usa el deploy de Azure.
 
 ---
 
