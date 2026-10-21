@@ -1,0 +1,25 @@
+.flight-picker {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.flight-picker__error {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: var(--border-width) solid var(--color-error);
+  padding: var(--space-2);
+}
+
+.flight-picker .field {
+  min-width: 0;
+}
+
+@media (min-width: 880px) {
+  .flight-picker {
+    grid-template-columns: 1fr 1fr;
+  }
+}

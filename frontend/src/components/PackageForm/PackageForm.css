@@ -1,0 +1,18 @@
+.package-form {
+  box-shadow: var(--shadow-hard);
+}
+
+.package-form h2 {
+  font-size: 22px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.package-form__error {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: var(--border-width) solid var(--color-error);
+  padding: var(--space-2);
+}

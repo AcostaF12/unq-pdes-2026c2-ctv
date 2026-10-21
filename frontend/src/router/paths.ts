@@ -1,3 +1,6 @@
 export const LOGIN_PATH = '/login'
 export const HOME_PATH = '/trips'
 export const PROFILE_PATH = '/profile'
+export const ADMIN_PATH = '/admin'
+export const ADMIN_PACKAGES_PATH = '/admin/packages'
+export const ADMIN_FLIGHTS_PATH = '/admin/flights'

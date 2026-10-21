@@ -1,14 +1,33 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { ADMIN_PATH } from '../../router/paths'
 import { AccountMenu } from '../AccountMenu/AccountMenu'
 import { BrandMark } from '../BrandMark/BrandMark'
 import './AppShell.css'
 
 export function AppShell() {
   const { user, isAdmin, isBuyer, isAgency, logout } = useAuth()
+  const { pathname } = useLocation()
+
+  const mainRef = useRef<HTMLElement>(null)
+  const firstRender = useRef(true)
+
+  useEffect(() => {
+    window.scrollTo?.({ top: 0 })
+    // Move focus to the new page content on client-side navigation (not on first load).
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    mainRef.current?.focus({ preventScroll: true })
+  }, [pathname])
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Saltar al contenido
+      </a>
       <header className="app-shell__header">
         <NavLink className="app-shell__brand" to="/trips" aria-label="Compra Tu Viaje">
           <BrandMark />
@@ -22,7 +41,7 @@ export function AppShell() {
           {isBuyer ? <NavLink to="/purchases">Mis compras</NavLink> : null}
           {isAgency ? <NavLink to="/agency">Agencia</NavLink> : null}
           {isAgency ? <NavLink to="/agency/sales">Ventas</NavLink> : null}
-          {isAdmin ? <NavLink to="/hotels/new">Nuevo hotel</NavLink> : null}
+          {isAdmin ? <NavLink to={ADMIN_PATH}>Administración</NavLink> : null}
         </nav>
         <div className="app-shell__session">
           {user ? (
@@ -35,8 +54,10 @@ export function AppShell() {
           ) : null}
         </div>
       </header>
-      <main className="app-shell__main">
-        <Outlet />
+      <main id="main-content" ref={mainRef} tabIndex={-1} className="app-shell__main">
+        <div key={pathname} className="page-transition">
+          <Outlet />
+        </div>
       </main>
     </div>
   )
