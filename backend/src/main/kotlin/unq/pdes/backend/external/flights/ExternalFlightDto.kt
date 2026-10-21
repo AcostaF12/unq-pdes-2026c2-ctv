@@ -14,6 +14,16 @@ data class ExternalFlightDto(
     val availability: Int,
 )
 
+data class ExternalFlightRequestDto(
+    val airline: String,
+    val flightDate: LocalDate,
+    val departureTime: LocalTime,
+    val origin: String,
+    val destination: String,
+    val capacity: Int,
+    val availability: Int,
+)
+
 data class ExternalFlightSaleDto(
     val id: Long?,
     val flightId: Long?,

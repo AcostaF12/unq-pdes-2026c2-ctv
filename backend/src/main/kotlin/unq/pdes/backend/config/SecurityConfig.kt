@@ -39,10 +39,12 @@ class SecurityConfig(
             it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole("ADMIN")
 
-            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasRole("AGENCY")
-            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasRole("AGENCY")
-            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
+            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
+            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
             it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
+
+            it.requestMatchers(HttpMethod.POST, "/flights").hasRole("ADMIN")
 
             it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")
