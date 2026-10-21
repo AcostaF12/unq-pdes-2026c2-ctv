@@ -58,7 +58,6 @@ describe('Comprador: compra e historial', () => {
     cy.intercept({ method: 'GET', pathname: '/packages', query: { name: travelPackage.name } }).as('search')
     loginThroughUI(buyer.username, buyer.password)
 
-    // el comprador nuevo empieza sin compras.
     cy.contains('nav a', /^Mis compras$/).click()
     cy.wait('@history').its('response.statusCode').should('eq', 200)
     cy.contains('Todavía no hay viajes comprados').should('be.visible')

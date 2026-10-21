@@ -10,7 +10,6 @@ describe('Comprador: login, búsqueda y detalle', () => {
     }).as('search')
     cy.intercept('GET', '**/packages/*').as('detail')
 
-    // ingresar desde el formulario, como lo haría un comprador
     cy.visit('/login')
     cy.get('input[name="username"]').type('buyer')
     cy.get('input[name="password"]').type('buyer123', { log: false })
@@ -19,7 +18,6 @@ describe('Comprador: login, búsqueda y detalle', () => {
     cy.location('pathname').should('eq', '/trips')
     cy.contains('h1', /^Paquetes$/).should('be.visible')
 
-    // esperar las ciudades disponibles y aplicar los tres filtros
     cy.get('[data-cy="search-origin"] option[value="BUE"]').should('exist')
     cy.get('[data-cy="search-name"]').type(packageName)
     cy.get('[data-cy="search-origin"]').select('BUE')
@@ -30,7 +28,6 @@ describe('Comprador: login, búsqueda y detalle', () => {
     cy.contains('h2', packageName).should('be.visible')
     cy.contains('h2', 'Londres Clásico').should('not.exist')
 
-    // abrir el resultado y comprobar información visible del paquete
     cy.contains('a', packageName).click()
     cy.wait('@detail').its('response.statusCode').should('eq', 200)
     cy.location('pathname').should('match', /^\/trips\/\d+$/)
