@@ -10,7 +10,8 @@ describe('Administrador: gestión de hoteles', () => {
     cy.intercept('DELETE', '**/hotels/*').as('deleteHotel')
     loginThroughUI('vferreyra', 'vferreyra')
 
-    cy.contains('nav a', /^Nuevo hotel$/).click()
+    cy.contains('nav[aria-label="Principal"] a', /^Administración$/).click()
+    cy.get('[data-testid="admin-card-hotels"]').contains('a', /^Nuevo hotel$/).click()
     cy.contains('h1', /^Nuevo hotel$/).should('be.visible')
     cy.get('input[name="name"]').type(hotelName)
     cy.get('select[name="cityCode"]').select('PAR')

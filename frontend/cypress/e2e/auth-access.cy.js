@@ -21,6 +21,7 @@ describe('Autenticación y permisos', () => {
     registerBuyer().then((buyer) => {
       loginThroughUI(buyer.username, buyer.password)
       cy.get('nav').contains('Nuevo hotel').should('not.exist')
+      cy.get('nav').contains('Administración').should('not.exist')
       cy.visit('/hotels/new')
       cy.contains('Sin permiso').should('be.visible')
       cy.contains('Esta acción es solo para administradores.').should('be.visible')

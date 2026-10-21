@@ -349,3 +349,66 @@ Given('publicó una reseña del paquete nuevo', async function () {
 When('intenta publicar otra reseña del mismo paquete', async function () {
   this.response = await reviewPackage(this, 'Segunda reseña')
 })
+
+async function postFlight(world, origin, destination, airline, flightDate, departureTime) {
+  return backendRequest('/flights', {
+    method: 'POST',
+    token: world.token,
+    body: { airline, flightDate, departureTime, origin, destination, capacity: 3, availability: 3 },
+  })
+}
+
+function daysFromNow(days) {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
+
+Given('inició sesión el administrador inicial', async function () {
+  const response = await login('vferreyra', 'vferreyra')
+  assert.equal(response.status, 200)
+  assert.equal(response.body.user.role, 'ADMIN')
+  this.token = response.body.token
+  this.currentUsername = 'vferreyra'
+})
+
+Given('el administrador cargó vuelos de ida y vuelta entre {string} y {string}', async function (origin, destination) {
+  const airline = `Admin ${randomUUID().slice(0, 8)}`
+  const outbound = await postFlight(this, origin, destination, airline, daysFromNow(70), '10:00:00')
+  assert.equal(outbound.status, 201, JSON.stringify(outbound.body))
+  const returnFlight = await postFlight(this, destination, origin, airline, daysFromNow(77), '21:00:00')
+  assert.equal(returnFlight.status, 201, JSON.stringify(returnFlight.body))
+  this.outboundFlight = outbound.body
+  this.returnFlight = returnFlight.body
+})
+
+When(
+  'el administrador publica un paquete nuevo para la agencia {string} en {string} con precio {int}',
+  async function (agencyName, destination, price) {
+    const agencies = await backendRequest('/agencies', { token: this.token })
+    assert.equal(agencies.status, 200)
+    const agency = agencies.body.find((candidate) => candidate.name === agencyName)
+    assert.ok(agency, `No agency named ${agencyName}.`)
+    const hotel = await findHotel(this.token, destination)
+    this.packagePrice = price
+    this.response = await backendRequest('/packages', {
+      method: 'POST',
+      token: this.token,
+      body: {
+        name: `Aceptación admin ${randomUUID().slice(0, 8)}`,
+        agencyId: agency.id,
+        hotelId: hotel.id,
+        outboundFlightId: this.outboundFlight.id,
+        returnFlightId: this.returnFlight.id,
+        price,
+      },
+    })
+    this.package = this.response.body
+  },
+)
+
+When('la agencia intenta cargar un vuelo entre {string} y {string}', async function (origin, destination) {
+  this.response = await postFlight(this, origin, destination, `Agencia ${randomUUID().slice(0, 8)}`, daysFromNow(70), '10:00:00')
+})
+
+Then('la carga del vuelo es rechazada con status {int}', function (status) {
+  assert.equal(this.response.status, status, JSON.stringify(this.response.body))
+})

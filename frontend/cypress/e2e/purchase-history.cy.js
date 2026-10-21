@@ -70,11 +70,15 @@ describe('Comprador: compra e historial', () => {
 
     // la operación bajo prueba se realiza con el botón
     cy.contains('button', /^Comprar$/).should('be.enabled').click()
+    cy.get('[role="dialog"]').should('be.visible')
+    cy.contains('button', /^Confirmar compra$/).click()
     cy.wait('@purchase').then(({ response }) => {
       expect(response.statusCode).to.eq(201)
       expect(response.body.travelPackage.id).to.eq(travelPackage.id)
     })
     cy.contains('Compra realizada. Los asientos de ida y vuelta quedaron reservados.').should('be.visible')
+    cy.contains('a', /^Ver detalle de mi compra$/).should('be.visible')
+    cy.contains('button', /^Seguir explorando$/).click()
     cy.contains('button', /^Ya comprado$/).should('be.disabled')
     cy.contains('nav a', /^Mis compras$/).click()
     cy.contains('h1', /^Mis compras$/).should('be.visible')
