@@ -1,0 +1,90 @@
+.heart {
+  width: 22px;
+  height: 22px;
+  fill: transparent;
+  stroke: var(--color-ink);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  transition:
+    fill var(--dur-base) var(--ease-out),
+    stroke var(--dur-base) var(--ease-out);
+}
+
+.heart--filled {
+  fill: var(--color-primary);
+  stroke: var(--color-ink);
+}
+
+.favorite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.favorite-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.favorite-btn:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+.favorite-btn__icon {
+  display: inline-flex;
+}
+
+.favorite-btn--active .favorite-btn__icon {
+  animation: heart-pop 520ms var(--ease-spring);
+}
+
+.favorite-btn--icon {
+  width: 42px;
+  height: 42px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+  padding: 0;
+}
+
+.favorite-btn--icon:hover:not(:disabled) {
+  background: var(--color-secondary);
+  transform: translate(-1px, -1px);
+}
+
+.favorite-btn--icon:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.favorite-btn--labeled {
+  font-size: 15px;
+  background: transparent;
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+  padding: var(--space-3) var(--space-4);
+}
+
+.favorite-btn--labeled:hover:not(:disabled) {
+  background: var(--color-secondary);
+}
+
+.favorite-btn--labeled:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.favorite-btn--labeled.favorite-btn--active {
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}

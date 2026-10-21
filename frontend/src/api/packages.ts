@@ -36,6 +36,8 @@ export interface TravelPackage {
   destination: City
   outboundFlightId: number
   returnFlightId: number
+  averageScore?: number | null
+  reviewCount?: number
 }
 
 export interface TravelPackageDetail extends TravelPackage {
@@ -51,6 +53,7 @@ export interface TravelPackagePayload {
   outboundFlightId: number
   returnFlightId: number
   price: number
+  agencyId?: number
 }
 
 export interface PackageSearchParams {
@@ -59,6 +62,9 @@ export interface PackageSearchParams {
   destination?: string
   minPrice?: number
   maxPrice?: number
+  agencyId?: number
+  hotel?: string
+  minRating?: number
   page?: number
   size?: number
   sort?: string
@@ -89,6 +95,11 @@ export async function getPackage(id: number): Promise<TravelPackageDetail> {
 
 export async function createPackage(payload: TravelPackagePayload): Promise<TravelPackage> {
   const { data } = await apiClient.post<TravelPackage>('/packages', payload)
+  return data
+}
+
+export async function updatePackage(id: number, payload: TravelPackagePayload): Promise<TravelPackage> {
+  const { data } = await apiClient.put<TravelPackage>(`/packages/${id}`, payload)
   return data
 }
 

@@ -1,0 +1,29 @@
+.related {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.related__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.related__head h2 {
+  font-size: 22px;
+}
+
+.related__all {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.related__all:hover {
+  color: var(--color-primary);
+}

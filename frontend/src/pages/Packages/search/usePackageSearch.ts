@@ -31,10 +31,11 @@ export function usePackageSearch(initialOrigin = '') {
     setFormValues(formValuesFromSearchParams(searchParams, initialOrigin))
   }
 
-  const filters = useMemo(
-    () => buildPackageSearchFilters(formValuesFromSearchParams(searchParams, initialOrigin)).filters,
+  const appliedValues = useMemo(
+    () => formValuesFromSearchParams(searchParams, initialOrigin),
     [searchParams, initialOrigin],
   )
+  const filters = useMemo(() => buildPackageSearchFilters(appliedValues).filters, [appliedValues])
   const page = useMemo(() => pageFromSearchParams(searchParams), [searchParams])
   const sort = useMemo(() => sortFromSearchParams(searchParams), [searchParams])
 
@@ -54,20 +55,30 @@ export function usePackageSearch(initialOrigin = '') {
     }
   }
 
-  const submit = () => {
-    const result = buildPackageSearchFilters(formValues)
+  const commit = (values: PackageSearchFormValues) => {
+    const result = buildPackageSearchFilters(values)
     if (result.error) {
       setError(result.error)
       return false
     }
     setError('')
     const nextParams = filtersToSearchParams(result.filters)
+    if (initialOrigin && !result.filters.origin) {
+      // An explicit empty origin keeps "Todos" from falling back to the saved preference.
+      nextParams.set('origin', '')
+    }
     if (!isDefaultSort(sort)) {
       nextParams.set('sort', sortToQueryParam(sort))
     }
     setSearchParams(nextParams)
     return true
   }
+
+  const submit = () => commit(formValues)
+
+  // Applies a change right away (quick destination chips, removing a filter chip),
+  // discarding any half-typed edits that were not submitted yet.
+  const applyPatch = (patch: Partial<PackageSearchFormValues>) => commit({ ...appliedValues, ...patch })
 
   const clear = () => {
     setError('')
@@ -95,5 +106,19 @@ export function usePackageSearch(initialOrigin = '') {
     setSearchParams(nextParams)
   }
 
-  return { formValues, filters, query, page, sort, error, updateField, submit, clear, setPage, setSort }
+  return {
+    formValues,
+    appliedValues,
+    filters,
+    query,
+    page,
+    sort,
+    error,
+    updateField,
+    submit,
+    applyPatch,
+    clear,
+    setPage,
+    setSort,
+  }
 }

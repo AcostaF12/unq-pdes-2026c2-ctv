@@ -8,8 +8,8 @@ import { AuthProvider } from '../../auth/AuthContext'
 import { persistSession } from '../../api/session'
 import { getCurrentUser } from '../../api/auth'
 import { addFavorite, getFavorites, type Favorite } from '../../api/favorites'
-import { getPackage, type TravelPackageDetail } from '../../api/packages'
-import { hasPurchasedPackage } from '../../api/purchases'
+import { getPackage, searchPackages, type TravelPackageDetail } from '../../api/packages'
+import { buyPackage, hasPurchasedPackage } from '../../api/purchases'
 import { createTestQueryClient } from '../../test/queryClient'
 
 vi.mock('../../api/auth', () => ({
@@ -18,6 +18,7 @@ vi.mock('../../api/auth', () => ({
 
 vi.mock('../../api/packages', () => ({
   getPackage: vi.fn(),
+  searchPackages: vi.fn(),
 }))
 
 vi.mock('../../api/favorites', () => ({
@@ -66,9 +67,11 @@ const travelPackage: TravelPackageDetail = {
 
 const mockedGetCurrentUser = vi.mocked(getCurrentUser)
 const mockedGetPackage = vi.mocked(getPackage)
+const mockedSearchPackages = vi.mocked(searchPackages)
 const mockedGetFavorites = vi.mocked(getFavorites)
 const mockedAddFavorite = vi.mocked(addFavorite)
 const mockedHasPurchasedPackage = vi.mocked(hasPurchasedPackage)
+const mockedBuyPackage = vi.mocked(buyPackage)
 
 describe('PackageDetail page', () => {
   beforeEach(() => {
@@ -77,9 +80,11 @@ describe('PackageDetail page', () => {
     mockedGetFavorites.mockReset()
     mockedAddFavorite.mockReset()
     mockedHasPurchasedPackage.mockReset()
+    mockedBuyPackage.mockReset()
     persistSession('token', buyer)
     mockedGetCurrentUser.mockResolvedValue(buyer)
     mockedGetPackage.mockResolvedValue(travelPackage)
+    mockedSearchPackages.mockResolvedValue({ content: [], page: 0, size: 4, totalElements: 0, totalPages: 0 })
     mockedHasPurchasedPackage.mockResolvedValue(false)
   })
 
@@ -136,5 +141,144 @@ describe('PackageDetail page', () => {
       await screen.findByText('No pudimos cargar este paquete. Intentá de nuevo.'),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /volver al catálogo/i })).toHaveAttribute('href', '/trips')
+  })
+
+  function renderDetail() {
+    return render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <AuthProvider>
+          <MemoryRouter initialEntries={['/trips/10']}>
+            <Routes>
+              <Route path="/trips/:id" element={<PackageDetail />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </QueryClientProvider>,
+    )
+  }
+
+  it('confirms the purchase in a dialog and shows the booking code', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedBuyPackage.mockResolvedValue({
+      id: 7,
+      buyer,
+      travelPackage,
+      purchasePrice: 1500,
+      purchasedAt: '2026-03-15T14:30:00',
+    })
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Comprar' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Confirmá tu compra' })
+    expect(dialog).toHaveTextContent('Bruno Buyer')
+    expect(dialog).toHaveTextContent('USD 1500')
+    expect(mockedBuyPackage).not.toHaveBeenCalled()
+
+    mockedHasPurchasedPackage.mockResolvedValue(true)
+    await user.click(screen.getByRole('button', { name: 'Confirmar compra' }))
+
+    expect(
+      await screen.findByText('Compra realizada. Los asientos de ida y vuelta quedaron reservados.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('CTV-000007')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver detalle de mi compra' })).toHaveAttribute(
+      'href',
+      '/purchases/7',
+    )
+    expect(mockedBuyPackage).toHaveBeenCalledWith(10)
+
+    await user.click(screen.getByRole('button', { name: 'Seguir explorando' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Ya comprado' })).toBeDisabled()
+  })
+
+  it('keeps the dialog open with the API error when the purchase fails and can be cancelled', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedBuyPackage.mockRejectedValue(new Error('boom'))
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Comprar' }))
+    await user.click(await screen.findByRole('button', { name: 'Confirmar compra' }))
+
+    expect(await screen.findByText('No se pudo completar la compra.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('warns and blocks the purchase when a flight has no seats left', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedGetPackage.mockResolvedValue({
+      ...travelPackage,
+      outboundFlight: {
+        id: 1,
+        airline: 'Aerolíneas Argentinas',
+        flightDate: '2026-12-01',
+        departureTime: '08:00:00',
+        origin: 'BUE',
+        destination: 'PAR',
+        capacity: 180,
+        availability: 0,
+      },
+    })
+    renderDetail()
+
+    await user.click(await screen.findByRole('button', { name: 'Comprar' }))
+
+    expect(await screen.findByText('Uno de los vuelos ya no tiene asientos disponibles.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirmar compra' })).toBeDisabled()
+  })
+
+  it('shows the rating summary and the score picker for a buyer who purchased', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([])
+    mockedHasPurchasedPackage.mockResolvedValue(true)
+    mockedGetPackage.mockResolvedValue({
+      ...travelPackage,
+      averageScore: 9,
+      reviews: [{ id: 1, buyerUsername: 'otra', packageId: 10, score: 9, comment: 'Soñado' }],
+    })
+    renderDetail()
+
+    expect(await screen.findByText('Soñado')).toBeInTheDocument()
+    expect(screen.getByText('Excelente (9-10)')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: '8' })).toBeChecked()
+    await user.click(screen.getByRole('radio', { name: '10' }))
+    expect(screen.getByRole('radio', { name: '10' })).toBeChecked()
+  })
+
+  it('suggests other trips to the same destination without repeating the current one', async () => {
+    mockedGetFavorites.mockResolvedValue([])
+    mockedSearchPackages.mockResolvedValue({
+      content: [
+        { ...travelPackage, id: 10 },
+        { ...travelPackage, id: 11, name: 'París Gourmet' },
+      ],
+      page: 0,
+      size: 4,
+      totalElements: 2,
+      totalPages: 1,
+    })
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <AuthProvider>
+          <MemoryRouter initialEntries={['/trips/10']}>
+            <Routes>
+              <Route path="/trips/:id" element={<PackageDetail />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByRole('heading', { name: 'París Gourmet' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver todos →' })).toHaveAttribute('href', '/trips?destination=PAR')
+    expect(mockedSearchPackages).toHaveBeenCalledWith({ destination: 'PAR', size: 4 })
+    // the current package only appears as the page heading, not as a suggestion
+    expect(screen.getAllByRole('heading', { name: 'París Romántico' })).toHaveLength(1)
   })
 })

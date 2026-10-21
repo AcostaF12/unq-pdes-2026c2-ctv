@@ -1,19 +1,26 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { listAgencies } from '../../api/agencies'
 import { listCities } from '../../api/cities'
 import { getApiErrorMessage } from '../../api/errors'
 import { searchPackages } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
-import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { PackageCard } from '../../components/PackageCard/PackageCard'
 import { Pagination } from '../../components/Pagination/Pagination'
+import { Select } from '../../components/Select/Select'
 import { useAuth } from '../../auth/AuthContext'
+import { useFavorites } from '../../hooks/useFavorites'
 import { readPreferences } from '../../preferences/preferences'
 import { queryKeys } from '../../query/keys'
 import { PackageSearchForm } from './search/PackageSearchForm'
+import { buildPackageFilterChips } from './search/packageSearchChips'
 import { hasPackageSearchFilters } from './search/packageSearchFilters'
-import { parseSortOptionValue } from './search/packageSearchSort'
+import {
+  PACKAGE_SORT_OPTIONS,
+  parseSortOptionValue,
+  sortToOptionValue,
+} from './search/packageSearchSort'
 import { usePackageSearch } from './search/usePackageSearch'
 import './packages.css'
 
@@ -77,7 +84,8 @@ function originFromPreferences(userId: number | undefined): string {
 }
 
 export function PackageList() {
-  const { user } = useAuth()
+  const { user, isBuyer } = useAuth()
+  const favorites = useFavorites({ enabled: isBuyer })
   const savedOrigin = originFromPreferences(user?.id)
   const search = usePackageSearch(savedOrigin)
 
@@ -86,15 +94,24 @@ export function PackageList() {
     queryFn: listCities,
   })
 
+  const agenciesQuery = useQuery({
+    queryKey: queryKeys.agencies,
+    queryFn: listAgencies,
+  })
+
   const packagesQuery = useQuery({
     queryKey: queryKeys.packages.search(search.query),
     queryFn: () => searchPackages(search.query),
+    placeholderData: keepPreviousData,
   })
 
   const cities = citiesQuery.data ?? []
+  const agencies = agenciesQuery.data ?? []
   const packages = packagesQuery.data?.content ?? []
   const totalPages = packagesQuery.data?.totalPages ?? 0
+  const totalElements = packagesQuery.data?.totalElements ?? 0
   const hasFilters = hasPackageSearchFilters(search.filters)
+  const chips = buildPackageFilterChips(search.appliedValues, cities, agencies)
 
   return (
     <section className="page">
@@ -104,15 +121,63 @@ export function PackageList() {
       </header>
       <PackageSearchForm
         cities={cities}
+        agencies={agencies}
         values={search.formValues}
+        appliedValues={search.appliedValues}
         error={search.error}
-        sort={search.sort}
         onChange={search.updateField}
-        onSortChange={(value) => search.setSort(parseSortOptionValue(value))}
+        onQuickDestination={(code) => search.applyPatch({ destination: code })}
         onSubmit={search.submit}
       />
+      <div className="catalog__toolbar">
+        <div className="catalog__summary">
+          <p className="catalog__count" aria-live="polite">
+            {packagesQuery.data ? (
+              <>
+                <strong>{totalElements}</strong>{' '}
+                {totalElements === 1 ? 'paquete encontrado' : 'paquetes encontrados'}
+              </>
+            ) : (
+              'Buscando paquetes…'
+            )}
+          </p>
+          {chips.length > 0 ? (
+            <div className="catalog__chips" aria-label="Filtros aplicados">
+              {chips.map((chip) => (
+                <span key={chip.key} className="chip chip--removable">
+                  {chip.label}
+                  <button
+                    type="button"
+                    className="chip__remove"
+                    aria-label={`Quitar filtro: ${chip.label}`}
+                    onClick={() => search.applyPatch(chip.clear)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <button type="button" className="catalog__clear" onClick={search.clear}>
+                Limpiar todo
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className="catalog__sort">
+          <Select
+            label="Ordenar por"
+            value={sortToOptionValue(search.sort)}
+            onChange={(event) => search.setSort(parseSortOptionValue(event.target.value))}
+          >
+            {PACKAGE_SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
       {packagesQuery.isPending ? (
-        <ListSkeleton variant="cards" withMedia={false} label="Cargando paquetes" />
+        <ListSkeleton variant="cards" label="Cargando paquetes" />
       ) : packagesQuery.error ? (
         <EmptyState
           tone="error"
@@ -142,25 +207,26 @@ export function PackageList() {
           }
         />
       ) : (
-        <ul className="catalog__grid">
-          {packages.map((item) => (
+        <ul
+          className={
+            packagesQuery.isPlaceholderData ? 'catalog__grid catalog__grid--stale' : 'catalog__grid'
+          }
+        >
+          {packages.map((item, index) => (
             <li key={item.id}>
-              <Link className="catalog__card" to={`/trips/${item.id}`}>
-                <HotelPhoto
-                  src={item.hotel.photoUrl}
-                  alt={item.hotel.name}
-                  cityCode={item.destination.code}
-                />
-                <div className="catalog__card-body">
-                  <p className="catalog__route">
-                    {item.origin.name} → {item.destination.name}
-                  </p>
-                  <h2>{item.name}</h2>
-                  <p className="catalog__muted">{item.hotel.name}</p>
-                  <p className="catalog__muted">{item.agency.name}</p>
-                  <p className="catalog__price">USD {item.price}</p>
-                </div>
-              </Link>
+              <PackageCard
+                travelPackage={item}
+                index={index}
+                favorite={
+                  isBuyer
+                    ? {
+                        active: favorites.isFavorite(item.id),
+                        pending: favorites.isToggling(item.id),
+                        onToggle: () => favorites.toggle(item),
+                      }
+                    : undefined
+                }
+              />
             </li>
           ))}
         </ul>

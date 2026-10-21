@@ -90,4 +90,41 @@ describe('Favorites page', () => {
     expect(await screen.findByText('No se pudo quitar el favorito.')).toBeInTheDocument()
     expect(screen.getByText('París Romántico')).toBeInTheDocument()
   })
+
+  it('filters saved trips locally and reports the no-match state', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValue([
+      favorite,
+      {
+        id: 2,
+        packageId: 11,
+        travelPackage: { ...travelPackage, id: 11, name: 'Roma Imperial', price: 900 },
+      },
+    ])
+    renderFavorites()
+
+    expect(await screen.findByText('Roma Imperial')).toBeInTheDocument()
+    expect(screen.getByText('viajes guardados', { exact: false })).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Buscar en favoritos'), 'roma')
+    expect(screen.queryByText('París Romántico')).not.toBeInTheDocument()
+    expect(screen.getByText('Roma Imperial')).toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('Buscar en favoritos'))
+    await user.type(screen.getByLabelText('Buscar en favoritos'), 'xyz')
+    expect(await screen.findByText('Ningún favorito coincide con tu búsqueda.')).toBeInTheDocument()
+  })
+
+  it('removes a favorite after the exit animation', async () => {
+    const user = userEvent.setup()
+    mockedGetFavorites.mockResolvedValueOnce([favorite])
+    mockedGetFavorites.mockResolvedValue([])
+    mockedRemoveFavorite.mockResolvedValue(undefined)
+    renderFavorites()
+
+    await user.click(await screen.findByRole('button', { name: 'Quitar de favoritos' }))
+
+    expect(await screen.findByRole('link', { name: /explorar paquetes/i })).toBeInTheDocument()
+    expect(mockedRemoveFavorite).toHaveBeenCalledWith(10)
+  })
 })

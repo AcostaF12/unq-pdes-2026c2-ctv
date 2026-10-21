@@ -1,0 +1,26 @@
+.favorites__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.favorites__toolbar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  align-items: end;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-ink);
+  box-shadow: var(--shadow-hard-sm);
+  padding: var(--space-3) var(--space-4);
+}
+
+.favorites__toolbar .catalog__count {
+  padding-bottom: var(--space-2);
+}
+
+@media (min-width: 720px) {
+  .favorites__toolbar {
+    grid-template-columns: 1.4fr 1fr auto;
+  }
+}
