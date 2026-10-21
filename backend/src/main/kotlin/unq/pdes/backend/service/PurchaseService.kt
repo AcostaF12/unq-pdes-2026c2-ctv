@@ -28,7 +28,7 @@ class PurchaseService(
 ) {
     @Transactional(readOnly = true)
     @Suppress("LongParameterList")
-    fun findMine(
+    fun findMine( // NOSONAR kotlin:S107, flat history filters
         username: String,
         page: Int = 0,
         size: Int = 20,

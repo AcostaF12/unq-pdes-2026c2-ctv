@@ -54,7 +54,7 @@ object TravelPackageSearchSpecification {
                         add(criteriaBuilder.greaterThanOrEqualTo(averageScore(root, query, criteriaBuilder), minRating.toDouble()))
                     }
                 }
-            if (ratingDirection != null && query != null && query.resultType != Long::class.javaObjectType) {
+            if (ratingDirection != null && query.resultType != Long::class.javaObjectType) {
                 orderByRating(root, query, criteriaBuilder, ratingDirection)
             }
             criteriaBuilder.and(*predicates.toTypedArray())

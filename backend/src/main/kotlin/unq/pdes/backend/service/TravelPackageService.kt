@@ -94,7 +94,7 @@ class TravelPackageService(
     }
 
     @Transactional
-    fun update(
+    fun update( // NOSONAR kotlin:S107, mirrors the package form fields
         username: String,
         id: Long,
         name: String,

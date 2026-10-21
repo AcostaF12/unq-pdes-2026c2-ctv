@@ -39,7 +39,7 @@ data class TravelPackageSearchCriteria(
         private val MAX_RATING = BigDecimal.TEN
 
         @Suppress("LongParameterList")
-        fun from(
+        fun from( // NOSONAR kotlin:S107, flat search filters
             name: String?,
             origin: String?,
             destination: String?,

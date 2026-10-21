@@ -74,11 +74,33 @@ data class FavoriteSeed(
 @Suppress("LargeClass")
 object SeedData {
     const val ORIGIN_CODE = "BUE"
-    const val BUYER_PASSWORD = "buyer123"
+
+    // Public demo credential, documented in the README; not a real secret.
+    const val BUYER_PASSWORD = "buyer123" // NOSONAR
+
+    private const val AGENCY_FLECHA_TOURS = "Flecha Tours"
+    private const val AGENCY_RUMBO_AUSTRAL = "Rumbo Austral"
+    private const val HOTEL_MAISON_LUMIERE_BOUTIQUE = "Maison Lumière Boutique"
+    private const val HOTEL_BURJ_OASIS_RESORT = "Burj Oasis Resort"
+    private const val PACKAGE_PARIS_ROMANTICO = "París Romántico"
+    private const val PACKAGE_LONDRES_CLASICO = "Londres Clásico"
+    private const val PACKAGE_ROMA_IMPERIAL = "Roma Imperial"
+    private const val PACKAGE_NUEVA_YORK_URBANO = "Nueva York Urbano"
+    private const val PACKAGE_RIO_CARNAVAL = "Río Carnaval"
+    private const val PACKAGE_PARIS_GOURMET_Y_VINO = "París Gourmet y Vino"
+    private const val PACKAGE_TOKIO_TRADICIONAL = "Tokio Tradicional"
+    private const val PACKAGE_DUBAI_LUJO_EN_EL_DESIERTO = "Dubái Lujo en el Desierto"
+    private const val PACKAGE_CANCUN_TODO_INCLUIDO = "Cancún Todo Incluido"
+    private const val PACKAGE_BARCELONA_GAUDI = "Barcelona Gaudí"
+    private const val PACKAGE_NUEVA_YORK_EXPRESS = "Nueva York Express"
+    private const val PACKAGE_ROMA_ETERNA = "Roma Eterna"
+    private const val PACKAGE_LONDRES_EXPERIENCIA_REAL = "Londres Experiencia Real"
+    private const val PACKAGE_RIO_PLAYA_Y_SAMBA = "Río Playa y Samba"
+    private const val PACKAGE_TOKIO_NEON = "Tokio Neón"
 
     private const val UNSPLASH_PARAMS = "auto=format&fit=crop&w=1200&q=80"
 
-    val AGENCIES = listOf("Despegar", "Almundo", "Flecha Tours", "Rumbo Austral")
+    val AGENCIES = listOf("Despegar", "Almundo", AGENCY_FLECHA_TOURS, AGENCY_RUMBO_AUSTRAL)
 
     val ADMINS =
         listOf(
@@ -172,7 +194,7 @@ object SeedData {
     private val HOTEL_NAMES =
         mapOf(
             "BUE" to listOf("Gran Hotel Buenos Aires", "Palermo Soho Boutique", "Puerto Madero Suites"),
-            "PAR" to listOf("Hotel Palacio de París", "Maison Lumière Boutique", "Le Petit Montmartre"),
+            "PAR" to listOf("Hotel Palacio de París", HOTEL_MAISON_LUMIERE_BOUTIQUE, "Le Petit Montmartre"),
             "LON" to listOf("Hotel Real de Londres", "The Kensington Gate", "Camden Backpackers Inn"),
             "ROM" to listOf("Hotel Villa Roma", "Palazzo Trastevere", "Hotel Termini Express"),
             "NYC" to listOf("Hotel Central Park", "Brooklyn Loft Hotel", "Times Square Tower"),
@@ -180,7 +202,7 @@ object SeedData {
             "BCN" to listOf("Hotel Ramblas Modernista", "Hotel Barceloneta Sea", "Hotel Arts Mar"),
             "CUN" to listOf("Riviera Maya Beach Resort", "Hotel Caribe Familiar", "Selva Maya Eco Lodge"),
             "TYO" to listOf("Sakura Garden Hotel", "Shibuya Sky Inn", "Ginza Imperial Hotel"),
-            "DXB" to listOf("Burj Oasis Resort", "Desert Pearl Hotel", "Dubai Marina Skyline"),
+            "DXB" to listOf(HOTEL_BURJ_OASIS_RESORT, "Desert Pearl Hotel", "Dubai Marina Skyline"),
         )
 
     val HOTELS: List<HotelSeed> =
@@ -194,101 +216,101 @@ object SeedData {
     /** The first five keep the original names, agencies, hotels and prices used by e2e and acceptance tests. */
     val PACKAGES =
         listOf(
-            PackageSeed("París Romántico", "Despegar", "Hotel Palacio de París", "PAR", 0, "1500.00"),
-            PackageSeed("Londres Clásico", "Despegar", "Hotel Real de Londres", "LON", 0, "1800.00"),
-            PackageSeed("Roma Imperial", "Despegar", "Hotel Villa Roma", "ROM", 0, "1650.00"),
-            PackageSeed("Nueva York Urbano", "Almundo", "Hotel Central Park", "NYC", 0, "2200.00"),
-            PackageSeed("Río Carnaval", "Almundo", "Hotel Costa de Río", "RIO", 0, "1300.00"),
-            PackageSeed("París Gourmet y Vino", "Despegar", "Maison Lumière Boutique", "PAR", 1, "2350.00"),
-            PackageSeed("Tokio Tradicional", "Despegar", "Sakura Garden Hotel", "TYO", 1, "3400.00"),
-            PackageSeed("Dubái Lujo en el Desierto", "Despegar", "Burj Oasis Resort", "DXB", 2, "4450.00"),
-            PackageSeed("Cancún Todo Incluido", "Despegar", "Riviera Maya Beach Resort", "CUN", 0, "1950.00"),
-            PackageSeed("Barcelona Gaudí", "Despegar", "Hotel Ramblas Modernista", "BCN", 1, "1700.00"),
-            PackageSeed("Nueva York Express", "Almundo", "Brooklyn Loft Hotel", "NYC", 1, "1450.00"),
-            PackageSeed("Roma Eterna", "Almundo", "Palazzo Trastevere", "ROM", 1, "2100.00"),
+            PackageSeed(PACKAGE_PARIS_ROMANTICO, "Despegar", "Hotel Palacio de París", "PAR", 0, "1500.00"),
+            PackageSeed(PACKAGE_LONDRES_CLASICO, "Despegar", "Hotel Real de Londres", "LON", 0, "1800.00"),
+            PackageSeed(PACKAGE_ROMA_IMPERIAL, "Despegar", "Hotel Villa Roma", "ROM", 0, "1650.00"),
+            PackageSeed(PACKAGE_NUEVA_YORK_URBANO, "Almundo", "Hotel Central Park", "NYC", 0, "2200.00"),
+            PackageSeed(PACKAGE_RIO_CARNAVAL, "Almundo", "Hotel Costa de Río", "RIO", 0, "1300.00"),
+            PackageSeed(PACKAGE_PARIS_GOURMET_Y_VINO, "Despegar", HOTEL_MAISON_LUMIERE_BOUTIQUE, "PAR", 1, "2350.00"),
+            PackageSeed(PACKAGE_TOKIO_TRADICIONAL, "Despegar", "Sakura Garden Hotel", "TYO", 1, "3400.00"),
+            PackageSeed(PACKAGE_DUBAI_LUJO_EN_EL_DESIERTO, "Despegar", HOTEL_BURJ_OASIS_RESORT, "DXB", 2, "4450.00"),
+            PackageSeed(PACKAGE_CANCUN_TODO_INCLUIDO, "Despegar", "Riviera Maya Beach Resort", "CUN", 0, "1950.00"),
+            PackageSeed(PACKAGE_BARCELONA_GAUDI, "Despegar", "Hotel Ramblas Modernista", "BCN", 1, "1700.00"),
+            PackageSeed(PACKAGE_NUEVA_YORK_EXPRESS, "Almundo", "Brooklyn Loft Hotel", "NYC", 1, "1450.00"),
+            PackageSeed(PACKAGE_ROMA_ETERNA, "Almundo", "Palazzo Trastevere", "ROM", 1, "2100.00"),
             PackageSeed("Cancún Escapada Familiar", "Almundo", "Hotel Caribe Familiar", "CUN", 1, "1380.00"),
-            PackageSeed("Londres Experiencia Real", "Almundo", "The Kensington Gate", "LON", 2, "2750.00"),
-            PackageSeed("Río Playa y Samba", "Almundo", "Copacabana Palace Suites", "RIO", 1, "1750.00"),
-            PackageSeed("Tokio Neón", "Almundo", "Shibuya Sky Inn", "TYO", 0, "2900.00"),
-            PackageSeed("Escapada a París", "Flecha Tours", "Le Petit Montmartre", "PAR", 2, "1190.00"),
-            PackageSeed("Barcelona Playa y Tapas", "Flecha Tours", "Hotel Barceloneta Sea", "BCN", 0, "1250.00"),
-            PackageSeed("Dubái Express", "Flecha Tours", "Desert Pearl Hotel", "DXB", 0, "3300.00"),
-            PackageSeed("Cancún Aventura Maya", "Flecha Tours", "Selva Maya Eco Lodge", "CUN", 2, "1100.00"),
-            PackageSeed("Roma Low Cost", "Flecha Tours", "Hotel Termini Express", "ROM", 2, "950.00"),
-            PackageSeed("Nueva York Navidad", "Flecha Tours", "Times Square Tower", "NYC", 2, "3150.00"),
-            PackageSeed("Londres Económico", "Flecha Tours", "Camden Backpackers Inn", "LON", 0, "900.00"),
-            PackageSeed("Tokio Premium", "Rumbo Austral", "Ginza Imperial Hotel", "TYO", 2, "4200.00"),
-            PackageSeed("Río Carioca Luxury", "Rumbo Austral", "Ipanema Beach Hotel", "RIO", 2, "2050.00"),
-            PackageSeed("Barcelona Premium", "Rumbo Austral", "Hotel Arts Mar", "BCN", 2, "2600.00"),
-            PackageSeed("Dubái Sunset", "Rumbo Austral", "Burj Oasis Resort", "DXB", 1, "3900.00"),
-            PackageSeed("París Navidad Mágica", "Rumbo Austral", "Maison Lumière Boutique", "PAR", 2, "2750.00"),
+            PackageSeed(PACKAGE_LONDRES_EXPERIENCIA_REAL, "Almundo", "The Kensington Gate", "LON", 2, "2750.00"),
+            PackageSeed(PACKAGE_RIO_PLAYA_Y_SAMBA, "Almundo", "Copacabana Palace Suites", "RIO", 1, "1750.00"),
+            PackageSeed(PACKAGE_TOKIO_NEON, "Almundo", "Shibuya Sky Inn", "TYO", 0, "2900.00"),
+            PackageSeed("Escapada a París", AGENCY_FLECHA_TOURS, "Le Petit Montmartre", "PAR", 2, "1190.00"),
+            PackageSeed("Barcelona Playa y Tapas", AGENCY_FLECHA_TOURS, "Hotel Barceloneta Sea", "BCN", 0, "1250.00"),
+            PackageSeed("Dubái Express", AGENCY_FLECHA_TOURS, "Desert Pearl Hotel", "DXB", 0, "3300.00"),
+            PackageSeed("Cancún Aventura Maya", AGENCY_FLECHA_TOURS, "Selva Maya Eco Lodge", "CUN", 2, "1100.00"),
+            PackageSeed("Roma Low Cost", AGENCY_FLECHA_TOURS, "Hotel Termini Express", "ROM", 2, "950.00"),
+            PackageSeed("Nueva York Navidad", AGENCY_FLECHA_TOURS, "Times Square Tower", "NYC", 2, "3150.00"),
+            PackageSeed("Londres Económico", AGENCY_FLECHA_TOURS, "Camden Backpackers Inn", "LON", 0, "900.00"),
+            PackageSeed("Tokio Premium", AGENCY_RUMBO_AUSTRAL, "Ginza Imperial Hotel", "TYO", 2, "4200.00"),
+            PackageSeed("Río Carioca Luxury", AGENCY_RUMBO_AUSTRAL, "Ipanema Beach Hotel", "RIO", 2, "2050.00"),
+            PackageSeed("Barcelona Premium", AGENCY_RUMBO_AUSTRAL, "Hotel Arts Mar", "BCN", 2, "2600.00"),
+            PackageSeed("Dubái Sunset", AGENCY_RUMBO_AUSTRAL, HOTEL_BURJ_OASIS_RESORT, "DXB", 1, "3900.00"),
+            PackageSeed("París Navidad Mágica", AGENCY_RUMBO_AUSTRAL, HOTEL_MAISON_LUMIERE_BOUTIQUE, "PAR", 2, "2750.00"),
         )
 
     val PURCHASES =
         listOf(
-            PurchaseSeed("buyer", "París Romántico", 20),
-            PurchaseSeed("buyer2", "Nueva York Urbano", 10),
-            PurchaseSeed("buyer", "Roma Imperial", 5),
-            PurchaseSeed("buyer", "Londres Clásico", 85),
-            PurchaseSeed("buyer", "Río Carnaval", 110),
-            PurchaseSeed("buyer", "Tokio Tradicional", 165),
+            PurchaseSeed("buyer", PACKAGE_PARIS_ROMANTICO, 20),
+            PurchaseSeed("buyer2", PACKAGE_NUEVA_YORK_URBANO, 10),
+            PurchaseSeed("buyer", PACKAGE_ROMA_IMPERIAL, 5),
+            PurchaseSeed("buyer", PACKAGE_LONDRES_CLASICO, 85),
+            PurchaseSeed("buyer", PACKAGE_RIO_CARNAVAL, 110),
+            PurchaseSeed("buyer", PACKAGE_TOKIO_TRADICIONAL, 165),
             PurchaseSeed("buyer", "Cancún Escapada Familiar", 60),
-            PurchaseSeed("buyer2", "Londres Clásico", 45),
-            PurchaseSeed("buyer2", "Cancún Todo Incluido", 130),
+            PurchaseSeed("buyer2", PACKAGE_LONDRES_CLASICO, 45),
+            PurchaseSeed("buyer2", PACKAGE_CANCUN_TODO_INCLUIDO, 130),
             PurchaseSeed("buyer2", "Barcelona Playa y Tapas", 80),
-            PurchaseSeed("lmartinez", "París Romántico", 33),
-            PurchaseSeed("lmartinez", "París Gourmet y Vino", 72),
-            PurchaseSeed("lmartinez", "Barcelona Gaudí", 15),
-            PurchaseSeed("lmartinez", "Roma Eterna", 150),
-            PurchaseSeed("tfernandez", "Nueva York Urbano", 28),
-            PurchaseSeed("tfernandez", "Dubái Lujo en el Desierto", 100),
-            PurchaseSeed("tfernandez", "Londres Experiencia Real", 9),
-            PurchaseSeed("tfernandez", "Tokio Neón", 175),
-            PurchaseSeed("sgomez", "Londres Clásico", 50),
-            PurchaseSeed("sgomez", "Cancún Todo Incluido", 22),
-            PurchaseSeed("sgomez", "Río Playa y Samba", 125),
+            PurchaseSeed("lmartinez", PACKAGE_PARIS_ROMANTICO, 33),
+            PurchaseSeed("lmartinez", PACKAGE_PARIS_GOURMET_Y_VINO, 72),
+            PurchaseSeed("lmartinez", PACKAGE_BARCELONA_GAUDI, 15),
+            PurchaseSeed("lmartinez", PACKAGE_ROMA_ETERNA, 150),
+            PurchaseSeed("tfernandez", PACKAGE_NUEVA_YORK_URBANO, 28),
+            PurchaseSeed("tfernandez", PACKAGE_DUBAI_LUJO_EN_EL_DESIERTO, 100),
+            PurchaseSeed("tfernandez", PACKAGE_LONDRES_EXPERIENCIA_REAL, 9),
+            PurchaseSeed("tfernandez", PACKAGE_TOKIO_NEON, 175),
+            PurchaseSeed("sgomez", PACKAGE_LONDRES_CLASICO, 50),
+            PurchaseSeed("sgomez", PACKAGE_CANCUN_TODO_INCLUIDO, 22),
+            PurchaseSeed("sgomez", PACKAGE_RIO_PLAYA_Y_SAMBA, 125),
             PurchaseSeed("sgomez", "Cancún Aventura Maya", 3),
-            PurchaseSeed("jperez", "Río Carnaval", 65),
-            PurchaseSeed("jperez", "Nueva York Express", 38),
+            PurchaseSeed("jperez", PACKAGE_RIO_CARNAVAL, 65),
+            PurchaseSeed("jperez", PACKAGE_NUEVA_YORK_EXPRESS, 38),
             PurchaseSeed("jperez", "Roma Low Cost", 12),
-            PurchaseSeed("jperez", "Tokio Tradicional", 90),
+            PurchaseSeed("jperez", PACKAGE_TOKIO_TRADICIONAL, 90),
         )
 
     /** Every review matches a purchase above: a buyer can only review what was bought. */
     val REVIEWS =
         listOf(
-            ReviewSeed("buyer", "París Romántico", 9, "Excelente experiencia, volvería sin dudarlo."),
-            ReviewSeed("buyer", "Londres Clásico", 7, "Muy bueno, aunque el hotel quedaba algo lejos del centro."),
-            ReviewSeed("buyer2", "Nueva York Urbano", 10, "Increíble, superó todas mis expectativas."),
-            ReviewSeed("buyer", "Río Carnaval", 8, "Carnaval inolvidable y muy bien organizado."),
-            ReviewSeed("buyer", "Tokio Tradicional", 10, "Tokio es otro planeta. Templos, comida y trenes puntuales."),
-            ReviewSeed("buyer2", "Londres Clásico", 6, "Lindo viaje, pero llovió todos los días y el desayuno era escaso."),
-            ReviewSeed("buyer2", "Cancún Todo Incluido", 9, "Playa soñada y el todo incluido cumple de verdad."),
-            ReviewSeed("lmartinez", "París Romántico", 8, "Hotel hermoso y buena ubicación. El vuelo de vuelta salió tarde."),
-            ReviewSeed("lmartinez", "París Gourmet y Vino", 10, "La cata de vinos y las cenas fueron lo mejor del viaje."),
-            ReviewSeed("lmartinez", "Barcelona Gaudí", 9, "Gaudí en persona es otra cosa. Muy recomendable."),
-            ReviewSeed("tfernandez", "Nueva York Urbano", 7, "Buena ubicación, aunque las habitaciones eran chicas."),
-            ReviewSeed("tfernandez", "Dubái Lujo en el Desierto", 10, "Lujo total, el safari por el desierto vale cada dólar."),
-            ReviewSeed("tfernandez", "Londres Experiencia Real", 5, "Esperaba más por el precio. La atención del hotel fue floja."),
-            ReviewSeed("sgomez", "Londres Clásico", 8, "Itinerario completo y guías muy amables."),
-            ReviewSeed("sgomez", "Cancún Todo Incluido", 4, "El hotel estaba en obras y se escuchaba todo el día."),
-            ReviewSeed("sgomez", "Río Playa y Samba", 9, "Copacabana de día y samba de noche. Perfecto."),
-            ReviewSeed("jperez", "Río Carnaval", 7, "Muy animado, pero había demasiada gente en el hotel."),
-            ReviewSeed("jperez", "Nueva York Express", 6, "Cortito pero intenso. Hubiera querido un día más."),
-            ReviewSeed("jperez", "Tokio Tradicional", 9, "Organización impecable y hotel con jardín precioso."),
+            ReviewSeed("buyer", PACKAGE_PARIS_ROMANTICO, 9, "Excelente experiencia, volvería sin dudarlo."),
+            ReviewSeed("buyer", PACKAGE_LONDRES_CLASICO, 7, "Muy bueno, aunque el hotel quedaba algo lejos del centro."),
+            ReviewSeed("buyer2", PACKAGE_NUEVA_YORK_URBANO, 10, "Increíble, superó todas mis expectativas."),
+            ReviewSeed("buyer", PACKAGE_RIO_CARNAVAL, 8, "Carnaval inolvidable y muy bien organizado."),
+            ReviewSeed("buyer", PACKAGE_TOKIO_TRADICIONAL, 10, "Tokio es otro planeta. Templos, comida y trenes puntuales."),
+            ReviewSeed("buyer2", PACKAGE_LONDRES_CLASICO, 6, "Lindo viaje, pero llovió todos los días y el desayuno era escaso."),
+            ReviewSeed("buyer2", PACKAGE_CANCUN_TODO_INCLUIDO, 9, "Playa soñada y el todo incluido cumple de verdad."),
+            ReviewSeed("lmartinez", PACKAGE_PARIS_ROMANTICO, 8, "Hotel hermoso y buena ubicación. El vuelo de vuelta salió tarde."),
+            ReviewSeed("lmartinez", PACKAGE_PARIS_GOURMET_Y_VINO, 10, "La cata de vinos y las cenas fueron lo mejor del viaje."),
+            ReviewSeed("lmartinez", PACKAGE_BARCELONA_GAUDI, 9, "Gaudí en persona es otra cosa. Muy recomendable."),
+            ReviewSeed("tfernandez", PACKAGE_NUEVA_YORK_URBANO, 7, "Buena ubicación, aunque las habitaciones eran chicas."),
+            ReviewSeed("tfernandez", PACKAGE_DUBAI_LUJO_EN_EL_DESIERTO, 10, "Lujo total, el safari por el desierto vale cada dólar."),
+            ReviewSeed("tfernandez", PACKAGE_LONDRES_EXPERIENCIA_REAL, 5, "Esperaba más por el precio. La atención del hotel fue floja."),
+            ReviewSeed("sgomez", PACKAGE_LONDRES_CLASICO, 8, "Itinerario completo y guías muy amables."),
+            ReviewSeed("sgomez", PACKAGE_CANCUN_TODO_INCLUIDO, 4, "El hotel estaba en obras y se escuchaba todo el día."),
+            ReviewSeed("sgomez", PACKAGE_RIO_PLAYA_Y_SAMBA, 9, "Copacabana de día y samba de noche. Perfecto."),
+            ReviewSeed("jperez", PACKAGE_RIO_CARNAVAL, 7, "Muy animado, pero había demasiada gente en el hotel."),
+            ReviewSeed("jperez", PACKAGE_NUEVA_YORK_EXPRESS, 6, "Cortito pero intenso. Hubiera querido un día más."),
+            ReviewSeed("jperez", PACKAGE_TOKIO_TRADICIONAL, 9, "Organización impecable y hotel con jardín precioso."),
         )
 
     val FAVORITES =
         listOf(
-            FavoriteSeed("buyer", "París Romántico"),
-            FavoriteSeed("buyer", "Londres Clásico"),
-            FavoriteSeed("buyer", "Roma Imperial"),
-            FavoriteSeed("buyer", "Dubái Lujo en el Desierto"),
-            FavoriteSeed("buyer", "Tokio Neón"),
-            FavoriteSeed("buyer2", "Nueva York Urbano"),
-            FavoriteSeed("buyer2", "Río Carnaval"),
-            FavoriteSeed("buyer2", "París Gourmet y Vino"),
-            FavoriteSeed("lmartinez", "Roma Eterna"),
+            FavoriteSeed("buyer", PACKAGE_PARIS_ROMANTICO),
+            FavoriteSeed("buyer", PACKAGE_LONDRES_CLASICO),
+            FavoriteSeed("buyer", PACKAGE_ROMA_IMPERIAL),
+            FavoriteSeed("buyer", PACKAGE_DUBAI_LUJO_EN_EL_DESIERTO),
+            FavoriteSeed("buyer", PACKAGE_TOKIO_NEON),
+            FavoriteSeed("buyer2", PACKAGE_NUEVA_YORK_URBANO),
+            FavoriteSeed("buyer2", PACKAGE_RIO_CARNAVAL),
+            FavoriteSeed("buyer2", PACKAGE_PARIS_GOURMET_Y_VINO),
+            FavoriteSeed("lmartinez", PACKAGE_ROMA_ETERNA),
             FavoriteSeed("lmartinez", "Tokio Premium"),
             FavoriteSeed("tfernandez", "Barcelona Premium"),
             FavoriteSeed("sgomez", "Dubái Sunset"),
