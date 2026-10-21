@@ -22,6 +22,9 @@ class TravelPackageSearchMetrics(
             .tag("filter_origin", criteria.origin.isUsed())
             .tag("filter_destination", criteria.destination.isUsed())
             .tag("filter_price", (criteria.minPrice != null || criteria.maxPrice != null).toTag())
+            .tag("filter_agency", criteria.agencyId.isUsed())
+            .tag("filter_hotel", criteria.hotel.isUsed())
+            .tag("filter_rating", criteria.minRating.isUsed())
             .register(meterRegistry)
             .record(duration)
 
