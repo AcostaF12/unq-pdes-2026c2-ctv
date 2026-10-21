@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import type { Purchase } from '../../api/purchases'
+import { confirmationCode, formatPurchaseDate } from '../../lib/format'
 
 interface PurchaseTicketProps {
   purchase: Purchase
   audience?: 'buyer' | 'agency'
+  index?: number
 }
 
 export function PurchaseEmptyScene() {
@@ -25,24 +27,17 @@ export function PurchaseEmptyScene() {
   )
 }
 
-function formatPurchaseDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
-export function PurchaseTicket({ purchase, audience = 'buyer' }: PurchaseTicketProps) {
+export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: PurchaseTicketProps) {
   const { travelPackage } = purchase
   const tripPath = `/trips/${travelPackage.id}`
+  const detailPath = `/purchases/${purchase.id}`
   const counterparty =
     audience === 'agency'
       ? `${purchase.buyer.firstName} ${purchase.buyer.lastName} (@${purchase.buyer.username})`
       : travelPackage.agency.name
 
   return (
-    <article className="purchase-ticket">
+    <article className="purchase-ticket reveal" style={{ ['--i' as string]: index }}>
       <div className="purchase-ticket__body">
         <p className="purchase-ticket__meta">{counterparty}</p>
         <h2 className="purchase-ticket__name">
@@ -52,15 +47,21 @@ export function PurchaseTicket({ purchase, audience = 'buyer' }: PurchaseTicketP
           {travelPackage.origin.name} → {travelPackage.destination.name}
         </p>
         <p className="purchase-ticket__hotel">Hotel: {travelPackage.hotel.name}</p>
-        <time className="purchase-ticket__date" dateTime={purchase.purchasedAt}>
-          {formatPurchaseDate(purchase.purchasedAt)}
-        </time>
+        <p className="purchase-ticket__footer">
+          <time className="purchase-ticket__date" dateTime={purchase.purchasedAt}>
+            {formatPurchaseDate(purchase.purchasedAt)}
+          </time>
+          <span className="purchase-ticket__code">{confirmationCode(purchase.id)}</span>
+        </p>
       </div>
       <div className="purchase-ticket__stub">
         <p className="purchase-ticket__price">
           <span className="purchase-ticket__price-label">Precio abonado</span>
           USD {purchase.purchasePrice}
         </p>
+        <Link className="purchase-ticket__link" to={detailPath}>
+          Ver detalle
+        </Link>
         <Link className="purchase-ticket__link" to={tripPath}>
           Ver viaje
         </Link>

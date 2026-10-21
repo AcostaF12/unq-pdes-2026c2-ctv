@@ -12,9 +12,14 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
     return null
   }
 
+  const goTo = (next: number) => {
+    onPageChange(next)
+    window.scrollTo?.({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <nav className="pagination" aria-label="Paginación de resultados">
-      <Button type="button" variant="ghost" disabled={page === 0} onClick={() => onPageChange(page - 1)}>
+      <Button type="button" variant="ghost" disabled={page === 0} onClick={() => goTo(page - 1)}>
         Anterior
       </Button>
       <span className="pagination__status">
@@ -24,7 +29,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
         type="button"
         variant="ghost"
         disabled={page + 1 >= totalPages}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => goTo(page + 1)}
       >
         Siguiente
       </Button>

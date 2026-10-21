@@ -4,6 +4,7 @@ import { getApiErrorMessage } from '../../api/errors'
 import { getAgencyPurchases } from '../../api/purchases'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
+import { Input } from '../../components/Input/Input'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { queryKeys } from '../../query/keys'
 import { HistoryPagination } from '../../components/HistoryPagination/HistoryPagination'
@@ -40,39 +41,33 @@ export function AgencySales() {
         <h1 className="page__title">Ventas de la agencia</h1>
       </header>
       <form className="history-filters" onSubmit={applyFilters}>
-        <label>
-          Usuario comprador
-          <input
-            value={draft.buyerUsername}
-            onChange={(event) => setDraft({ ...draft, buyerUsername: event.target.value })}
-          />
-        </label>
-        <label>
-          Paquete
-          <input
-            value={draft.packageName}
-            onChange={(event) => setDraft({ ...draft, packageName: event.target.value })}
-          />
-        </label>
-        <label>
-          Desde
-          <input
-            type="date"
-            max={draft.to || undefined}
-            value={draft.from}
-            onChange={(event) => setDraft({ ...draft, from: event.target.value })}
-          />
-        </label>
-        <label>
-          Hasta
-          <input
-            type="date"
-            min={draft.from || undefined}
-            value={draft.to}
-            onChange={(event) => setDraft({ ...draft, to: event.target.value })}
-          />
-        </label>
-        <Button type="submit">Filtrar ventas</Button>
+        <Input
+          label="Usuario comprador"
+          value={draft.buyerUsername}
+          onChange={(event) => setDraft({ ...draft, buyerUsername: event.target.value })}
+        />
+        <Input
+          label="Paquete"
+          value={draft.packageName}
+          onChange={(event) => setDraft({ ...draft, packageName: event.target.value })}
+        />
+        <Input
+          label="Desde"
+          type="date"
+          max={draft.to || undefined}
+          value={draft.from}
+          onChange={(event) => setDraft({ ...draft, from: event.target.value })}
+        />
+        <Input
+          label="Hasta"
+          type="date"
+          min={draft.from || undefined}
+          value={draft.to}
+          onChange={(event) => setDraft({ ...draft, to: event.target.value })}
+        />
+        <div className="history-filters__actions">
+          <Button type="submit">Filtrar ventas</Button>
+        </div>
       </form>
       {salesQuery.isPending ? (
         <ListSkeleton variant="rows" label="Cargando ventas" />
@@ -97,9 +92,9 @@ export function AgencySales() {
         />
       ) : (
         <ul className="purchase-list">
-          {sales.map((sale) => (
+          {sales.map((sale, index) => (
             <li key={sale.id}>
-              <PurchaseTicket purchase={sale} audience="agency" />
+              <PurchaseTicket purchase={sale} audience="agency" index={index} />
             </li>
           ))}
         </ul>
