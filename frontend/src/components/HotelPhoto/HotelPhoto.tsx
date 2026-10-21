@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { isUnusableHotelPhotoUrl, photosForCity } from '../../data/cityPhotos'
+import { isUnusableHotelPhotoUrl, photosForCity, responsiveSrcSet } from '../../data/cityPhotos'
 import './HotelPhoto.css'
 
 interface HotelPhotoProps {
@@ -32,6 +32,8 @@ export function HotelPhoto({ src, alt, cityCode, size = 'default' }: HotelPhotoP
       <img
         className="hotel-photo__img"
         src={displaySrc}
+        srcSet={responsiveSrcSet(displaySrc)}
+        sizes={size === 'large' ? '(min-width: 1100px) 1100px, 100vw' : '(min-width: 640px) 280px, 100vw'}
         alt={alt}
         loading={size === 'large' ? 'eager' : 'lazy'}
         decoding="async"

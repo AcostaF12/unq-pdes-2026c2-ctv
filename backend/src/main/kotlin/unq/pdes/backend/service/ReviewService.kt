@@ -4,6 +4,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import unq.pdes.backend.model.Review
+import unq.pdes.backend.model.ReviewSummary
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.ReviewRepository
@@ -20,6 +21,21 @@ class ReviewService(
         travelPackageService.findById(packageId)
         return reviewRepository.findByTravelPackageId(packageId)
     }
+
+    @Transactional(readOnly = true)
+    fun findByBuyerAndPackage(
+        buyerId: Long,
+        packageId: Long,
+    ): Review? = reviewRepository.findByBuyerIdAndTravelPackageId(buyerId, packageId)
+
+    /** Average score and review count for every given package in a single grouped query. */
+    @Transactional(readOnly = true)
+    fun summarize(packageIds: Collection<Long>): Map<Long, ReviewSummary> =
+        if (packageIds.isEmpty()) {
+            emptyMap()
+        } else {
+            reviewRepository.summarizeByPackageIds(packageIds.toSet()).associateBy { it.packageId }
+        }
 
     @Transactional
     fun create(

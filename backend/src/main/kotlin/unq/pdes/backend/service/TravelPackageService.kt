@@ -7,10 +7,13 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import unq.pdes.backend.external.flights.FlightsClient
+import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.AgencyUser
+import unq.pdes.backend.model.user.Role
+import unq.pdes.backend.model.user.User
 import unq.pdes.backend.persistence.jpa.FavoriteRepository
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.ReviewRepository
@@ -28,6 +31,7 @@ class TravelPackageService(
     private val hotelService: HotelService,
     private val cityService: CityService,
     private val userService: UserService,
+    private val agencyService: AgencyService,
     private val flightsClient: FlightsClient,
     private val purchaseRepository: PurchaseRepository,
     private val favoriteRepository: FavoriteRepository,
@@ -40,8 +44,10 @@ class TravelPackageService(
         pageable: Pageable,
     ): Page<TravelPackage> {
         val sanitizedPageable = TravelPackageSearchPageable.sanitize(pageable)
+        val specification =
+            TravelPackageSearchSpecification.matching(criteria, TravelPackageSearchPageable.ratingDirection(sanitizedPageable))
         val startedAt = System.nanoTime()
-        val result = travelPackageRepository.findAll(TravelPackageSearchSpecification.matching(criteria), sanitizedPageable)
+        val result = travelPackageRepository.findAll(specification, TravelPackageSearchPageable.withoutRating(sanitizedPageable))
         searchMetrics.record(criteria, result.totalElements, Duration.ofNanos(System.nanoTime() - startedAt))
         return result
     }
@@ -66,15 +72,16 @@ class TravelPackageService(
         outboundFlightId: Long,
         returnFlightId: Long,
         price: BigDecimal,
+        agencyId: Long? = null,
     ): TravelPackage {
-        val agencyUser = requireAgencyUser(username)
-        requireUniqueName(agencyUser.agency.id!!, name, null)
+        val agency = resolveAgency(requireManager(username), agencyId)
+        requireUniqueName(agency.id!!, name, null)
         val hotel = hotelService.findById(hotelId)
         val (origin, destination) = resolveCities(hotel, outboundFlightId, returnFlightId)
         val travelPackage =
             TravelPackage
                 .Builder()
-                .agency(agencyUser.agency)
+                .agency(agency)
                 .hotel(hotel)
                 .origin(origin)
                 .destination(destination)
@@ -87,7 +94,7 @@ class TravelPackageService(
     }
 
     @Transactional
-    fun update(
+    fun update( // NOSONAR kotlin:S107, mirrors the package form fields
         username: String,
         id: Long,
         name: String,
@@ -95,17 +102,23 @@ class TravelPackageService(
         outboundFlightId: Long,
         returnFlightId: Long,
         price: BigDecimal,
+        agencyId: Long? = null,
     ): TravelPackage {
+        val manager = requireManager(username)
         val existing = findById(id)
-        requireOwnedBy(username, existing)
-        requireUniqueName(existing.agency.id!!, name, id)
+        requireCanModify(manager, existing)
+        val agency = resolveAgency(manager, agencyId)
+        require(agency.id == existing.agency.id || !purchaseRepository.existsByTravelPackageId(id)) {
+            "Cannot move a package that already has purchases to another agency."
+        }
+        requireUniqueName(agency.id!!, name, id)
         val hotel = hotelService.findById(hotelId)
         val (origin, destination) = resolveCities(hotel, outboundFlightId, returnFlightId)
         val travelPackage =
             TravelPackage
                 .Builder()
                 .id(id)
-                .agency(existing.agency)
+                .agency(agency)
                 .hotel(hotel)
                 .origin(origin)
                 .destination(destination)
@@ -123,7 +136,7 @@ class TravelPackageService(
         id: Long,
     ) {
         val travelPackage = findById(id)
-        requireOwnedBy(username, travelPackage)
+        requireCanModify(requireManager(username), travelPackage)
         require(!purchaseRepository.existsByTravelPackageId(id)) {
             "Cannot delete a package that already has purchases."
         }
@@ -170,14 +183,28 @@ class TravelPackageService(
         require(!taken) { "The agency already has a package named '$name'." }
     }
 
-    private fun requireOwnedBy(
-        username: String,
+    private fun requireCanModify(
+        manager: User,
         travelPackage: TravelPackage,
     ) {
-        val agencyUser = requireAgencyUser(username)
-        if (agencyUser.agency.id != travelPackage.agency.id) {
+        if (manager is AgencyUser && manager.agency.id != travelPackage.agency.id) {
             throw AccessDeniedException("Only the owning agency can modify this package.")
         }
+    }
+
+    private fun resolveAgency(
+        manager: User,
+        agencyId: Long?,
+    ): Agency =
+        (manager as? AgencyUser)?.agency
+            ?: agencyService.findById(requireNotNull(agencyId) { "An agency is required to manage packages as admin." })
+
+    private fun requireManager(username: String): User {
+        val user = userService.findByUsername(username)
+        if (user is AgencyUser || user.role == Role.ADMIN) {
+            return user
+        }
+        throw AccessDeniedException("Only agency or admin users can manage packages.")
     }
 
     private fun requireAgencyUser(username: String): AgencyUser {

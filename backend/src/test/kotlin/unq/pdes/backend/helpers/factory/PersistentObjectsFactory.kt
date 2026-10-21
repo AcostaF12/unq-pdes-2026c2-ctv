@@ -56,6 +56,13 @@ class PersistentObjectsFactory(
             userService.register(username, "buyer123", "Bruno", "Buyer")
         }
 
+    fun adminNamed(username: String): User =
+        try {
+            userService.findByUsername(username)
+        } catch (_: Exception) {
+            userService.createAdmin(username, "admin123", "Alan", "Admin")
+        }
+
     fun agencyUserNamed(
         username: String,
         agencyName: String = "Despegar",
@@ -74,10 +81,23 @@ class PersistentObjectsFactory(
         destinationCity: String = "Paris",
         agencyName: String = "Despegar",
         price: BigDecimal = BigDecimal("1500.00"),
+        hotelName: String? = null,
     ): TravelPackage {
         val origin = cityWith(originCode, originCity)
         val destination = cityWith(destinationCode, destinationCity)
-        val hotel = hotelIn(destination)
+        val hotel =
+            if (hotelName == null) {
+                hotelIn(destination)
+            } else {
+                hotelService.save(
+                    Hotel
+                        .Builder()
+                        .name(hotelName)
+                        .city(destination)
+                        .photoUrl(SOME_PHOTO_URL)
+                        .build(),
+                )
+            }
         return travelPackageRepository.save(
             TravelPackage
                 .Builder()

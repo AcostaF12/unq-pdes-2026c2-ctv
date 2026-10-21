@@ -10,8 +10,8 @@ describe('Administrador: gestión de hoteles', () => {
     cy.intercept('DELETE', '**/hotels/*').as('deleteHotel')
     loginThroughUI('vferreyra', 'vferreyra')
 
-    // crear un hotel sin modificar los otros hoteles
-    cy.contains('nav a', /^Nuevo hotel$/).click()
+    cy.contains('nav[aria-label="Principal"] a', /^Administración$/).click()
+    cy.get('[data-testid="admin-card-hotels"]').contains('a', /^Nuevo hotel$/).click()
     cy.contains('h1', /^Nuevo hotel$/).should('be.visible')
     cy.get('input[name="name"]').type(hotelName)
     cy.get('select[name="cityCode"]').select('PAR')
@@ -24,7 +24,6 @@ describe('Administrador: gestión de hoteles', () => {
     cy.contains('h1', hotelName).should('be.visible')
     cy.contains('p', 'Paris · PAR').should('be.visible')
 
-    // editar desde el detalle del hotel y comprobar persistencia tras recargar
     cy.contains('a', /^Editar$/).click()
     cy.contains('h1', /^Editar hotel$/).should('be.visible')
     cy.get('input[name="name"]').should('have.value', hotelName).clear().type(updatedName)
@@ -37,7 +36,6 @@ describe('Administrador: gestión de hoteles', () => {
     cy.contains('h1', updatedName).should('be.visible')
     cy.contains('p', 'Rome · ROM').should('be.visible')
 
-    // confirmar la eliminación solo de este hotel
     cy.on('window:confirm', (message) => {
       expect(message).to.eq(`¿Eliminar ${updatedName}?`)
       return true

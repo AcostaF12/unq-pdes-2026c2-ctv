@@ -7,4 +7,6 @@ interface AgencyRepository : JpaRepository<Agency, Long> {
     fun findByName(name: String): Agency?
 
     fun existsByName(name: String): Boolean
+
+    fun findAllByOrderByNameAsc(): List<Agency>
 }

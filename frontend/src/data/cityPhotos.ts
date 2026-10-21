@@ -13,10 +13,10 @@ const GENERIC_PHOTOS = [
 
 const CITY_PHOTOS: Record<string, string[]> = {
   BUE: [
-    unsplash('photo-1587595431973-160d0d94add1'),
-    unsplash('photo-1578632767115-351597cf2477'),
-    unsplash('photo-1566073771259-6a8506099945'),
-    unsplash('photo-1542314831-068cd1dbfeeb'),
+    unsplash('photo-1725499267114-15531716d101'),
+    unsplash('photo-1781041004799-481f1e2a8fad'),
+    unsplash('photo-1610135206707-0f03e4800631'),
+    unsplash('photo-1593014109521-48ea09f22592'),
   ],
   PAR: [
     unsplash('photo-1502602898657-3e91760cbb34'),
@@ -34,7 +34,6 @@ const CITY_PHOTOS: Record<string, string[]> = {
     unsplash('photo-1552832230-c0197dd311b5'),
     unsplash('photo-1529260830199-42c24126f198'),
     unsplash('photo-1515542622106-78bda8ba0e5b'),
-    unsplash('photo-1582719478250-c89cae4dc85b'),
   ],
   NYC: [
     unsplash('photo-1496442226666-8d4d0e62e6e9'),
@@ -52,13 +51,11 @@ const CITY_PHOTOS: Record<string, string[]> = {
     unsplash('photo-1772603503638-74ca65f96589'),
     unsplash('photo-1763110805416-22e7a6fffa58'),
     unsplash('photo-1518639192441-8fce0a366e2e'),
-    unsplash('photo-1624138784614-87fd1b6528f8'),
   ],
   BCN: [
     unsplash('photo-1583422409516-2895a77efded'),
     unsplash('photo-1539037116277-4db20889f2d4'),
     unsplash('photo-1523531294919-4bcd7c65e216'),
-    unsplash('photo-1558642452-9d2a7deb7f62'),
   ],
   CUN: [
     unsplash('photo-1507525428034-b723cf961d3e'),
@@ -89,5 +86,27 @@ export function isUnusableHotelPhotoUrl(src: string): boolean {
     return url.hostname === 'images.ctv.demo' || url.hostname.endsWith('.ctv.demo')
   } catch {
     return true
+  }
+}
+
+const SRCSET_WIDTHS = [480, 800, 1200]
+
+/**
+ * Unsplash serves any width on demand, so cards can fetch a small rendition instead
+ * of the 1200px hero. Returns undefined for any other host (the plain src is used).
+ */
+export function responsiveSrcSet(src: string): string | undefined {
+  try {
+    const url = new URL(src)
+    if (url.hostname !== 'images.unsplash.com') {
+      return undefined
+    }
+    return SRCSET_WIDTHS.map((width) => {
+      const variant = new URL(url)
+      variant.searchParams.set('w', String(width))
+      return `${variant.toString()} ${width}w`
+    }).join(', ')
+  } catch {
+    return undefined
   }
 }

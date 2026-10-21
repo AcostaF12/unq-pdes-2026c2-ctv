@@ -58,3 +58,4 @@ frontend/cypress/screenshots/
 frontend/cypress/videos/
 frontend/cypress/downloads/
 frontend/cypress.env.json
+docs/defensa/

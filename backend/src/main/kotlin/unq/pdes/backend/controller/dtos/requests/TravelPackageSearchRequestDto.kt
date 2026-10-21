@@ -9,6 +9,10 @@ data class TravelPackageSearchRequestDto(
     val destination: String? = null,
     val minPrice: BigDecimal? = null,
     val maxPrice: BigDecimal? = null,
+    val agencyId: Long? = null,
+    val hotel: String? = null,
+    val minRating: BigDecimal? = null,
 ) {
-    fun toCriteria(): TravelPackageSearchCriteria = TravelPackageSearchCriteria.from(name, origin, destination, minPrice, maxPrice)
+    fun toCriteria(): TravelPackageSearchCriteria =
+        TravelPackageSearchCriteria.from(name, origin, destination, minPrice, maxPrice, agencyId, hotel, minRating)
 }

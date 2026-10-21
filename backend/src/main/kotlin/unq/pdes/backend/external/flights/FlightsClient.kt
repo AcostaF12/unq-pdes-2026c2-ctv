@@ -10,6 +10,9 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.body
+import org.springframework.web.util.UriComponentsBuilder
+import java.time.LocalDate
+import java.util.Optional
 
 @Component
 class FlightsClient(
@@ -28,6 +31,41 @@ class FlightsClient(
                 .retrieve()
                 .body<ExternalFlightDto>()
         } ?: throw EntityNotFoundException("There is no Flight with id: $id.")
+
+    @Retry(name = "flightsService")
+    @CircuitBreaker(name = "flightsService")
+    fun search(
+        origin: String?,
+        destination: String?,
+        date: LocalDate?,
+    ): List<ExternalFlightDto> {
+        val uri =
+            UriComponentsBuilder
+                .fromUriString("$flightsServiceUrl/flights")
+                .queryParamIfPresent("origin", Optional.ofNullable(origin))
+                .queryParamIfPresent("destination", Optional.ofNullable(destination))
+                .queryParamIfPresent("date", Optional.ofNullable(date))
+                .build()
+                .toUri()
+        return execute("Could not search flights.") {
+            restClient
+                .get()
+                .uri(uri)
+                .retrieve()
+                .body<List<ExternalFlightDto>>()
+        } ?: emptyList()
+    }
+
+    @CircuitBreaker(name = "flightsService")
+    fun create(flight: ExternalFlightRequestDto): ExternalFlightDto =
+        execute("Could not create the flight.") {
+            restClient
+                .post()
+                .uri("$flightsServiceUrl/flights")
+                .body(flight)
+                .retrieve()
+                .body<ExternalFlightDto>()
+        } ?: throw FlightsServiceUnavailableException("Could not create the flight.")
 
     @Retry(name = "flightsService")
     @CircuitBreaker(name = "flightsService")

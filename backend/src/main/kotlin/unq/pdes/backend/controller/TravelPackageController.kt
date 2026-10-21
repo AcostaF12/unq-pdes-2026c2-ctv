@@ -38,8 +38,9 @@ class TravelPackageController(
     @Operation(
         summary = "Buscar paquetes",
         description =
-            "Filtra por nombre, origen, destino y rango de precio inclusivo. Admite paginación " +
-                "('page', 'size') y orden ('sort=name,asc' o 'sort=price,desc').",
+            "Filtra por nombre, origen, destino, rango de precio inclusivo, agencia ('agencyId'), hotel " +
+                "('hotel') y puntaje promedio mínimo ('minRating', 0 a 10). Admite paginación " +
+                "('page', 'size') y orden ('sort=name,asc', 'price,desc', 'destination.name,asc' o 'rating,desc').",
     )
     @GetMapping
     fun search(
@@ -47,7 +48,8 @@ class TravelPackageController(
         @PageableDefault(size = 20, sort = ["name"]) pageable: Pageable,
     ): ResponseEntity<PageDto<TravelPackageDto>> {
         val packages = travelPackageService.search(request.toCriteria(), pageable)
-        return ResponseEntity.ok(PageDto.from(packages) { TravelPackageDto.fromModel(it) })
+        val summaries = reviewService.summarize(packages.content.mapNotNull { it.id })
+        return ResponseEntity.ok(PageDto.from(packages) { TravelPackageDto.fromModel(it, summaries[it.id]) })
     }
 
     @Operation(summary = "Paquetes de la agencia", description = "Lista los paquetes de la agencia autenticada.")
@@ -56,7 +58,8 @@ class TravelPackageController(
         @AuthenticationPrincipal principal: UserDetails,
     ): ResponseEntity<List<TravelPackageDto>> {
         val packages = travelPackageService.findMine(principal.username)
-        return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it) })
+        val summaries = reviewService.summarize(packages.mapNotNull { it.id })
+        return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it, summaries[it.id]) })
     }
 
     @Operation(summary = "Detalle de paquete", description = "Incluye vuelos y reseñas cuando están disponibles.")
@@ -71,7 +74,12 @@ class TravelPackageController(
         return ResponseEntity.ok(TravelPackageDetailDto.from(travelPackage, outbound, returnFlight, reviews))
     }
 
-    @Operation(summary = "Crear paquete", description = "Registra un paquete para la agencia autenticada.")
+    @Operation(
+        summary = "Crear paquete",
+        description =
+            "Registra un paquete para la agencia autenticada. Un ADMIN debe indicar 'agencyId' y crea el paquete " +
+                "para esa agencia; las agencias ignoran 'agencyId'.",
+    )
     @PostMapping
     fun create(
         @AuthenticationPrincipal principal: UserDetails,
@@ -85,11 +93,17 @@ class TravelPackageController(
                 outboundFlightId = request.outboundFlightId,
                 returnFlightId = request.returnFlightId,
                 price = request.price,
+                agencyId = request.agencyId,
             )
         return ResponseEntity.status(HttpStatus.CREATED).body(TravelPackageDto.fromModel(travelPackage))
     }
 
-    @Operation(summary = "Actualizar paquete", description = "Modifica un paquete de la agencia autenticada.")
+    @Operation(
+        summary = "Actualizar paquete",
+        description =
+            "Modifica un paquete de la agencia autenticada. Un ADMIN puede modificar cualquier paquete e indica " +
+                "la agencia con 'agencyId' (obligatorio).",
+    )
     @PutMapping("/{id}")
     fun update(
         @AuthenticationPrincipal principal: UserDetails,
@@ -105,11 +119,15 @@ class TravelPackageController(
                 outboundFlightId = request.outboundFlightId,
                 returnFlightId = request.returnFlightId,
                 price = request.price,
+                agencyId = request.agencyId,
             )
         return ResponseEntity.ok(TravelPackageDto.fromModel(travelPackage))
     }
 
-    @Operation(summary = "Eliminar paquete", description = "Elimina un paquete de la agencia autenticada.")
+    @Operation(
+        summary = "Eliminar paquete",
+        description = "Elimina un paquete de la agencia autenticada. Un ADMIN puede eliminar cualquier paquete.",
+    )
     @DeleteMapping("/{id}")
     fun delete(
         @AuthenticationPrincipal principal: UserDetails,

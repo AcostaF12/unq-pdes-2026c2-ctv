@@ -228,7 +228,7 @@ class TravelPackageServiceTest {
                 travelPackageService.create("buyer", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
             }
 
-        assertEquals("Only agency users can manage packages.", exception.message)
+        assertEquals("Only agency or admin users can manage packages.", exception.message)
     }
 
     @Test
@@ -422,6 +422,221 @@ class TravelPackageServiceTest {
         Mockito
             .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
+    }
+
+    @Test
+    fun `21 - admin should create a package for the given agency`() {
+        factory.adminNamed("admin")
+        val agency = factory.agencyNamed("Almundo")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+
+        val travelPackage =
+            travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"), agency.id)
+
+        assertEquals(agency.id, travelPackage.agency.id)
+        assertEquals("BUE", travelPackage.origin.code)
+    }
+
+    @Test
+    fun `22 - admin should not create a package without an agency`() {
+        factory.adminNamed("admin")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
+
+        assertEquals("An agency is required to manage packages as admin.", exception.message)
+    }
+
+    @Test
+    fun `23 - admin should not create a package for an unknown agency`() {
+        factory.adminNamed("admin")
+
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.create("admin", "París Romántico", 1L, 1L, 2L, BigDecimal("1500.00"), 999L)
+            }
+
+        assertEquals("There is no Agency with id: 999.", exception.message)
+    }
+
+    @Test
+    fun `24 - admin should keep the unique name per agency rule`() {
+        factory.adminNamed("admin")
+        val agency = factory.agencyNamed("Almundo")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+        travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"), agency.id)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"), agency.id)
+            }
+
+        assertEquals("The agency already has a package named 'París Romántico'.", exception.message)
+    }
+
+    @Test
+    fun `25 - admin should update a package of any agency and move it to the given agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        val almundo = factory.agencyNamed("Almundo")
+
+        val updated =
+            travelPackageService.update(
+                "admin",
+                travelPackage.id!!,
+                "París Premium",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                almundo.id,
+            )
+
+        assertEquals("París Premium", updated.name)
+        assertEquals(almundo.id, updated.agency.id)
+    }
+
+    @Test
+    fun `26 - admin should not update a package without an agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "admin",
+                    travelPackage.id!!,
+                    "París Premium",
+                    travelPackage.hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1800.00"),
+                )
+            }
+
+        assertEquals("An agency is required to manage packages as admin.", exception.message)
+    }
+
+    @Test
+    fun `27 - agency should ignore the agencyId when updating its own package`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+        val other = factory.agencyNamed("Almundo")
+
+        val updated =
+            travelPackageService.update(
+                "agency",
+                travelPackage.id!!,
+                "París Premium",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                other.id,
+            )
+
+        assertEquals(travelPackage.agency.id, updated.agency.id)
+    }
+
+    @Test
+    fun `28 - admin should delete a package of any agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Almundo")
+
+        travelPackageService.deleteById("admin", travelPackage.id!!)
+
+        assertThrows(EntityNotFoundException::class.java) { travelPackageService.findById(travelPackage.id!!) }
+    }
+
+    @Test
+    fun `29 - admin should not delete a package with purchases`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("admin", travelPackage.id!!)
+            }
+
+        assertEquals("Cannot delete a package that already has purchases.", exception.message)
+    }
+
+    @Test
+    fun `31 - admin should not move a package with purchases to another agency`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        val almundo = factory.agencyNamed("Almundo")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "admin",
+                    travelPackage.id!!,
+                    "París Romántico",
+                    travelPackage.hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1800.00"),
+                    almundo.id,
+                )
+            }
+
+        assertEquals("Cannot move a package that already has purchases to another agency.", exception.message)
+    }
+
+    @Test
+    fun `32 - admin should update a package with purchases while keeping its agency`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val updated =
+            travelPackageService.update(
+                "admin",
+                travelPackage.id!!,
+                "París Romántico",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                travelPackage.agency.id,
+            )
+
+        assertEquals(travelPackage.agency.id, updated.agency.id)
+        assertEquals(0, BigDecimal("1800.00").compareTo(updated.price))
+    }
+
+    @Test
+    fun `30 - buyers cannot update or delete packages`() {
+        factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        assertThrows(AccessDeniedException::class.java) {
+            travelPackageService.update(
+                "buyer",
+                travelPackage.id!!,
+                "Nuevo",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1600.00"),
+            )
+        }
+        assertThrows(AccessDeniedException::class.java) { travelPackageService.deleteById("buyer", travelPackage.id!!) }
     }
 
     private fun stubRoundTrip(

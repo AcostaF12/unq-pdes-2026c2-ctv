@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 import type { AuthenticatedUser } from './auth'
-import type { TravelPackage } from './packages'
+import type { Flight, Review, TravelPackage } from './packages'
 
 export type BuyerIdentity = Pick<AuthenticatedUser, 'id' | 'username' | 'firstName' | 'lastName'>
 
@@ -10,6 +10,12 @@ export interface Purchase {
   travelPackage: TravelPackage
   purchasePrice: number
   purchasedAt: string
+}
+
+export interface PurchaseDetail extends Purchase {
+  outboundFlight: Flight | null
+  returnFlight: Flight | null
+  review: Review | null
 }
 
 export interface PurchaseHistoryPage {
@@ -31,9 +37,14 @@ export interface PurchaseHistoryFilters {
   to?: string
 }
 
-export async function getMyPurchases(
-  filters: Pick<PurchaseHistoryFilters, 'page' | 'size'>,
-): Promise<PurchaseHistoryPage> {
+export type MyPurchasesFilters = Pick<PurchaseHistoryFilters, 'page' | 'size' | 'packageName' | 'from' | 'to'> & {
+  destination?: string
+  minPrice?: number
+  maxPrice?: number
+  sort?: string
+}
+
+export async function getMyPurchases(filters: MyPurchasesFilters): Promise<PurchaseHistoryPage> {
   const { data } = await apiClient.get<PurchaseHistoryPage>('/purchases/me', { params: filters })
   return data
 }
@@ -50,5 +61,10 @@ export async function hasPurchasedPackage(packageId: number): Promise<boolean> {
 
 export async function buyPackage(packageId: number): Promise<Purchase> {
   const { data } = await apiClient.post<Purchase>('/purchases', { packageId })
+  return data
+}
+
+export async function getPurchase(id: number): Promise<PurchaseDetail> {
+  const { data } = await apiClient.get<PurchaseDetail>(`/purchases/${id}`)
   return data
 }
