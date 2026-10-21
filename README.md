@@ -68,23 +68,66 @@ En progreso...
 
 ## 🚀 Cómo Correr
 
-Levantar toda la aplicación (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK) con un solo comando:
+### Todo con Docker
+
+Levanta las 2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK con un solo comando:
 
 ```bash
 docker compose up --build
 ```
 
+La primera vez tarda varios minutos (compila los dos servicios Kotlin y baja las imágenes de ELK). Cuando el backend queda `healthy` ya se puede entrar al frontend.
+
+```bash
+docker compose ps            # estado y health de cada servicio
+docker compose logs -f backend
+docker compose down          # apaga y conserva los volúmenes
+docker compose down -v       # apaga y borra los datos (arranque limpio)
+```
+
+### Desarrollo con hot reload
+
+Solo las bases en Docker y el resto en la máquina. Los puertos por defecto del profile `dev` ya apuntan a ellas (`5433` backend, `5434` flights).
+
+```bash
+docker compose up -d backend-postgres flights-postgres
+
+cd flights-service && ./gradlew bootRun   # :8081
+cd backend && ./gradlew bootRun           # :8080
+cd frontend && npm ci && npm run dev      # :5173
+```
+
+Cada comando va en su propia terminal. Sin Zipkin ni Logstash levantados, los servicios Kotlin loguean avisos de reconexión a Logstash y de spans descartados que no afectan el funcionamiento. `TRACING_SAMPLING_PROBABILITY=0` silencia los de Zipkin.
+
+Si un puerto del host está ocupado (por ejemplo `5434`), el compose acepta `BACKEND_DB_PORT` y `FLIGHTS_DB_PORT`; en ese caso levantar el servicio con `DB_PORT` apuntando al puerto elegido.
+
+El schema lo administra Flyway. En `dev`, el backend borra y vuelve a cargar los datos de ejemplo en cada arranque.
+
 ### Servicios expuestos
 
 | Servicio | URL |
 |----------|-----|
-| Frontend | http://localhost:8090 |
+| Frontend (Docker) | http://localhost:8090 |
+| Frontend (`npm run dev`) | http://localhost:5173 |
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3001 (usuario `admin` / pass `admin`) |
 | Zipkin | http://localhost:9411 |
 | Kibana (logs) | http://localhost:5601 |
+
+Para presentar la aplicación, ver el [guion de demo](docs/demo.md).
+
+### Usuarios de prueba
+
+Los carga `DataBootstrap` en `dev` y `prod`.
+
+| Rol | Usuario | Contraseña |
+|-----|---------|------------|
+| Comprador | `buyer` | `buyer123` |
+| Comprador | `buyer2` | `buyer123` |
+| Agencia (Despegar) | `agency` | `agency123` |
+| Admin | `facosta`, `vferreyra`, `adisanto` | igual al usuario |
 
 ---
 
@@ -109,11 +152,25 @@ VM: `northcentralus`, IP pública `64.236.199.81` (fija mientras no se borre el 
 | Zipkin | http://64.236.199.81:9411 |
 | Kibana | http://64.236.199.81:5601 |
 
-La VM usa el profile `prod` de Spring, con `ddl-auto=create-drop` (igual que en local) para que el schema se recree y el `DataBootstrap` reseedee datos en cada deploy — no hay persistencia entre demos, es intencional para mantener consistencia entre los datos.
+La VM usa el profile `prod` de Spring. El schema lo administra Flyway (`ddl-auto=validate`) y `DataBootstrap` carga los datos de ejemplo que falten.
 
 ## 🧪 Testing
+
+Backend y flights-service (desde su carpeta):
 
 ```bash
 ./gradlew test              # tests
 ./gradlew jacocoTestReport  # reporte de cobertura (build/reports/jacoco/test/html)
 ```
+
+Frontend (desde `frontend/`):
+
+```bash
+npm run lint
+npm test
+npm run build               # incluye el chequeo de tipos
+```
+
+Estos mismos pasos son los que corre el CI de cada módulo.
+
+Pruebas end-to-end con Cypress contra un entorno Docker aparte (puertos `18080` y `18090`): ver [`frontend/README.md`](frontend/README.md#pruebas-e2e).
