@@ -45,6 +45,9 @@ describe('AdminHome page', () => {
     expect(screen.getByRole('link', { name: 'Gestionar vuelos' })).toHaveAttribute('href', '/admin/flights')
     expect(screen.getByRole('link', { name: 'Gestionar hoteles' })).toHaveAttribute('href', '/hotels')
     expect(screen.getByRole('link', { name: 'Nuevo hotel' })).toHaveAttribute('href', '/hotels/new')
+    expect(screen.getByRole('link', { name: 'Gestionar usuarios' })).toHaveAttribute('href', '/admin/users')
+    expect(screen.getByRole('link', { name: 'Gestionar agencias' })).toHaveAttribute('href', '/admin/agencies')
+    expect(screen.getByRole('link', { name: 'Consultar ventas' })).toHaveAttribute('href', '/admin/sales')
   })
 
   it('shows quick counts once they load', async () => {
