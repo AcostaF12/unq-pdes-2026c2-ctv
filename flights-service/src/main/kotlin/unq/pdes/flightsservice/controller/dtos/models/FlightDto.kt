@@ -13,10 +13,11 @@ data class FlightDto(
     val destination: String,
     val capacity: Int,
     val availability: Int,
+    val seedKey: String? = null,
 ) {
     companion object {
-        fun fromModel(flight: Flight): FlightDto {
-            return FlightDto(
+        fun fromModel(flight: Flight): FlightDto =
+            FlightDto(
                 id = flight.id,
                 airline = flight.airline,
                 flightDate = flight.flightDate,
@@ -25,12 +26,13 @@ data class FlightDto(
                 destination = flight.destination,
                 capacity = flight.capacity,
                 availability = flight.availability,
+                seedKey = flight.seedKey,
             )
-        }
     }
 
-    fun toModel(): Flight {
-        return Flight.Builder()
+    fun toModel(): Flight =
+        Flight
+            .Builder()
             .id(id)
             .airline(airline)
             .flightDate(flightDate)
@@ -40,5 +42,4 @@ data class FlightDto(
             .capacity(capacity)
             .availability(availability)
             .build()
-    }
 }

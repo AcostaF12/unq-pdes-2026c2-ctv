@@ -2,11 +2,12 @@
   width: 100%;
   max-width: 480px;
   background: var(--color-surface);
-  border: var(--border-width-lg) solid var(--color-ink);
+  border: var(--border-width-lg) solid var(--color-line);
   box-shadow: var(--shadow-hard);
   padding: var(--space-6) var(--space-5) var(--space-5);
   text-align: center;
   overflow: hidden;
+  border-radius: var(--radius-sm);
 }
 
 .error-page__scene {
@@ -67,8 +68,6 @@
 .error-page__eyebrow {
   font-family: var(--font-mono);
   font-size: 13px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
   color: var(--color-primary);
   margin-bottom: var(--space-1);
 }
@@ -87,14 +86,14 @@
 .error-page__cta {
   font-family: var(--font-display);
   font-size: 14px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--color-surface);
   background: var(--color-ink);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-3) var(--space-4);
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 .error-page__cta:hover {
@@ -103,6 +102,6 @@
 }
 
 .error-page__cta:active {
-  transform: translate(4px, 4px);
+  transform: translateY(1px);
   box-shadow: none;
 }

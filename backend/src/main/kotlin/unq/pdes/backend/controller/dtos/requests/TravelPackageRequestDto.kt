@@ -15,4 +15,5 @@ data class TravelPackageRequestDto(
     val returnFlightId: Long,
     @field:Positive(message = "The package price must be greater than zero.")
     val price: BigDecimal,
+    val agencyId: Long? = null,
 )

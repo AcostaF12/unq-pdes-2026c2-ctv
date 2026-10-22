@@ -10,14 +10,13 @@ data class ReviewDto(
     val comment: String?,
 ) {
     companion object {
-        fun fromModel(review: Review): ReviewDto {
-            return ReviewDto(
+        fun fromModel(review: Review): ReviewDto =
+            ReviewDto(
                 id = review.id,
                 buyerUsername = review.buyer.username,
                 packageId = review.travelPackage.id,
                 score = review.score,
                 comment = review.comment,
             )
-        }
     }
 }

@@ -7,23 +7,26 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.core.userdetails.User as SpringUser
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.model.user.User
+import org.springframework.security.core.userdetails.User as SpringUser
 
 @SpringBootTest
 class JwtServiceTest {
-
     @Autowired
     private lateinit var jwtService: unq.pdes.backend.service.JwtService
 
-    private fun userNamed(username: String): User {
-        return User.Builder()
-            .username(username).password("secret").role(Role.BUYER).firstName("John").lastName("Doe").build()
-    }
+    private fun userNamed(username: String): User =
+        User
+            .Builder()
+            .username(username)
+            .password("secret")
+            .role(Role.BUYER)
+            .firstName("John")
+            .lastName("Doe")
+            .build()
 
-    private fun details(username: String) =
-        SpringUser(username, "secret", AuthorityUtils.createAuthorityList("ROLE_BUYER"))
+    private fun details(username: String) = SpringUser(username, "secret", AuthorityUtils.createAuthorityList("ROLE_BUYER"))
 
     @Test
     fun `01 - generated token should carry the username as subject`() {

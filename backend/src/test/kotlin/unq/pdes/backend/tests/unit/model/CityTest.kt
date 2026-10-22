@@ -9,7 +9,6 @@ import unq.pdes.backend.model.City
 
 @TestInstance(PER_CLASS)
 class CityTest {
-
     @Test
     fun `01 - cities with same code should be equal`() {
         val city1 = City("BUE", "Buenos Aires")

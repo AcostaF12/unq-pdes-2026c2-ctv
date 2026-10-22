@@ -1,0 +1,144 @@
+.auth {
+  --scene-fill: #0b2f8a;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  min-height: 100%;
+  background: var(--color-surface);
+}
+
+.auth__scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  color: #fff;
+  background:
+    radial-gradient(110% 80% at 90% -10%, #7aa5ff 0%, transparent 55%),
+    linear-gradient(160deg, #0b2f8a 0%, #1f5eff 60%, #4f86ff 100%);
+}
+
+.auth__scene .hero__scene {
+  z-index: -1;
+}
+
+.auth__scene .hero__sky {
+  left: 12%;
+  top: 20%;
+  height: 40%;
+}
+
+.auth__brand {
+  position: relative;
+  z-index: 1;
+}
+
+.auth__brand .brand-mark--auth {
+  margin-bottom: 0;
+}
+
+.auth__pitch {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 460px;
+  padding-bottom: var(--space-6);
+}
+
+.auth__headline {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.4vw, 46px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.auth__perks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 15px;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.auth__perks li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  animation: fade-up var(--dur-slow) var(--ease-out) backwards;
+}
+
+.auth__perks li:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.auth__perks li:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.auth__perks li::before {
+  content: '✓';
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  height: 22px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-brand);
+  background: #fff;
+  border-radius: 50%;
+}
+
+.auth__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5) var(--space-4);
+}
+
+@media (max-width: 860px) {
+  .auth {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .auth__scene {
+    padding: var(--space-4) var(--space-3) var(--space-5);
+    gap: var(--space-3);
+  }
+
+  .auth__pitch {
+    padding-bottom: var(--space-5);
+  }
+
+  .auth__perks {
+    display: none;
+  }
+
+  .auth__headline {
+    font-size: 26px;
+  }
+
+  .auth__panel {
+    padding: var(--space-4) var(--space-3) var(--space-5);
+    align-items: flex-start;
+  }
+}
+
+/* The scene already shows the wordmark; keep the form's one for assistive tech only. */
+.auth__panel .brand-mark {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

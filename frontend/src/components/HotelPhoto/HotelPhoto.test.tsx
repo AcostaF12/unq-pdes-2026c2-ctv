@@ -60,4 +60,22 @@ describe('HotelPhoto', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.getByText('PAR')).toBeInTheDocument()
   })
+
+  it('offers smaller renditions for Unsplash photos and none for other hosts', () => {
+    const { unmount } = render(
+      <HotelPhoto
+        src="https://images.unsplash.com/photo-1?auto=format&fit=crop&w=1200&q=80"
+        alt="Hotel Unsplash"
+        cityCode="PAR"
+      />,
+    )
+    const srcSet = screen.getByRole('img', { name: 'Hotel Unsplash' }).getAttribute('srcset') ?? ''
+    expect(srcSet).toContain('w=480')
+    expect(srcSet).toContain('480w')
+    expect(srcSet).toContain('1200w')
+    unmount()
+
+    render(<HotelPhoto src="https://example.com/hotel.jpg" alt="Hotel Other" cityCode="PAR" />)
+    expect(screen.getByRole('img', { name: 'Hotel Other' })).not.toHaveAttribute('srcset')
+  })
 })

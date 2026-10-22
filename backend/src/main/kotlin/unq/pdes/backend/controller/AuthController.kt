@@ -21,22 +21,26 @@ import unq.pdes.backend.service.AuthService
 class AuthController(
     private val authService: AuthService,
 ) {
-
     @Operation(summary = "Registrar comprador", description = "Crea un usuario COMPRADOR y devuelve su token JWT.")
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequestDto): ResponseEntity<AuthResponseDto> {
-        val (token, user) = authService.register(
-            request.username,
-            request.password,
-            request.firstName,
-            request.lastName,
-        )
+    fun register(
+        @Valid @RequestBody request: RegisterRequestDto,
+    ): ResponseEntity<AuthResponseDto> {
+        val (token, user) =
+            authService.register(
+                request.username,
+                request.password,
+                request.firstName,
+                request.lastName,
+            )
         return ResponseEntity.status(HttpStatus.CREATED).body(AuthResponseDto(token, UserDto.fromModel(user)))
     }
 
     @Operation(summary = "Iniciar sesión", description = "Autentica un usuario y devuelve su token JWT.")
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequestDto): ResponseEntity<AuthResponseDto> {
+    fun login(
+        @Valid @RequestBody request: LoginRequestDto,
+    ): ResponseEntity<AuthResponseDto> {
         val (token, user) = authService.login(request.username, request.password)
         return ResponseEntity.ok(AuthResponseDto(token, UserDto.fromModel(user)))
     }

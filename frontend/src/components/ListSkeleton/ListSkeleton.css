@@ -19,9 +19,10 @@
 
 .list-skeleton__item {
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   overflow: hidden;
+  border-radius: var(--radius);
 }
 
 .list-skeleton--rows .list-skeleton__item {
@@ -36,12 +37,12 @@
   height: 72px;
   flex-shrink: 0;
   border-bottom: none;
-  border-right: var(--border-width) solid var(--color-ink);
+  border-right: var(--border-width) solid var(--color-line);
 }
 
 .list-skeleton__media {
   height: 180px;
-  border-bottom: var(--border-width) solid var(--color-ink);
+  border-bottom: var(--border-width) solid var(--color-line);
   background:
     linear-gradient(90deg, var(--color-bg) 0%, var(--color-secondary) 45%, var(--color-bg) 100%)
       0 0 / 200% 100%,
@@ -70,12 +71,13 @@
   display: block;
   height: 12px;
   width: 100%;
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   background:
     linear-gradient(90deg, var(--color-bg) 0%, var(--color-secondary) 45%, var(--color-bg) 100%)
       0 0 / 200% 100%,
     var(--color-bg);
   animation: skeleton-shift 1.15s linear infinite;
+  border-radius: var(--radius);
 }
 
 .list-skeleton__line--title {
@@ -102,4 +104,22 @@
     animation: none;
     background: var(--color-bg);
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.list-skeleton__item {
+  border-radius: 20px;
+}
+
+.list-skeleton__line {
+  border: 0;
+  border-radius: var(--radius-pill);
+  height: 12px;
+}
+
+.list-skeleton__media,
+.list-skeleton__line {
+  background:
+    linear-gradient(90deg, #e9eef8 0%, #f6f8fd 45%, #e9eef8 100%) 0 0 / 200% 100%,
+    #e9eef8;
 }

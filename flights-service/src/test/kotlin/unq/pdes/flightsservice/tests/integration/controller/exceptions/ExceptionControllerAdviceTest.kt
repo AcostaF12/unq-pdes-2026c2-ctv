@@ -17,19 +17,21 @@ import unq.pdes.flightsservice.controller.exceptions.ExceptionControllerAdvice
 
 @TestInstance(PER_CLASS)
 class ExceptionControllerAdviceTest {
-
     private lateinit var mvc: MockMvc
 
     @BeforeAll
     fun setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(TestExceptionController())
-            .setControllerAdvice(ExceptionControllerAdvice())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .standaloneSetup(TestExceptionController())
+                .setControllerAdvice(ExceptionControllerAdvice())
+                .build()
     }
 
     @Test
     fun `01 - should handle IllegalArgumentException with 400 status code`() {
-        mvc.perform(get("/test/illegal-argument").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/illegal-argument").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
@@ -38,7 +40,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `02 - should handle EntityNotFoundException with 404 status code`() {
-        mvc.perform(get("/test/entity-not-found").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/entity-not-found").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.httpCode").value(404))
             .andExpect(jsonPath("$.httpStatus").value("NOT_FOUND"))
@@ -47,7 +50,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `03 - should handle RuntimeException with 500 status code`() {
-        mvc.perform(get("/test/runtime-exception").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/runtime-exception").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError)
             .andExpect(jsonPath("$.httpCode").value(500))
             .andExpect(jsonPath("$.httpStatus").value("INTERNAL_SERVER_ERROR"))
@@ -57,19 +61,12 @@ class ExceptionControllerAdviceTest {
 
 @RestController
 private class TestExceptionController {
-
     @GetMapping("/test/illegal-argument")
-    fun throwIllegalArgumentException() {
-        throw IllegalArgumentException("Invalid argument message")
-    }
+    fun throwIllegalArgumentException(): Unit = throw IllegalArgumentException("Invalid argument message")
 
     @GetMapping("/test/entity-not-found")
-    fun throwEntityNotFoundException() {
-        throw EntityNotFoundException("Entity not found message")
-    }
+    fun throwEntityNotFoundException(): Unit = throw EntityNotFoundException("Entity not found message")
 
     @GetMapping("/test/runtime-exception")
-    fun throwRuntimeException() {
-        throw RuntimeException("This message will be replaced by the generic message")
-    }
+    fun throwRuntimeException(): Unit = throw RuntimeException("This message will be replaced by the generic message")
 }

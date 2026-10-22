@@ -1,5 +1,6 @@
 package unq.pdes.backend.controller.dtos.models
 
+import unq.pdes.backend.model.ReviewSummary
 import unq.pdes.backend.model.TravelPackage
 import java.math.BigDecimal
 
@@ -13,10 +14,16 @@ data class TravelPackageDto(
     val destination: CityDto,
     val outboundFlightId: Long,
     val returnFlightId: Long,
+    val averageScore: Double? = null,
+    val reviewCount: Int = 0,
+    val active: Boolean = true,
 ) {
     companion object {
-        fun fromModel(travelPackage: TravelPackage): TravelPackageDto {
-            return TravelPackageDto(
+        fun fromModel(
+            travelPackage: TravelPackage,
+            summary: ReviewSummary? = null,
+        ): TravelPackageDto =
+            TravelPackageDto(
                 id = travelPackage.id,
                 name = travelPackage.name,
                 price = travelPackage.price,
@@ -26,7 +33,9 @@ data class TravelPackageDto(
                 destination = CityDto.fromModel(travelPackage.destination),
                 outboundFlightId = travelPackage.outboundFlightId,
                 returnFlightId = travelPackage.returnFlightId,
+                averageScore = summary?.averageScore,
+                reviewCount = summary?.reviewCount?.toInt() ?: 0,
+                active = travelPackage.active,
             )
-        }
     }
 }

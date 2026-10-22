@@ -1,24 +1,27 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getApiErrorMessage } from '../../api/errors'
-import { listHotels } from '../../api/hotels'
-import { createPackage, deletePackage, getAgencyPackages } from '../../api/packages'
+import {
+  createPackage,
+  deletePackage,
+  getAgencyPackages,
+  updatePackage,
+  setPackageActive,
+  type TravelPackage,
+  type TravelPackagePayload,
+} from '../../api/packages'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
-import { Input } from '../../components/Input/Input'
-import { Select } from '../../components/Select/Select'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { PackageForm } from '../../components/PackageForm/PackageForm'
 import { queryKeys } from '../../query/keys'
 import '../Packages/packages.css'
 
 export function AgencyPackages() {
   const queryClient = useQueryClient()
-  const [name, setName] = useState('')
-  const [hotelId, setHotelId] = useState('')
-  const [outboundFlightId, setOutboundFlightId] = useState('')
-  const [returnFlightId, setReturnFlightId] = useState('')
-  const [price, setPrice] = useState('')
+  const [formKey, setFormKey] = useState(0)
+  const [editingPackage, setEditingPackage] = useState<TravelPackage | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
   const packagesQuery = useQuery({
@@ -26,27 +29,19 @@ export function AgencyPackages() {
     queryFn: getAgencyPackages,
   })
 
-  const hotelsQuery = useQuery({
-    queryKey: queryKeys.hotels.all,
-    queryFn: listHotels,
-  })
-
   const packages = packagesQuery.data ?? []
-  const hotels = hotelsQuery.data ?? []
-  const selectedHotelId = hotelId || (hotels[0] ? String(hotels[0].id) : '')
 
   const invalidatePackages = async () => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.packages.all })
   }
 
-  const createMutation = useMutation({
-    mutationFn: createPackage,
+  const saveMutation = useMutation({
+    mutationFn: (payload: TravelPackagePayload) =>
+      editingPackage ? updatePackage(editingPackage.id, payload) : createPackage(payload),
     onSuccess: async () => {
-      setName('')
-      setOutboundFlightId('')
-      setReturnFlightId('')
-      setPrice('')
-      setMessage('Paquete creado.')
+      setFormKey((key) => key + 1)
+      setMessage(editingPackage ? 'Paquete actualizado.' : 'Paquete creado.')
+      setEditingPackage(null)
       await invalidatePackages()
     },
   })
@@ -58,75 +53,63 @@ export function AgencyPackages() {
     },
   })
 
-  const onCreate = (event: FormEvent) => {
-    event.preventDefault()
+  const statusMutation = useMutation({
+    mutationFn: ({ id, active }: { id: number; active: boolean }) => setPackageActive(id, active),
+    onSuccess: async (saved) => {
+      setMessage(saved.active ? 'Paquete publicado.' : 'Paquete archivado. El historial se conserva.')
+      await invalidatePackages()
+    },
+  })
+
+  const openForm = (travelPackage: TravelPackage | null) => {
+    saveMutation.reset()
     setMessage(null)
-    createMutation.mutate({
-      name,
-      hotelId: Number(selectedHotelId),
-      outboundFlightId: Number(outboundFlightId),
-      returnFlightId: Number(returnFlightId),
-      price: Number(price),
-    })
+    setEditingPackage(travelPackage)
+    setFormKey((key) => key + 1)
   }
 
-  const loadError = packagesQuery.error ?? hotelsQuery.error
-  const actionError = createMutation.error ?? deleteMutation.error
-  const loading = packagesQuery.isPending || hotelsQuery.isPending
+  const onSave = (payload: TravelPackagePayload) => {
+    setMessage(null)
+    saveMutation.mutate(payload)
+  }
+
+  const loadError = packagesQuery.error
+  const deleteError = deleteMutation.error
+  const loading = packagesQuery.isPending
 
   return (
     <section className="page">
       <h1 className="page__title">Paquetes de la agencia</h1>
-      {actionError && !loadError ? (
-        <p className="catalog__error" role="alert">
-          {getApiErrorMessage(actionError) ??
-            (createMutation.isError ? 'No se pudo crear el paquete.' : 'No se pudo eliminar el paquete.')}
+      {statusMutation.error ? (
+        <p role="alert" className="catalog__error">
+          {getApiErrorMessage(statusMutation.error) ?? 'No se pudo cambiar el estado.'}
         </p>
       ) : null}
-      {message ? <p className="catalog__muted">{message}</p> : null}
+      {deleteError && !loadError ? (
+        <p className="catalog__error" role="alert">
+          {getApiErrorMessage(deleteError) ?? 'No se pudo eliminar el paquete.'}
+        </p>
+      ) : null}
+      {message ? (
+        <p className="catalog__muted" role="status">
+          {message}
+        </p>
+      ) : null}
 
-      <form className="catalog__form" onSubmit={onCreate}>
-        <h2>Nuevo paquete</h2>
-        <Input label="Nombre" value={name} onChange={(event) => setName(event.target.value)} required />
-        <Select
-          label="Hotel"
-          value={selectedHotelId}
-          onChange={(event) => setHotelId(event.target.value)}
-          required
-        >
-          {hotels.map((hotel) => (
-            <option key={hotel.id} value={hotel.id}>
-              {hotel.name} ({hotel.city.code})
-            </option>
-          ))}
-        </Select>
-        <Input
-          label="ID vuelo ida"
-          type="number"
-          value={outboundFlightId}
-          onChange={(event) => setOutboundFlightId(event.target.value)}
-          required
-        />
-        <Input
-          label="ID vuelo vuelta"
-          type="number"
-          value={returnFlightId}
-          onChange={(event) => setReturnFlightId(event.target.value)}
-          required
-        />
-        <Input
-          label="Precio"
-          type="number"
-          min={1}
-          step="0.01"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-          required
-        />
-        <Button type="submit" loading={createMutation.isPending}>
-          Crear paquete
-        </Button>
-      </form>
+      <PackageForm
+        key={formKey}
+        title={editingPackage ? 'Editar paquete' : 'Nuevo paquete'}
+        submitLabel={editingPackage ? 'Guardar cambios' : 'Crear paquete'}
+        initialPackage={editingPackage ?? undefined}
+        submitting={saveMutation.isPending}
+        serverError={
+          saveMutation.isError
+            ? (getApiErrorMessage(saveMutation.error) ?? 'No se pudo guardar el paquete.')
+            : null
+        }
+        onSubmit={onSave}
+        onCancel={editingPackage ? () => openForm(null) : undefined}
+      />
 
       {loadError ? (
         <EmptyState
@@ -138,7 +121,6 @@ export function AgencyPackages() {
               type="button"
               onClick={() => {
                 void packagesQuery.refetch()
-                void hotelsQuery.refetch()
               }}
             >
               Reintentar
@@ -158,9 +140,28 @@ export function AgencyPackages() {
                 {item.origin.name} → {item.destination.name}
               </p>
               <p className="catalog__price">USD {item.price}</p>
+              <p className="catalog__muted">{item.active === false ? 'Archivado' : 'Publicado'}</p>
               <Button
                 type="button"
                 variant="ghost"
+                disabled={statusMutation.isPending}
+                onClick={() => statusMutation.mutate({ id: item.id, active: item.active === false })}
+              >
+                {item.active === false ? 'Publicar' : 'Archivar'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label={`Editar ${item.name}`}
+                disabled={saveMutation.isPending}
+                onClick={() => openForm(item)}
+              >
+                Editar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={saveMutation.isPending || editingPackage?.id === item.id}
                 onClick={() => deleteMutation.mutate(item.id)}
                 loading={deleteMutation.isPending && deleteMutation.variables === item.id}
               >

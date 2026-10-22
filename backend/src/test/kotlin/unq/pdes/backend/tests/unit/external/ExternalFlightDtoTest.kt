@@ -11,7 +11,6 @@ import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 
 @TestInstance(PER_CLASS)
 class ExternalFlightDtoTest {
-
     @Test
     fun `01 - should create a sale dto`() {
         val sale = ExternalFlightSaleDto(id = 10L, flightId = 1L, passengerName = "Bruno Buyer")
@@ -23,11 +22,12 @@ class ExternalFlightDtoTest {
 
     @Test
     fun `02 - should create an error dto with optional fields`() {
-        val error = ExternalErrorDto(
-            httpCode = 404,
-            httpStatus = "NOT_FOUND",
-            errorData = ExternalErrorDataDto("There is no Flight with id: 1."),
-        )
+        val error =
+            ExternalErrorDto(
+                httpCode = 404,
+                httpStatus = "NOT_FOUND",
+                errorData = ExternalErrorDataDto("There is no Flight with id: 1."),
+            )
 
         assertEquals(404, error.httpCode)
         assertEquals("NOT_FOUND", error.httpStatus)

@@ -13,17 +13,21 @@ import unq.pdes.backend.model.user.User
 
 @TestInstance(PER_CLASS)
 class AgencyUserTest {
+    private val agency =
+        Agency
+            .Builder()
+            .id(1L)
+            .name("Despegar")
+            .build()
 
-    private val agency = Agency.Builder().id(1L).name("Despegar").build()
-
-    private fun validBuilder(): AgencyUser.Builder {
-        return AgencyUser.Builder()
+    private fun validBuilder(): AgencyUser.Builder =
+        AgencyUser
+            .Builder()
             .username("agency")
             .password("secret")
             .firstName("Agus")
             .lastName("Agency")
             .agency(agency)
-    }
 
     @Test
     fun `01 - builder should create a valid agency user with AGENCY role`() {
@@ -44,18 +48,32 @@ class AgencyUserTest {
 
     @Test
     fun `03 - building without an agency should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            AgencyUser.Builder().username("agency").password("secret").firstName("Agus").lastName("Agency").build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                AgencyUser
+                    .Builder()
+                    .username("agency")
+                    .password("secret")
+                    .firstName("Agus")
+                    .lastName("Agency")
+                    .build()
+            }
 
         assertEquals("An agency user must belong to an agency.", exception.message)
     }
 
     @Test
     fun `04 - building without username should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            AgencyUser.Builder().password("secret").firstName("Agus").lastName("Agency").agency(agency).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                AgencyUser
+                    .Builder()
+                    .password("secret")
+                    .firstName("Agus")
+                    .lastName("Agency")
+                    .agency(agency)
+                    .build()
+            }
 
         assertEquals("The user must have a username.", exception.message)
     }

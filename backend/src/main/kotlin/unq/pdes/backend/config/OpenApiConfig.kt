@@ -7,13 +7,12 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig {
-
-	@Bean
-	fun ctvOpenAPI(): OpenAPI =
-		OpenAPI().info(
-			Info()
-				.title("CTV - Backend API")
-				.description("API de la aplicación Compra Tu Viaje (CTV)")
-				.version("v0.0.1"),
-		)
+    @Bean
+    fun ctvOpenAPI(): OpenAPI =
+        OpenAPI().info(
+            Info()
+                .title("CTV - Backend API")
+                .description("API de la aplicación Compra Tu Viaje (CTV)")
+                .version("v0.0.1"),
+        )
 }

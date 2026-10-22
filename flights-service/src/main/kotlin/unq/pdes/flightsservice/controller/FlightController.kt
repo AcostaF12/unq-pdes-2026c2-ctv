@@ -15,6 +15,7 @@ import unq.pdes.flightsservice.controller.dtos.models.FlightDto
 import unq.pdes.flightsservice.controller.dtos.models.FlightSaleDto
 import unq.pdes.flightsservice.controller.dtos.requests.FlightRequestDto
 import unq.pdes.flightsservice.controller.dtos.requests.FlightSaleRequestDto
+import unq.pdes.flightsservice.controller.dtos.requests.SaleRequestDto
 import unq.pdes.flightsservice.service.FlightService
 import java.time.LocalDate
 
@@ -22,8 +23,7 @@ import java.time.LocalDate
 class FlightController(
     private val flightService: FlightService,
 ) {
-
-    @GetMapping("/flights")
+    @GetMapping("/flights", "/vuelos")
     fun search(
         @RequestParam(required = false) origin: String?,
         @RequestParam(required = false) destination: String?,
@@ -34,21 +34,24 @@ class FlightController(
     }
 
     @GetMapping("/flights/{id}")
-    fun byId(@PathVariable id: Long): ResponseEntity<FlightDto> {
-        return ResponseEntity.ok(FlightDto.fromModel(flightService.findById(id)))
-    }
+    fun byId(
+        @PathVariable id: Long,
+    ): ResponseEntity<FlightDto> = ResponseEntity.ok(FlightDto.fromModel(flightService.findById(id)))
 
     @PostMapping("/flights")
-    fun create(@Valid @RequestBody request: FlightRequestDto): ResponseEntity<FlightDto> {
-        val flight = flightService.create(
-            airline = request.airline,
-            flightDate = request.flightDate,
-            departureTime = request.departureTime,
-            origin = request.origin,
-            destination = request.destination,
-            capacity = request.capacity,
-            availability = request.availability,
-        )
+    fun create(
+        @Valid @RequestBody request: FlightRequestDto,
+    ): ResponseEntity<FlightDto> {
+        val flight =
+            flightService.create(
+                airline = request.airline,
+                flightDate = request.flightDate,
+                departureTime = request.departureTime,
+                origin = request.origin,
+                destination = request.destination,
+                capacity = request.capacity,
+                availability = request.availability,
+            )
         return ResponseEntity.status(HttpStatus.CREATED).body(FlightDto.fromModel(flight))
     }
 
@@ -61,8 +64,15 @@ class FlightController(
         return ResponseEntity.status(HttpStatus.CREATED).body(FlightSaleDto.fromModel(sale))
     }
 
+    @PostMapping("/venta")
+    fun sell(
+        @Valid @RequestBody request: SaleRequestDto,
+    ): ResponseEntity<FlightSaleDto> = sell(request.flightId, FlightSaleRequestDto(request.passengerName))
+
     @DeleteMapping("/flights/sales/{id}")
-    fun cancelSale(@PathVariable id: Long): ResponseEntity<Void> {
+    fun cancelSale(
+        @PathVariable id: Long,
+    ): ResponseEntity<Void> {
         flightService.cancelSale(id)
         return ResponseEntity.noContent().build()
     }

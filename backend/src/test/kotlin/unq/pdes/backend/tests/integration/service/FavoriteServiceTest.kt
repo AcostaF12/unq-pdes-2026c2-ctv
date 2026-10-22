@@ -12,7 +12,6 @@ import unq.pdes.backend.service.FavoriteService
 
 @SpringBootTest
 class FavoriteServiceTest {
-
     @Autowired
     private lateinit var favoriteService: FavoriteService
 
@@ -44,9 +43,10 @@ class FavoriteServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         favoriteService.add(buyer.username, travelPackage.id!!)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            favoriteService.add(buyer.username, travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                favoriteService.add(buyer.username, travelPackage.id!!)
+            }
 
         assertEquals("The package is already in favorites.", exception.message)
     }
@@ -67,9 +67,10 @@ class FavoriteServiceTest {
         val buyer = factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        val exception = assertThrows(jakarta.persistence.EntityNotFoundException::class.java) {
-            favoriteService.remove(buyer.username, travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(jakarta.persistence.EntityNotFoundException::class.java) {
+                favoriteService.remove(buyer.username, travelPackage.id!!)
+            }
 
         assertEquals("The package is not in favorites.", exception.message)
     }
@@ -79,9 +80,10 @@ class FavoriteServiceTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
-            favoriteService.add("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+                favoriteService.add("agency", travelPackage.id!!)
+            }
 
         assertEquals("Only buyers can manage favorites.", exception.message)
     }

@@ -1,7 +1,5 @@
 package unq.pdes.backend.tests.unit.model
 
-import java.math.BigDecimal
-import java.time.LocalDateTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -16,31 +14,58 @@ import unq.pdes.backend.model.Purchase
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.model.user.User
+import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @TestInstance(PER_CLASS)
 class PurchaseTest {
+    private val buyer =
+        User
+            .Builder()
+            .id(1L)
+            .username("buyer")
+            .password("secret")
+            .role(Role.BUYER)
+            .firstName("Bruno")
+            .lastName("Buyer")
+            .build()
 
-    private val buyer = User.Builder()
-        .id(1L).username("buyer").password("secret").role(Role.BUYER).firstName("Bruno").lastName("Buyer").build()
-
-    private val agency = Agency.Builder().id(1L).name("Despegar").build()
+    private val agency =
+        Agency
+            .Builder()
+            .id(1L)
+            .name("Despegar")
+            .build()
     private val paris = City("PAR", "Paris")
-    private val travelPackage = TravelPackage.Builder()
-        .id(1L)
-        .agency(agency)
-        .hotel(Hotel.Builder().id(1L).name("Hotel").city(paris).photoUrl("https://x.demo/h.jpg").build())
-        .origin(City("BUE", "Buenos Aires"))
-        .destination(paris)
-        .name("Paquete").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal("1000.00")).build()
+    private val travelPackage =
+        TravelPackage
+            .Builder()
+            .id(1L)
+            .agency(agency)
+            .hotel(
+                Hotel
+                    .Builder()
+                    .id(1L)
+                    .name("Hotel")
+                    .city(paris)
+                    .photoUrl("https://x.demo/h.jpg")
+                    .build(),
+            ).origin(City("BUE", "Buenos Aires"))
+            .destination(paris)
+            .name("Paquete")
+            .outboundFlightId(1L)
+            .returnFlightId(2L)
+            .price(BigDecimal("1000.00"))
+            .build()
 
-    private fun validBuilder(): Purchase.Builder {
-        return Purchase.Builder()
+    private fun validBuilder(): Purchase.Builder =
+        Purchase
+            .Builder()
             .buyer(buyer)
             .travelPackage(travelPackage)
             .agency(agency)
             .purchasePrice(BigDecimal("1000.00"))
             .purchasedAt(LocalDateTime.of(2026, 8, 20, 12, 0))
-    }
 
     @Test
     fun `01 - builder should create a valid purchase`() {
@@ -55,19 +80,26 @@ class PurchaseTest {
 
     @Test
     fun `02 - non positive price should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Purchase.Builder().purchasePrice(BigDecimal.ZERO)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Purchase.Builder().purchasePrice(BigDecimal.ZERO)
+            }
 
         assertEquals("The purchase price must be greater than zero.", exception.message)
     }
 
     @Test
     fun `03 - building without timestamp should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Purchase.Builder().buyer(buyer).travelPackage(travelPackage).agency(agency)
-                .purchasePrice(BigDecimal.TEN).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Purchase
+                    .Builder()
+                    .buyer(buyer)
+                    .travelPackage(travelPackage)
+                    .agency(agency)
+                    .purchasePrice(BigDecimal.TEN)
+                    .build()
+            }
 
         assertEquals("The purchase must have a timestamp.", exception.message)
     }
@@ -98,17 +130,27 @@ class PurchaseTest {
 
     @Test
     fun `08 - toString should contain the price`() {
-        assertTrue(validBuilder().id(1L).build().toString().contains("price=1000.00"))
+        assertTrue(
+            validBuilder()
+                .id(1L)
+                .build()
+                .toString()
+                .contains("price=1000.00"),
+        )
     }
 
     @Test
     fun `09 - building without agency should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Purchase.Builder().buyer(buyer).travelPackage(travelPackage)
-                .purchasePrice(BigDecimal.TEN)
-                .purchasedAt(LocalDateTime.of(2026, 8, 20, 12, 0))
-                .build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Purchase
+                    .Builder()
+                    .buyer(buyer)
+                    .travelPackage(travelPackage)
+                    .purchasePrice(BigDecimal.TEN)
+                    .purchasedAt(LocalDateTime.of(2026, 8, 20, 12, 0))
+                    .build()
+            }
 
         assertEquals("The purchase must belong to an agency.", exception.message)
     }

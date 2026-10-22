@@ -29,7 +29,6 @@ import unq.pdes.backend.service.PurchaseService
 @SpringBootTest
 @WithMockUser(username = "buyer", roles = ["BUYER"])
 class ReviewControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -52,12 +51,16 @@ class ReviewControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -72,11 +75,13 @@ class ReviewControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
         mvc.perform(
-            post("/reviews").contentType(MediaType.APPLICATION_JSON)
+            post("/reviews")
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(ReviewRequestDto(travelPackage.id!!, 9, "Excelente"))),
         )
 
-        mvc.perform(get("/reviews/package/{packageId}", travelPackage.id))
+        mvc
+            .perform(get("/reviews/package/{packageId}", travelPackage.id))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].score").value(9))
@@ -89,11 +94,12 @@ class ReviewControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(
-            post("/reviews").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(ReviewRequestDto(travelPackage.id!!, 8, "Muy bueno"))),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/reviews")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(ReviewRequestDto(travelPackage.id!!, 8, "Muy bueno"))),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.score").value(8))
             .andExpect(jsonPath("$.comment").value("Muy bueno"))
             .andExpect(jsonPath("$.packageId").value(travelPackage.id))

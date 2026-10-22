@@ -20,19 +20,21 @@ import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
 
 @TestInstance(PER_CLASS)
 class ExceptionControllerAdviceTest {
-
     private lateinit var mvc: MockMvc
 
     @BeforeAll
     fun setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(TestExceptionController())
-            .setControllerAdvice(ExceptionControllerAdvice())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .standaloneSetup(TestExceptionController())
+                .setControllerAdvice(ExceptionControllerAdvice())
+                .build()
     }
 
     @Test
     fun `01 - should handle IllegalArgumentException with 400 status code`() {
-        mvc.perform(get("/test/illegal-argument").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/illegal-argument").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.httpCode").value(400))
             .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
@@ -41,7 +43,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `02 - should handle EntityNotFoundException with 404 status code`() {
-        mvc.perform(get("/test/entity-not-found").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/entity-not-found").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.httpCode").value(404))
             .andExpect(jsonPath("$.httpStatus").value("NOT_FOUND"))
@@ -50,7 +53,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `03 - should handle RuntimeException with 500 status code`() {
-        mvc.perform(get("/test/runtime-exception").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/runtime-exception").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError)
             .andExpect(jsonPath("$.httpCode").value(500))
             .andExpect(jsonPath("$.httpStatus").value("INTERNAL_SERVER_ERROR"))
@@ -59,7 +63,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `04 - should handle AuthenticationException with 401 status code`() {
-        mvc.perform(get("/test/authentication").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/authentication").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.httpCode").value(401))
             .andExpect(jsonPath("$.httpStatus").value("UNAUTHORIZED"))
@@ -68,7 +73,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `05 - should handle AccessDeniedException with 403 status code`() {
-        mvc.perform(get("/test/access-denied").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/access-denied").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.httpCode").value(403))
             .andExpect(jsonPath("$.errorData.description").value("Only the owning agency can modify this package."))
@@ -76,7 +82,8 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `06 - should handle FlightsServiceUnavailableException with 503 status code`() {
-        mvc.perform(get("/test/flights-unavailable").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/flights-unavailable").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.httpCode").value(503))
             .andExpect(jsonPath("$.errorData.description").value("Flights service is unavailable."))
@@ -84,11 +91,13 @@ class ExceptionControllerAdviceTest {
 
     @Test
     fun `07 - should use fallback messages when the exception has no message`() {
-        mvc.perform(get("/test/illegal-argument-null").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/illegal-argument-null").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("Invalid request."))
 
-        mvc.perform(get("/test/entity-not-found-null").contentType(MediaType.APPLICATION_JSON))
+        mvc
+            .perform(get("/test/entity-not-found-null").contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.errorData.description").value("Entity not found."))
     }
@@ -96,44 +105,27 @@ class ExceptionControllerAdviceTest {
 
 @RestController
 private class TestExceptionController {
-
     @GetMapping("/test/illegal-argument")
-    fun throwIllegalArgumentException() {
-        throw IllegalArgumentException("Invalid argument message")
-    }
+    fun throwIllegalArgumentException(): Unit = throw IllegalArgumentException("Invalid argument message")
 
     @GetMapping("/test/entity-not-found")
-    fun throwEntityNotFoundException() {
-        throw EntityNotFoundException("Entity not found message")
-    }
+    fun throwEntityNotFoundException(): Unit = throw EntityNotFoundException("Entity not found message")
 
     @GetMapping("/test/runtime-exception")
-    fun throwRuntimeException() {
-        throw RuntimeException("This message will be replaced by the generic message")
-    }
+    fun throwRuntimeException(): Unit = throw RuntimeException("This message will be replaced by the generic message")
 
     @GetMapping("/test/authentication")
-    fun throwAuthenticationException() {
-        throw BadCredentialsException("Bad credentials")
-    }
+    fun throwAuthenticationException(): Unit = throw BadCredentialsException("Bad credentials")
 
     @GetMapping("/test/access-denied")
-    fun throwAccessDeniedException() {
-        throw AccessDeniedException("Only the owning agency can modify this package.")
-    }
+    fun throwAccessDeniedException(): Unit = throw AccessDeniedException("Only the owning agency can modify this package.")
 
     @GetMapping("/test/flights-unavailable")
-    fun throwFlightsUnavailable() {
-        throw FlightsServiceUnavailableException("Flights service is unavailable.")
-    }
+    fun throwFlightsUnavailable(): Unit = throw FlightsServiceUnavailableException("Flights service is unavailable.")
 
     @GetMapping("/test/illegal-argument-null")
-    fun throwIllegalArgumentWithoutMessage() {
-        throw IllegalArgumentException(null as String?)
-    }
+    fun throwIllegalArgumentWithoutMessage(): Unit = throw IllegalArgumentException(null as String?)
 
     @GetMapping("/test/entity-not-found-null")
-    fun throwEntityNotFoundWithoutMessage() {
-        throw EntityNotFoundException()
-    }
+    fun throwEntityNotFoundWithoutMessage(): Unit = throw EntityNotFoundException()
 }

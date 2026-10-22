@@ -1,6 +1,19 @@
 name: Flights Service CI
 
 on:
+  workflow_call:
+    inputs:
+      checks-only:
+        description: "Run checks without publishing images"
+        type: boolean
+        default: true
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
   push:
     branches: [main, dev]
     paths:
@@ -18,6 +31,8 @@ defaults:
 
 jobs:
   build:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -42,18 +57,44 @@ jobs:
       - name: Build and test
         run: ./gradlew build
 
-      - name: SonarCloud analysis
-        if: ${{ env.SONAR_TOKEN != '' }}
-        run: ./gradlew sonar
+      - name: SonarCloud analysis and Quality Gate
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if [ -z "${SONAR_TOKEN:-}" ]; then
+            echo "::error::SONAR_TOKEN is required for internal CI and deploy checks. Configure the repository secret and pass it to reusable workflows."
+            exit 1
+          fi
+          # SonarCloud free: Quality Gate API only for main. Elsewhere analyze and rely on the SonarCloud GitHub check.
+          WAIT=false
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            WAIT=true
+          fi
+          ./gradlew sonar -Dsonar.qualitygate.wait="${WAIT}" -Dsonar.qualitygate.timeout=300
+
+      - name: Explain skipped Sonar analysis for fork PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "::warning::Sonar analysis was skipped because fork PRs do not receive repository secrets. Build, tests and lint still run."
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.checks-only != true
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    env:
+      DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE || secrets.DOCKERHUB_USERNAME }}
     steps:
+      - name: Require Docker Hub credentials
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "${DOCKERHUB_USERNAME:-}" ] || [ -z "${DOCKERHUB_TOKEN:-}" ] || [ -z "${DOCKERHUB_NAMESPACE:-}" ]; then
+            echo "::error::DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets are required to publish images to Docker Hub (optional DOCKERHUB_NAMESPACE repository variable overrides the namespace)."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -64,6 +105,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -72,3 +119,5 @@ jobs:
           tags: |
             ghcr.io/acostaf12/ctv-flights-service:latest
             ghcr.io/acostaf12/ctv-flights-service:${{ github.sha }}
+            ${{ env.DOCKERHUB_NAMESPACE }}/ctv-flights-service:latest
+            ${{ env.DOCKERHUB_NAMESPACE }}/ctv-flights-service:${{ github.sha }}

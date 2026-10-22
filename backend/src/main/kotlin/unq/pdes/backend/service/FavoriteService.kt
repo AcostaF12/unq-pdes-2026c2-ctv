@@ -14,7 +14,6 @@ class FavoriteService(
     private val travelPackageService: TravelPackageService,
     private val userService: UserService,
 ) {
-
     @Transactional(readOnly = true)
     fun findMine(username: String): List<Favorite> {
         val buyer = userService.findByUsername(username)
@@ -22,14 +21,18 @@ class FavoriteService(
     }
 
     @Transactional
-    fun add(username: String, packageId: Long): Favorite {
+    fun add(
+        username: String,
+        packageId: Long,
+    ): Favorite {
         val buyer = requireBuyer(username)
         val travelPackage = travelPackageService.findById(packageId)
         require(!favoriteRepository.existsByBuyerIdAndTravelPackageId(buyer.id!!, packageId)) {
             "The package is already in favorites."
         }
         return favoriteRepository.save(
-            Favorite.Builder()
+            Favorite
+                .Builder()
                 .buyer(buyer)
                 .travelPackage(travelPackage)
                 .build(),
@@ -37,16 +40,21 @@ class FavoriteService(
     }
 
     @Transactional
-    fun remove(username: String, packageId: Long) {
+    fun remove(
+        username: String,
+        packageId: Long,
+    ) {
         val buyer = requireBuyer(username)
-        val favorite = favoriteRepository.findByBuyerIdAndTravelPackageId(buyer.id!!, packageId)
-            ?: throw EntityNotFoundException("The package is not in favorites.")
+        val favorite =
+            favoriteRepository.findByBuyerIdAndTravelPackageId(buyer.id!!, packageId)
+                ?: throw EntityNotFoundException("The package is not in favorites.")
         favoriteRepository.delete(favorite)
     }
 
-    private fun requireBuyer(username: String) = userService.findByUsername(username).also { buyer ->
-        if (buyer.role != Role.BUYER) {
-            throw AccessDeniedException("Only buyers can manage favorites.")
+    private fun requireBuyer(username: String) =
+        userService.findByUsername(username).also { buyer ->
+            if (buyer.role != Role.BUYER) {
+                throw AccessDeniedException("Only buyers can manage favorites.")
+            }
         }
-    }
 }

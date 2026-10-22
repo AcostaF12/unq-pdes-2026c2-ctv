@@ -15,7 +15,6 @@ import unq.pdes.backend.service.HotelService
 
 @SpringBootTest
 class HotelServiceTest {
-
     @Autowired
     private lateinit var hotelService: HotelService
 
@@ -43,9 +42,10 @@ class HotelServiceTest {
 
     @Test
     fun `02 - create with unknown city should throw EntityNotFoundException`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            hotelService.create("Some hotel", "ZZZ", "https://x.demo/p.jpg")
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                hotelService.create("Some hotel", "ZZZ", "https://x.demo/p.jpg")
+            }
 
         assertEquals("There is no City with code: ZZZ.", exception.message)
     }
@@ -62,9 +62,10 @@ class HotelServiceTest {
 
     @Test
     fun `04 - findById should throw EntityNotFoundException when not found`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            hotelService.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                hotelService.findById(999L)
+            }
 
         assertEquals("There is no Hotel with id: 999.", exception.message)
     }
@@ -93,9 +94,10 @@ class HotelServiceTest {
     fun `07 - update should throw EntityNotFoundException when hotel not found`() {
         factory.cityWith("BUE", "Buenos Aires")
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            hotelService.update(999L, "Some hotel", "BUE", "https://x.demo/p.jpg")
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                hotelService.update(999L, "Some hotel", "BUE", "https://x.demo/p.jpg")
+            }
 
         assertEquals("There is no Hotel with id: 999.", exception.message)
     }
@@ -111,9 +113,10 @@ class HotelServiceTest {
 
     @Test
     fun `09 - delete should throw EntityNotFoundException when hotel not found`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            hotelService.deleteById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                hotelService.deleteById(999L)
+            }
 
         assertEquals("There is no Hotel with id: 999.", exception.message)
     }

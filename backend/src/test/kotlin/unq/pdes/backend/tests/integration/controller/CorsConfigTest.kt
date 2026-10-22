@@ -16,7 +16,6 @@ import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest
 class CorsConfigTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -24,30 +23,32 @@ class CorsConfigTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
     }
 
     @Test
     fun `01 - OPTIONS preflight from localhost should include CORS headers`() {
-        mvc.perform(
-            options("/auth/login")
-                .header(HttpHeaders.ORIGIN, "http://localhost:8090")
-                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"),
-        )
-            .andExpect(status().isOk)
+        mvc
+            .perform(
+                options("/auth/login")
+                    .header(HttpHeaders.ORIGIN, "http://localhost:8090")
+                    .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"),
+            ).andExpect(status().isOk)
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:8090"))
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"))
     }
 
     @Test
     fun `02 - OPTIONS preflight from an unknown origin should not allow that origin`() {
-        mvc.perform(
-            options("/auth/login")
-                .header(HttpHeaders.ORIGIN, "http://evil.example")
-                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"),
-        )
-            .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+        mvc
+            .perform(
+                options("/auth/login")
+                    .header(HttpHeaders.ORIGIN, "http://evil.example")
+                    .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST"),
+            ).andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
     }
 }

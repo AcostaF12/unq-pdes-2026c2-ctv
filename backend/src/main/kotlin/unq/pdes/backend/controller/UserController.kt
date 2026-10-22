@@ -23,10 +23,11 @@ import unq.pdes.backend.service.UserService
 class UserController(
     private val userService: UserService,
 ) {
-
     @Operation(summary = "Usuario actual", description = "Retorna los datos del usuario autenticado (según el token JWT).")
     @GetMapping("/me")
-    fun me(@AuthenticationPrincipal principal: UserDetails): ResponseEntity<UserDto> {
+    fun me(
+        @AuthenticationPrincipal principal: UserDetails,
+    ): ResponseEntity<UserDto> {
         val user = userService.findByUsername(principal.username)
         return ResponseEntity.ok(UserDto.fromModel(user))
     }

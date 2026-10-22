@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthLayout } from '../../components/AuthLayout/AuthLayout'
 import { BrandMark } from '../../components/BrandMark/BrandMark'
 import { Button } from '../../components/Button/Button'
 import { Input } from '../../components/Input/Input'
@@ -47,7 +48,7 @@ export function Register() {
   }
 
   return (
-    <div className="page-center">
+    <AuthLayout>
       <div className="register-card">
         <BrandMark variant="auth" />
         <h1 className="register-card__title">Crear cuenta</h1>
@@ -108,6 +109,6 @@ export function Register() {
           ¿Ya tenés cuenta? <Link to="/login">Iniciá sesión</Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   )
 }

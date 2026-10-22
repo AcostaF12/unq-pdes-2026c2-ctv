@@ -16,7 +16,6 @@ import unq.pdes.backend.external.flights.FlightsServiceHealthIndicator
 
 @TestInstance(PER_CLASS)
 class FlightsServiceHealthIndicatorTest {
-
     private val flightsServiceUrl = "http://flights-service:8081"
 
     private lateinit var server: MockRestServiceServer
@@ -31,7 +30,8 @@ class FlightsServiceHealthIndicatorTest {
 
     @Test
     fun `01 - reports UP when the flights service responds with UP status`() {
-        server.expect(requestTo("$flightsServiceUrl/actuator/health"))
+        server
+            .expect(requestTo("$flightsServiceUrl/actuator/health"))
             .andRespond(withSuccess("{\"status\":\"UP\"}", MediaType.APPLICATION_JSON))
 
         val health = healthIndicator.health()
@@ -42,7 +42,8 @@ class FlightsServiceHealthIndicatorTest {
 
     @Test
     fun `02 - reports DOWN when the flights service responds with a non-UP status`() {
-        server.expect(requestTo("$flightsServiceUrl/actuator/health"))
+        server
+            .expect(requestTo("$flightsServiceUrl/actuator/health"))
             .andRespond(withSuccess("{\"status\":\"DOWN\"}", MediaType.APPLICATION_JSON))
 
         val health = healthIndicator.health()
@@ -53,7 +54,8 @@ class FlightsServiceHealthIndicatorTest {
 
     @Test
     fun `03 - reports DOWN when the flights service call fails`() {
-        server.expect(requestTo("$flightsServiceUrl/actuator/health"))
+        server
+            .expect(requestTo("$flightsServiceUrl/actuator/health"))
             .andRespond(withServerError())
 
         val health = healthIndicator.health()

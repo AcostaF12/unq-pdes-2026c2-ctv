@@ -1,16 +1,15 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
   text-align: left;
 }
 
 .field__label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--color-ink);
+  font-weight: 700;
+  color: var(--color-muted);
 }
 
 .field__input-wrapper {
@@ -25,9 +24,21 @@
   font-size: 16px;
   color: var(--color-ink);
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
-  border-radius: var(--radius);
-  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.field__input::placeholder {
+  color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+}
+
+.field__input:hover {
+  border-color: color-mix(in srgb, var(--color-brand) 30%, var(--color-line));
 }
 
 .field__input--with-icon {
@@ -36,12 +47,16 @@
 
 .field__input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-hard-sm);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 4px rgb(31 94 255 / 0.14);
 }
 
 .field__input--error {
   border-color: var(--color-error);
+}
+
+.field__input--error:focus {
+  box-shadow: 0 0 0 4px rgb(196 55 43 / 0.14);
 }
 
 .field__right-slot {
@@ -54,7 +69,7 @@
 }
 
 .field__error {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--color-error);
 }

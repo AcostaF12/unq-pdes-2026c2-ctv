@@ -9,7 +9,6 @@ import unq.pdes.backend.model.City
 
 @TestInstance(PER_CLASS)
 class CityDtoTest {
-
     @Test
     fun `01 - should create a CityDto with all parameters`() {
         val dto = CityDto(code = "BUE", name = "Buenos Aires")

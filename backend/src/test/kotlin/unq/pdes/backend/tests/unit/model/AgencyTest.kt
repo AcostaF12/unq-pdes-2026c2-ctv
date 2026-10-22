@@ -11,10 +11,14 @@ import unq.pdes.backend.model.Agency
 
 @TestInstance(PER_CLASS)
 class AgencyTest {
-
     @Test
     fun `01 - builder should create a valid agency`() {
-        val agency = Agency.Builder().id(1L).name("Despegar").build()
+        val agency =
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Despegar")
+                .build()
 
         assertEquals(1L, agency.id)
         assertEquals("Despegar", agency.name)
@@ -22,26 +26,38 @@ class AgencyTest {
 
     @Test
     fun `02 - blank name should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Agency.Builder().name("  ")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Agency.Builder().name("  ")
+            }
 
         assertEquals("The agency must have a name.", exception.message)
     }
 
     @Test
     fun `03 - building without name should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Agency.Builder().build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Agency.Builder().build()
+            }
 
         assertEquals("The agency must have a name.", exception.message)
     }
 
     @Test
     fun `04 - agencies with same id should be equal`() {
-        val agency1 = Agency.Builder().id(1L).name("Despegar").build()
-        val agency2 = Agency.Builder().id(1L).name("Almundo").build()
+        val agency1 =
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Despegar")
+                .build()
+        val agency2 =
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Almundo")
+                .build()
 
         assertEquals(agency1, agency2)
         assertEquals(agency1.hashCode(), agency2.hashCode())
@@ -49,20 +65,42 @@ class AgencyTest {
 
     @Test
     fun `05 - agencies with different id should not be equal`() {
-        val agency1 = Agency.Builder().id(1L).name("Despegar").build()
-        val agency2 = Agency.Builder().id(2L).name("Despegar").build()
+        val agency1 =
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Despegar")
+                .build()
+        val agency2 =
+            Agency
+                .Builder()
+                .id(2L)
+                .name("Despegar")
+                .build()
 
         assertNotEquals(agency1, agency2)
     }
 
     @Test
     fun `06 - agency should not be equal to other object type`() {
-        assertNotEquals(Agency.Builder().id(1L).name("Despegar").build(), "Not an agency")
+        assertNotEquals(
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Despegar")
+                .build(),
+            "Not an agency",
+        )
     }
 
     @Test
     fun `07 - toString should contain the name`() {
-        val agency = Agency.Builder().id(1L).name("Despegar").build()
+        val agency =
+            Agency
+                .Builder()
+                .id(1L)
+                .name("Despegar")
+                .build()
 
         assertTrue(agency.toString().contains("name='Despegar'"))
     }

@@ -18,7 +18,6 @@ import unq.pdes.backend.service.ReviewService
 
 @SpringBootTest
 class ReviewServiceTest {
-
     @Autowired
     private lateinit var reviewService: ReviewService
 
@@ -36,9 +35,11 @@ class ReviewServiceTest {
 
     @BeforeEach
     fun setUp() {
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -52,9 +53,10 @@ class ReviewServiceTest {
         val buyer = factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            reviewService.create(buyer.username, travelPackage.id!!, 9, "Muy bueno")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                reviewService.create(buyer.username, travelPackage.id!!, 9, "Muy bueno")
+            }
 
         assertEquals("You can only review packages you purchased.", exception.message)
     }
@@ -78,9 +80,10 @@ class ReviewServiceTest {
         purchaseService.purchase(buyer.username, travelPackage.id!!)
         reviewService.create(buyer.username, travelPackage.id!!, 9, "Excelente")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            reviewService.create(buyer.username, travelPackage.id!!, 8, "Otra")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                reviewService.create(buyer.username, travelPackage.id!!, 8, "Otra")
+            }
 
         assertEquals("You already reviewed this package.", exception.message)
     }
@@ -90,9 +93,10 @@ class ReviewServiceTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        val exception = assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
-            reviewService.create("agency", travelPackage.id!!, 9, "Excelente")
-        }
+        val exception =
+            assertThrows(org.springframework.security.access.AccessDeniedException::class.java) {
+                reviewService.create("agency", travelPackage.id!!, 9, "Excelente")
+            }
 
         assertEquals("Only buyers can write reviews.", exception.message)
     }
