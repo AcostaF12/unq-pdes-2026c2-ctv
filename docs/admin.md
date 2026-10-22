@@ -28,7 +28,9 @@ El inicio está en `/admin`. Cada tarjeta lleva a un área.
 
 Al armar un paquete, el administrador y la agencia eligen ida y vuelta en un selector. No escriben ids. El selector solo ofrece vuelos coherentes con el origen, el destino y las fechas.
 
-Los vuelos no tienen baja desde la interfaz: quedan hasta que se borra el volumen o, en `prod`, hasta que el servicio reinicia con `create-drop`.
+Los vuelos conservan datos y reservas al reiniciar en todos los entornos. Flyway administra su esquema y Hibernate lo valida.
+
+Los paquetes pueden archivarse y volver a publicarse desde administración o su agencia propietaria. Archivar bloquea nuevas compras y conserva el historial. El panel administrativo filtra publicados, archivados o todos. Ver [seed y ciclo de vida](seed-y-ciclo-de-vida.md).
 
 ## Qué exige la API
 

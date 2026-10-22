@@ -20,6 +20,12 @@ endlegend
 ' ==========================================================
 package "Base de Datos Backend - CTV" #F7F9FC {
 
+  entity "demo_seed_run" as demo_seed_run {
+    * id : varchar(60) <<PK>>
+    --
+      completed_at : timestamp
+  }
+
   entity "city" as city {
     * code : char(3) <<PK>>  -- IATA city code (e.g. BUE)
     --
@@ -39,6 +45,7 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     * username : varchar <<UK>> <<NOT NULL>>
     * password : varchar <<NOT NULL>>
     * role : varchar <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
+    * enabled : boolean <<NOT NULL>>
     * first_name : varchar <<NOT NULL>>
     * last_name : varchar <<NOT NULL>>
       agency_id : bigint <<FK>>  -- only when role = AGENCY (AgencyUser)
@@ -54,6 +61,7 @@ package "Base de Datos Backend - CTV" #F7F9FC {
 
   entity "package" as package {
     * id : bigint <<PK>>
+    * active : boolean <<NOT NULL>>
     --
     * agency_id : bigint <<FK>> <<NOT NULL>>
     * hotel_id : bigint <<FK>> <<NOT NULL>>
@@ -105,6 +113,7 @@ package "Base de Datos - API de Vuelos" #FCF7F2 {
 
   entity "flight" as flight {
     * id : bigint <<PK>>
+      seed_key : varchar <<UK>>  -- nullable, stable demo key
     --
     * airline : varchar <<NOT NULL>>
     * flight_date : date <<NOT NULL>>
@@ -117,6 +126,7 @@ package "Base de Datos - API de Vuelos" #FCF7F2 {
 
   entity "flight_sale" as flight_sale {
     * id : bigint <<PK>>
+      seed_key : varchar <<UK>>  -- nullable, idempotent demo reservation
     --
     * flight_id : bigint <<FK>> <<NOT NULL>>
     * passenger_name : varchar <<NOT NULL>>

@@ -6,7 +6,8 @@ import { getApiErrorMessage } from '../../api/errors'
 import {
   createPackage,
   deletePackage,
-  searchPackages,
+  searchAdminPackages,
+  setPackageActive,
   updatePackage,
   type TravelPackage,
   type TravelPackagePayload,
@@ -16,6 +17,7 @@ import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { PackageForm } from '../../components/PackageForm/PackageForm'
 import { Pagination } from '../../components/Pagination/Pagination'
+import { Select } from '../../components/Select/Select'
 import { queryKeys } from '../../query/keys'
 import { ADMIN_PATH } from '../../router/paths'
 import '../Packages/packages.css'
@@ -64,14 +66,20 @@ function ConfirmDelete({ travelPackage, pending, error, onConfirm, onCancel }: C
 export function AdminPackages() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(0)
+  const [status, setStatus] = useState('all')
   const [form, setForm] = useState<FormState>({ mode: 'closed' })
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const searchParams = { page, size: PAGE_SIZE, sort: 'name,asc' }
+  const searchParams = {
+    page,
+    size: PAGE_SIZE,
+    sort: 'name,asc',
+    ...(status === 'all' ? {} : { active: status === 'active' }),
+  }
   const packagesQuery = useQuery({
-    queryKey: queryKeys.packages.search(searchParams),
-    queryFn: () => searchPackages(searchParams),
+    queryKey: [...queryKeys.packages.all, 'admin', searchParams],
+    queryFn: () => searchAdminPackages(searchParams),
   })
   const agenciesQuery = useQuery({
     queryKey: queryKeys.agencies,
@@ -79,6 +87,14 @@ export function AdminPackages() {
   })
 
   const invalidatePackages = () => queryClient.invalidateQueries({ queryKey: queryKeys.packages.all })
+
+  const statusMutation = useMutation({
+    mutationFn: (item: TravelPackage) => setPackageActive(item.id, item.active === false),
+    onSuccess: async (saved) => {
+      setNotice(saved.active ? 'Paquete publicado.' : 'Paquete archivado. El historial se conserva.')
+      await invalidatePackages()
+    },
+  })
 
   const saveMutation = useMutation({
     mutationFn: (payload: TravelPackagePayload) =>
@@ -158,6 +174,7 @@ export function AdminPackages() {
                 <Link to={`/trips/${item.id}`}>{item.name}</Link>
               </h3>
               <p className="catalog__muted">Agencia: {item.agency.name}</p>
+              <p className="catalog__muted">Estado: {item.active === false ? 'Archivado' : 'Publicado'}</p>
               <p className="catalog__route">
                 {item.origin.name} → {item.destination.name}
               </p>
@@ -165,6 +182,19 @@ export function AdminPackages() {
             </div>
             <p className="admin-row__meta">USD {item.price}</p>
             <div className="admin-row__actions">
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={statusMutation.isPending}
+                aria-label={`${item.active === false ? 'Publicar' : 'Archivar'} ${item.name}`}
+                onClick={() => {
+                  statusMutation.reset()
+                  setNotice(null)
+                  statusMutation.mutate(item)
+                }}
+              >
+                {item.active === false ? 'Publicar' : 'Archivar'}
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
@@ -214,6 +244,24 @@ export function AdminPackages() {
       {notice ? (
         <p className="admin-notice" role="status">
           {notice}
+        </p>
+      ) : null}
+
+      <Select
+        label="Estado del paquete"
+        value={status}
+        onChange={(event) => {
+          setStatus(event.target.value)
+          setPage(0)
+        }}
+      >
+        <option value="all">Todos</option>
+        <option value="active">Publicados</option>
+        <option value="archived">Archivados</option>
+      </Select>
+      {statusMutation.error ? (
+        <p role="alert" className="package-form__error">
+          {getApiErrorMessage(statusMutation.error) ?? 'No se pudo cambiar el estado.'}
         </p>
       ) : null}
 

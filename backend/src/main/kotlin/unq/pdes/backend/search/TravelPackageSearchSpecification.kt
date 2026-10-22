@@ -20,10 +20,12 @@ object TravelPackageSearchSpecification {
     fun matching(
         criteria: TravelPackageSearchCriteria,
         ratingDirection: Sort.Direction? = null,
+        active: Boolean? = true,
     ): Specification<TravelPackage> =
         Specification { root, query, criteriaBuilder ->
             val predicates =
                 buildList {
+                    active?.let { add(criteriaBuilder.equal(root.get<Boolean>("active"), it)) }
                     criteria.name?.let { name ->
                         add(criteriaBuilder.like(criteriaBuilder.lower(root.get<String>("name")), likePattern(name)))
                     }

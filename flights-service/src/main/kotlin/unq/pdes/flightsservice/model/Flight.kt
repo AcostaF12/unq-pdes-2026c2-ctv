@@ -39,6 +39,9 @@ class Flight private constructor(
     @Column(nullable = false)
     var availability: Int = builder.availability!!
 
+    @Column(name = "seed_key", unique = true, length = 80)
+    var seedKey: String? = null
+
     override fun equals(other: Any?): Boolean = (other is Flight) && id == other.id
 
     override fun hashCode(): Int = id.hashCode()

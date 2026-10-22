@@ -160,6 +160,14 @@ describe('PackageDetail page', () => {
     )
   }
 
+  it('keeps archived package details visible and blocks checkout', async () => {
+    mockedGetPackage.mockResolvedValue({ ...travelPackage, active: false })
+    renderDetail()
+    expect(await screen.findByRole('button', { name: 'Paquete archivado' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Comprar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   it('confirms the purchase in a dialog and shows the booking code', async () => {
     const user = userEvent.setup()
     mockedGetFavorites.mockResolvedValue([])

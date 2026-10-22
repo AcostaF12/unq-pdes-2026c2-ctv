@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { listFlights } from '../api/flights'
 import { listHotels } from '../api/hotels'
-import { searchPackages } from '../api/packages'
+import { searchPackages, searchAdminPackages } from '../api/packages'
 import { listAgencies } from '../api/agencies'
 import { listManagedUsers } from '../api/adminUsers'
 import { getAdminSales } from '../api/purchases'
@@ -24,6 +24,8 @@ vi.mock('../api/adminUsers', () => ({ listManagedUsers: vi.fn(), createManagedUs
 vi.mock('../api/purchases', () => ({ getAdminSales: vi.fn() }))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
+  searchAdminPackages: vi.fn(),
+  setPackageActive: vi.fn(),
   createPackage: vi.fn(),
   updatePackage: vi.fn(),
   deletePackage: vi.fn(),
@@ -56,6 +58,7 @@ describe('admin routes', () => {
       totalElements: 0,
       totalPages: 0,
     })
+    vi.mocked(searchAdminPackages).mockResolvedValue({content: [], page: 0, size: 20, totalElements: 0, totalPages: 0})
     vi.mocked(listFlights).mockResolvedValue([])
     vi.mocked(listHotels).mockResolvedValue([])
     vi.mocked(listAgencies).mockResolvedValue([])

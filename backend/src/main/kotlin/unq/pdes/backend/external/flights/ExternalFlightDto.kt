@@ -12,6 +12,7 @@ data class ExternalFlightDto(
     val destination: String,
     val capacity: Int,
     val availability: Int,
+    val seedKey: String? = null,
 )
 
 data class ExternalFlightRequestDto(
@@ -38,4 +39,10 @@ data class ExternalErrorDto(
 
 data class ExternalErrorDataDto(
     val description: String? = null,
+)
+
+data class ExternalDemoReservationDto(
+    val key: String,
+    val flightId: Long,
+    val passengerName: String,
 )

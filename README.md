@@ -121,7 +121,9 @@ Cada comando va en su propia terminal. Sin Zipkin ni Logstash levantados, los se
 
 Si un puerto del host está ocupado (por ejemplo `5434`), el compose acepta `BACKEND_DB_PORT` y `FLIGHTS_DB_PORT`; en ese caso levantar el servicio con `DB_PORT` apuntando al puerto elegido.
 
-El schema lo administra Flyway. En `dev`, el backend borra y vuelve a cargar los datos de ejemplo en cada arranque.
+Flyway administra los esquemas de ambos servicios. La seed de demo se aplica una vez y conserva los cambios al reiniciar. En `dev` está habilitada; en `prod` requiere `SEED_ENABLED=true` (el overlay de la VM de demo lo configura).
+
+La [guía de seed y ciclo de vida](docs/seed-y-ciclo-de-vida.md) documenta el dataset completo, credenciales, persistencia, archivo de paquetes y pruebas.
 
 ### Servicios expuestos
 

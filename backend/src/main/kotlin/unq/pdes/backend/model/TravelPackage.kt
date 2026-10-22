@@ -57,6 +57,9 @@ class TravelPackage private constructor(
     @Column(nullable = false, precision = 12, scale = 2)
     var price: BigDecimal = builder.price!!
 
+    @Column(nullable = false)
+    var active: Boolean = builder.active
+
     override fun equals(other: Any?): Boolean = (other is TravelPackage) && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
@@ -64,6 +67,10 @@ class TravelPackage private constructor(
     override fun toString(): String = "TravelPackage(id=$id, name='$name', agency=${agency.id}, hotel=${hotel.id}, price=$price)"
 
     class Builder {
+        var active: Boolean = true
+
+        fun active(active: Boolean) = apply { this.active = active }
+
         var id: Long? = null
         var agency: Agency? = null
         var hotel: Hotel? = null

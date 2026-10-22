@@ -90,6 +90,8 @@ y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `dow
 La configuración está en `frontend/cypress.config.js` y apunta a http://localhost:18090.
 No se generan videos ni capturas automáticas de fallos.
 
+`package-lifecycle.cy.js` verifica archivar un paquete vendido, consultar su historial y volver a publicarlo. El administrador filtra estados en `/admin/packages`; una oferta archivada no admite nuevas compras.
+
 Para ejecutar toda la suite en Electron: `npm run e2e:run -- --browser electron`.
 El workflow `Acceptance and E2E CI` ejecuta este comando en cada PR y push a `dev` o `main`,
 levanta el entorno Docker y lo apaga al finalizar. Los resultados y los logs

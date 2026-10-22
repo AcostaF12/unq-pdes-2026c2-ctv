@@ -152,7 +152,8 @@ class PurchaseService(
         if (buyer.role != Role.BUYER) {
             throw AccessDeniedException("Only buyers can purchase packages.")
         }
-        val travelPackage = travelPackageService.findById(packageId)
+        val travelPackage = travelPackageService.findForUpdate(packageId)
+        require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
         val passengerName = "${buyer.firstName} ${buyer.lastName}"
 
         val outboundSale = flightsClient.sell(travelPackage.outboundFlightId, passengerName)

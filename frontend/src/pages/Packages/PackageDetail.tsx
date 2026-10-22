@@ -249,8 +249,8 @@ export function PackageDetail() {
           ) : null}
           {isBuyer ? (
             <div className="catalog__actions">
-              <Button type="button" onClick={openCheckout} disabled={purchased}>
-                {purchased ? 'Ya comprado' : 'Comprar'}
+              <Button type="button" onClick={openCheckout} disabled={purchased || detail.active === false}>
+                {detail.active === false ? 'Paquete archivado' : purchased ? 'Ya comprado' : 'Comprar'}
               </Button>
               <FavoriteButton
                 variant="labeled"
@@ -340,7 +340,7 @@ export function PackageDetail() {
         seeAllTo={`/trips?destination=${encodeURIComponent(detail.destination.code)}`}
       />
 
-      {checkoutOpen ? (
+      {checkoutOpen && detail.active !== false ? (
         <CheckoutDialog
           detail={detail}
           passengerName={passengerName}

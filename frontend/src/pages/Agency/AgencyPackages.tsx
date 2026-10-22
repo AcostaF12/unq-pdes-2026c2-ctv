@@ -6,6 +6,7 @@ import {
   createPackage,
   deletePackage,
   getAgencyPackages,
+  setPackageActive,
   type TravelPackagePayload,
 } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
@@ -47,6 +48,14 @@ export function AgencyPackages() {
     },
   })
 
+  const statusMutation = useMutation({
+    mutationFn: ({ id, active }: { id: number; active: boolean }) => setPackageActive(id, active),
+    onSuccess: async (saved) => {
+      setMessage(saved.active ? 'Paquete publicado.' : 'Paquete archivado. El historial se conserva.')
+      await invalidatePackages()
+    },
+  })
+
   const onCreate = (payload: TravelPackagePayload) => {
     setMessage(null)
     createMutation.mutate(payload)
@@ -59,6 +68,11 @@ export function AgencyPackages() {
   return (
     <section className="page">
       <h1 className="page__title">Paquetes de la agencia</h1>
+      {statusMutation.error ? (
+        <p role="alert" className="catalog__error">
+          {getApiErrorMessage(statusMutation.error) ?? 'No se pudo cambiar el estado.'}
+        </p>
+      ) : null}
       {deleteError && !loadError ? (
         <p className="catalog__error" role="alert">
           {getApiErrorMessage(deleteError) ?? 'No se pudo eliminar el paquete.'}
@@ -112,6 +126,15 @@ export function AgencyPackages() {
                 {item.origin.name} → {item.destination.name}
               </p>
               <p className="catalog__price">USD {item.price}</p>
+              <p className="catalog__muted">{item.active === false ? 'Archivado' : 'Publicado'}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={statusMutation.isPending}
+                onClick={() => statusMutation.mutate({ id: item.id, active: item.active === false })}
+              >
+                {item.active === false ? 'Publicar' : 'Archivar'}
+              </Button>
               <Button
                 type="button"
                 variant="ghost"

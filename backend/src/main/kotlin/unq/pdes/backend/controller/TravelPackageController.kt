@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.dtos.models.PageDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDetailDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDto
+import unq.pdes.backend.controller.dtos.requests.PackageStatusRequestDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageRequestDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageSearchRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
@@ -136,4 +137,12 @@ class TravelPackageController(
         travelPackageService.deleteById(principal.username, id)
         return ResponseEntity.noContent().build()
     }
+
+    @Operation(summary = "Publicar o archivar paquete", description = "ADMIN o agencia propietaria. Archivar conserva compras y reseñas.")
+    @PutMapping("/{id}/status")
+    fun status(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable id: Long,
+        @Valid @RequestBody request: PackageStatusRequestDto,
+    ): TravelPackageDto = TravelPackageDto.fromModel(travelPackageService.setActive(principal.username, id, request.active!!))
 }

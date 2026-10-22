@@ -19,6 +19,7 @@ data class TravelPackageDetailDto(
     val returnFlight: FlightDto?,
     val reviews: List<ReviewDto>,
     val averageScore: Double?,
+    val active: Boolean = true,
 ) {
     companion object {
         fun from(
@@ -41,6 +42,7 @@ data class TravelPackageDetailDto(
                 returnFlight = returnFlight?.let { FlightDto.fromExternal(it) },
                 reviews = reviews.map { ReviewDto.fromModel(it) },
                 averageScore = reviews.takeIf { it.isNotEmpty() }?.map { it.score }?.average(),
+                active = travelPackage.active,
             )
     }
 }
