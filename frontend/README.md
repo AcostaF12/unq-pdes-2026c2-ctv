@@ -36,9 +36,12 @@ src/
 El diseño de la fase 1 y el backlog están en [`docs/frontend`](../docs/frontend).
 
 Al crear o editar paquetes, el selector de vuelos permite filtrar por ciudad de origen,
-fecha de ida y fecha de vuelta. Los filtros son opcionales: el destino depende del hotel
-y el regreso usa la ruta inversa de la ida elegida. Cambiar origen o fecha de ida limpia
-ambos vuelos seleccionados; cambiar la fecha de vuelta limpia solamente el regreso.
+fecha de ida y fecha de vuelta. Las fechas se eligen de una lista con los días que tienen
+vuelos cargados para la ruta, sin repetidos y en orden. "Todas las fechas" permite verlos
+sin filtrar. El destino depende del hotel; el regreso usa la ruta inversa de la ida elegida
+y no muestra días anteriores a ella. Cambiar hotel u origen limpia fechas y vuelos;
+cambiar la fecha o el vuelo de ida limpia el regreso. Cambiar la fecha de vuelta limpia
+solamente el vuelo de regreso.
 
 ## Pruebas e2e
 

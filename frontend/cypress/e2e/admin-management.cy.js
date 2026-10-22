@@ -285,11 +285,11 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     cy.intercept('DELETE', '**/packages/*').as('deletePackage')
     cy.intercept({
       method: 'GET', pathname: '/flights',
-      query: { origin: 'BUE', destination: 'PAR', date: outboundDate },
+      query: { origin: 'BUE', destination: 'PAR' },
     }).as('filteredOutbound')
     cy.intercept({
       method: 'GET', pathname: '/flights',
-      query: { origin: 'PAR', destination: 'BUE', date: returnDate },
+      query: { origin: 'PAR', destination: 'BUE' },
     }).as('filteredReturn')
 
     const flightsUrl = Cypress.expose('flightsUrl')
@@ -311,13 +311,15 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
       fieldByLabel('Nombre').type(packageName)
       fieldByLabel('Hotel').select(HOTEL_OPTION)
       fieldByLabel('Origen de ida').select('BUE')
-      fieldByLabel('Fecha de ida').type(outboundDate)
-      fieldByLabel('Fecha de vuelta').type(returnDate)
+      fieldByLabel('Fecha de vuelta').should('be.disabled')
+      fieldByLabel('Fecha de ida').find(`option[value="${outboundDate}"]`).should('exist')
+      fieldByLabel('Fecha de ida').select(outboundDate)
     })
     cy.wait('@filteredOutbound').its('response.statusCode').should('eq', 200)
     selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
     cy.get('[data-testid="package-outbound-flight"] option:selected').should('contain.text', outboundDate)
     cy.wait('@filteredReturn').its('response.statusCode').should('eq', 200)
+    cy.get('[data-testid="package-return-date"]').select(returnDate)
     cy.get('[data-testid="package-return-flight"]').should('be.enabled')
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
     cy.get('[data-testid="package-form"]').within(() => {
@@ -340,14 +342,14 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     cy.get('[data-testid="package-flight-origin"]').select('BUE')
     cy.get('[data-testid="package-outbound-flight"]').should('have.value', '')
     cy.get('[data-testid="package-return-flight"]').should('have.value', '').and('be.disabled')
-    cy.get('[data-testid="package-outbound-date"]').type(outboundDate)
-    cy.get('[data-testid="package-return-date"]').type(returnDate)
+    cy.get('[data-testid="package-outbound-date"]').select(outboundDate)
     selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
+    cy.get('[data-testid="package-return-date"]').select(returnDate)
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
-    cy.get('[data-testid="package-return-date"]').clear()
+    cy.get('[data-testid="package-return-date"]').select('')
     cy.get('[data-testid="package-outbound-flight"]').should('not.have.value', '')
     cy.get('[data-testid="package-return-flight"]').should('have.value', '')
-    cy.get('[data-testid="package-return-date"]').type(returnDate)
+    cy.get('[data-testid="package-return-date"]').select(returnDate)
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
     cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Precio').clear().type('1950')
