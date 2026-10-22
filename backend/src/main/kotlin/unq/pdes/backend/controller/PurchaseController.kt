@@ -1,6 +1,11 @@
 package unq.pdes.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -18,6 +23,7 @@ import unq.pdes.backend.controller.dtos.models.PurchaseDetailDto
 import unq.pdes.backend.controller.dtos.models.PurchaseDto
 import unq.pdes.backend.controller.dtos.models.PurchaseHistoryPageDto
 import unq.pdes.backend.controller.dtos.requests.PurchaseRequestDto
+import unq.pdes.backend.controller.dtos.responses.ErrorDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.ReviewService
@@ -51,7 +57,11 @@ class PurchaseController(
         @RequestParam(required = false) to: LocalDate?,
         @RequestParam(required = false) minPrice: BigDecimal?,
         @RequestParam(required = false) maxPrice: BigDecimal?,
-        @RequestParam(required = false) sort: String?,
+        @Parameter(
+            description = "date,desc (por defecto), date,asc, price,asc o price,desc. Otro valor responde 400.",
+        )
+        @RequestParam(required = false)
+        sort: String?,
     ): ResponseEntity<PurchaseHistoryPageDto> =
         ResponseEntity.ok(
             PurchaseHistoryPageDto.from(
@@ -117,7 +127,35 @@ class PurchaseController(
         return ResponseEntity.ok(PurchaseDetailDto.from(purchase, outbound, returnFlight, review))
     }
 
-    @Operation(summary = "Comprar paquete", description = "Registra la compra y reserva asientos de ida y vuelta.")
+    @Operation(
+        summary = "Comprar paquete",
+        description =
+            "Solo BUYER. Reserva el asiento de ida y el de vuelta. Si la vuelta no se puede vender, cancela la ida " +
+                "y no guarda la compra.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "Compra registrada."),
+        ApiResponse(
+            responseCode = "400",
+            description = "No hay lugar, o el cuerpo no es válido. El cuerpo del error es ErrorDto.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+        ApiResponse(
+            responseCode = "403",
+            description = "El usuario no es comprador.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "No existe el paquete.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+        ApiResponse(
+            responseCode = "503",
+            description = "flights-service no responde.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+    )
     @PostMapping
     fun purchase(
         @AuthenticationPrincipal principal: UserDetails,

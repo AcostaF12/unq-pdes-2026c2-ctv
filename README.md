@@ -2,7 +2,7 @@
 
 Aplicación web para buscar y comprar paquetes turísticos. Un paquete junta un hotel, un vuelo de ida y uno de vuelta, y lo publica una agencia.
 
-Hay tres roles. El comprador busca, guarda favoritos, compra y reseña. La agencia arma sus paquetes y mira sus ventas. El administrador carga hoteles, vuelos, agencias, usuarios y paquetes de cualquier agencia.
+Hay tres roles. El comprador busca, guarda favoritos, compra y reseña. La agencia arma sus paquetes y mira sus ventas. El administrador carga hoteles, vuelos y paquetes de cualquier agencia.
 
 Los vuelos no viven en la base de la aplicación. Los administra `flights-service`, un servicio aparte. Al comprar, el backend reserva el asiento de ida y el de vuelta; si el segundo falla, cancela el primero.
 
@@ -40,7 +40,7 @@ Proyecto de Prácticas de Desarrollo de Software, UNQ, segundo semestre de 2026.
 - [Calidad, imágenes y deploy](#calidad-imágenes-y-deploy)
 - [Dónde seguir leyendo](#dónde-seguir-leyendo)
 
-La lectura larga del proyecto (arquitectura, compra, infraestructura, pruebas y decisiones) está en [docs/Entrega-2.html](docs/Entrega-2.html). Este archivo es la portada: alcanza para clonar, levantar y saber qué mirar.
+La lectura para la cátedra, con los diagramas, está en [docs/catedra.html](docs/catedra.html). Este archivo es la portada: alcanza para clonar, levantar y saber qué mirar. Las notas del equipo están en [docs/Entrega-2.html](docs/Entrega-2.html).
 
 ## Cómo levantarlo
 
@@ -121,11 +121,11 @@ El navegador baja la SPA y habla con el backend por REST, con un JWT. El backend
 
 Las llamadas a vuelos pasan por Resilience4j: hasta 3 reintentos y circuit breaker. El timeout de 3 segundos está en la config y todavía no está anotado en el cliente. El estado del circuito está en http://localhost:8080/actuator/health.
 
-El detalle de las capas, el modelo y la secuencia de compra está en [docs/Entrega-2.html](docs/Entrega-2.html). El diagrama de entidades está en [docs/mer.puml](docs/mer.puml).
+El detalle de las capas y la secuencia de compra, para la cátedra, está en [docs/catedra.html](docs/catedra.html). El diagrama de entidades está en [docs/mer.puml](docs/mer.puml).
 
 **Backend y vuelos:** Spring Boot 4.1.0, Kotlin 2.3.21, Java 25, Gradle 9.5.1.  
 **Frontend:** React 19, TypeScript 6, Vite 8.  
-**Contrato de la API:** Swagger, solo en el backend.
+**Contrato de la API:** Swagger, solo en el backend. En Authorize se pega el token de `POST /auth/login`, sin la palabra Bearer.
 
 ## Qué hay en esta entrega
 
@@ -135,7 +135,7 @@ En la entrega 2 el producto se puede usar de punta a punta y se puede mostrar c�
 
 Un comprador filtra el catálogo (destino, precio, orden y paginación resueltos en el backend), abre el detalle, marca favoritos y compra. El historial guarda una copia de lo que pagó: si después cambia el precio o el nombre del paquete, la compra no se mueve. Solo puede reseñar un paquete que compró, y una sola vez.
 
-Una agencia publica sus paquetes eligiendo los vuelos de una lista, no escribiendo ids, y consulta sus ventas. Un administrador, además de los hoteles, carga vuelos, arma paquetes para cualquier agencia y administra usuarios, agencias y el historial de ventas. Quien no tiene el rol ve "Sin permiso" en la interfaz; la API responde 403.
+Una agencia publica sus paquetes eligiendo los vuelos de una lista, no escribiendo ids, y consulta sus ventas. Un administrador, además de los hoteles, carga vuelos y arma paquetes para cualquier agencia. Quien no tiene el rol ve "Sin permiso" en la interfaz; la API responde 403.
 
 La compra cruza dos sistemas. Si no hay lugar en el vuelo de vuelta, el backend cancela la reserva de ida y no deja una compra a medias. Si `flights-service` no responde, el circuit breaker corta rápido y el usuario recibe 503.
 
@@ -187,10 +187,11 @@ Región `northcentralus`. IP pública `64.236.199.81` mientras el recurso exista
 
 | Documento | Para qué |
 |-----------|----------|
-| [docs/Entrega-2.html](docs/Entrega-2.html) | Lectura del proyecto: qué hicimos, arquitectura, compra, CI, pruebas y límites |
+| [docs/catedra.html](docs/catedra.html) | Lectura para la cátedra: arquitectura, compra y cómo se entrega |
+| [docs/Entrega-2.html](docs/Entrega-2.html) | Notas del equipo: decisiones, circuit breaker, cada workflow y qué mejoraríamos |
 | [docs/demo.md](docs/demo.md) | Guion corto para recorrer la aplicación |
 | [docs/admin.md](docs/admin.md) | Pantallas y permisos del administrador |
-| [docs/entrega-2-verificacion.md](docs/entrega-2-verificacion.md) | Matriz de roles, pruebas de integración y evidencias de la rúbrica |
+| [docs/entrega-2-verificacion.md](docs/entrega-2-verificacion.md) | Nota de una corrida local. No describe las pantallas actuales |
 | [docs/mer.puml](docs/mer.puml) | Modelo de datos de las dos bases |
 | [frontend/README.md](frontend/README.md) | Scripts, variables y Cypress |
 | [acceptance-tests/README.md](acceptance-tests/README.md) | Cómo correr Cucumber |

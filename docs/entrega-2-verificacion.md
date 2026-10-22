@@ -1,5 +1,7 @@
 # Verificación de la entrega 2
 
+> Esta nota incluye administración de usuarios, agencias y ventas globales. Esas pantallas y esos endpoints no están en el código de ahora. Lo que el administrador puede hacer hoy está en [admin.md](admin.md).
+
 La entrega se verifica combinando pruebas locales, recorrido con servicios reales y evidencias del PR/CI. Una compilación local exitosa no demuestra que Sonar haya aprobado el PR ni que las imágenes se hayan publicado.
 
 ## Ejecución local del 22 de octubre de 2026

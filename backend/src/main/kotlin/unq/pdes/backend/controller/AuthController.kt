@@ -1,6 +1,7 @@
 package unq.pdes.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -15,7 +16,8 @@ import unq.pdes.backend.controller.dtos.requests.RegisterRequestDto
 import unq.pdes.backend.controller.dtos.responses.AuthResponseDto
 import unq.pdes.backend.service.AuthService
 
-@Tag(name = "Auth Services", description = "Registro y autenticación de usuarios (JWT).")
+@Tag(name = "Auth Services", description = "Registro y login. No piden token.")
+@SecurityRequirements
 @RestController
 @RequestMapping("/auth")
 class AuthController(

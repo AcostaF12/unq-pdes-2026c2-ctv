@@ -26,7 +26,8 @@ class OpenApiDocsTest {
                 .response.contentAsString
 
         assertContains(body, "\"openapi\"")
-        assertContains(body, "CTV - Backend API")
+        assertContains(body, "Compra Tu Viaje")
+        assertContains(body, "bearer")
     }
 
     @Test

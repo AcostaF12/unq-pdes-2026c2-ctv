@@ -2,7 +2,7 @@
 
 Qué puede hacer el rol administrador, y cómo comprobarlo.
 
-La lectura del sistema completo está en [Entrega-2.html](Entrega-2.html#admin). Este archivo es la guía corta de la sección.
+La lectura para la cátedra está en [catedra.html](catedra.html). Este archivo es la guía corta de la sección.
 
 ## Cómo entrar
 
@@ -19,12 +19,9 @@ El inicio está en `/admin`. Cada tarjeta lleva a un área.
 
 | Área | Ruta | Qué hace |
 |------|------|----------|
-| Usuarios y vendedores | `/admin/users` | Crea cuentas, asigna rol y agencia, habilita o deshabilita |
-| Agencias | `/admin/agencies` | Crea agencias y edita el nombre |
-| Ventas | `/admin/sales` | Historial de todas las agencias. El detalle de una compra está en `/admin/sales/:id` |
 | Paquetes | `/admin/packages` | Crea, edita y elimina paquetes de cualquier agencia |
 | Vuelos | `/admin/flights` | Carga vuelos en `flights-service` para usarlos en los paquetes |
-| Hoteles | `/hotels` | Catálogo. Alta en `/hotels/new`, edición en `/hotels/:id/edit` |
+| Hoteles | `/hotels` | El listado lo ve cualquier usuario logueado. Alta en `/hotels/new`, edición en `/hotels/:id/edit` |
 
 Al armar un paquete, el administrador y la agencia eligen ida y vuelta en un selector. No escriben ids. El selector solo ofrece vuelos coherentes con el origen, el destino y las fechas.
 
@@ -32,9 +29,10 @@ Los vuelos no tienen baja desde la interfaz: quedan hasta que se borra el volume
 
 ## Qué exige la API
 
-- `/admin/**`, `POST /flights`, alta y edición de agencias, y alta, edición y baja de hoteles: solo `ADMIN`.
+- `POST /flights` y alta, edición y baja de hoteles: solo `ADMIN`.
 - Crear, editar y borrar paquetes: `AGENCY` o `ADMIN`. Una agencia solo toca los suyos; el servicio responde 403 si intenta modificar los de otra.
 - El listado de hoteles lo ve cualquier usuario logueado. Crear, editar y borrar, no.
+- Las agencias se consultan con `GET /agencies`. No hay pantalla para crearlas: salen del seed.
 
 El contrato está en Swagger: http://localhost:8080/swagger-ui/index.html.
 
@@ -45,5 +43,3 @@ El contrato está en Swagger: http://localhost:8080/swagger-ui/index.html.
 3. Cargar un vuelo de ida y uno de vuelta.
 4. Crear un paquete para Despegar con esos vuelos. Tiene que verse en el catálogo y en el panel de `agency` / `agency123`.
 5. Entrar como `buyer` / `buyer123` y abrir `/admin`. Tiene que decir "Sin permiso".
-
-Para probar creación de vendedores, cambios de rol, bloqueo de cuentas y ventas globales, seguir la [verificación de la entrega 2](entrega-2-verificacion.md), que incluye los resultados locales y las evidencias remotas pendientes.

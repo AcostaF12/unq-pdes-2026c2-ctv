@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compra Tu Viaje</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --paper: #fffdf8;
+    --ink: #1c1915;
+    --muted: #5c564c;
+    --line: #e4ddd0;
+    --accent: #8c3b2a;
+    --code: #efe8dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141311;
+      --paper: #1c1b18;
+      --ink: #f3efe6;
+      --muted: #b7b0a4;
+      --line: #33302a;
+      --accent: #e07a62;
+      --code: #2a2722;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 18px/1.55 "Segoe UI", "Helvetica Neue", sans-serif;
+  }
+  a { color: var(--accent); }
+  code {
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: 0.86em;
+    background: var(--code);
+    padding: 0.05em 0.22em;
+    border-radius: 4px;
+  }
+  header, main { max-width: 42rem; margin: 0 auto; padding-left: 1.4rem; padding-right: 1.4rem; }
+  header { padding-top: 3.2rem; }
+  header p, figcaption { color: var(--muted); }
+  h1 { font-size: 2.4rem; line-height: 1.1; margin: 0 0 0.6rem; letter-spacing: -0.03em; }
+  .course { font-size: 0.95rem; margin: 0; }
+  nav {
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    border-bottom: 1px solid var(--line);
+    z-index: 2;
+  }
+  nav ul {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 0.7rem 1.4rem;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+  }
+  nav a { text-decoration: none; font-size: 0.92rem; }
+  main { padding-bottom: 4rem; }
+  section { padding-top: 1.6rem; scroll-margin-top: 3.4rem; }
+  h2 { font-size: 1.45rem; margin: 0 0 0.6rem; letter-spacing: -0.02em; }
+  p { margin: 0 0 0.9rem; }
+  figure { margin: 1.2rem 0 0.4rem; }
+  figcaption { font-size: 0.92rem; margin-top: 0.55rem; }
+  svg { width: 100%; height: auto; display: block; }
+  table { width: 100%; border-collapse: collapse; margin: 0.4rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .box { fill: var(--paper); stroke: var(--ink); }
+  .muted { fill: var(--muted); }
+  .ink { fill: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="course">Prácticas de Desarrollo de Software · UNQ · 2026c2</p>
+  <h1>Compra Tu Viaje</h1>
+  <p>Qué hace el sistema, cómo se conectan las piezas y cómo se levanta. Para correrlo, el <a href="../README.md">README</a> alcanza. Esta página es para entenderlo.</p>
+</header>
+
+<nav aria-label="Índice">
+  <ul>
+    <li><a href="#que">Qué es</a></li>
+    <li><a href="#levantar">Cómo verlo</a></li>
+    <li><a href="#arquitectura">Arquitectura</a></li>
+    <li><a href="#recorrido">Recorrido</a></li>
+    <li><a href="#compra">La compra</a></li>
+    <li><a href="#swagger">Swagger</a></li>
+    <li><a href="#entrega">Cómo lo entregamos</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<section id="que">
+  <h2>Qué es</h2>
+  <p>Una aplicación para buscar y comprar paquetes turísticos. Un paquete es un hotel, un vuelo de ida y un vuelo de vuelta, con un precio, publicado por una agencia.</p>
+  <p>El comprador busca, guarda favoritos, compra y reseña lo que compró. La agencia publica sus paquetes y ve sus ventas. El administrador carga hoteles, vuelos y paquetes de cualquier agencia.</p>
+  <p>Los vuelos no están en la base de la aplicación. Los lleva <code>flights-service</code>, otro proceso con otra base. El backend lo llama por HTTP. El paquete guarda el id del vuelo, no una clave foránea.</p>
+</section>
+
+<section id="levantar">
+  <h2>Cómo verlo</h2>
+  <p>Con Docker, desde la raíz del repositorio: <code>docker compose up --build</code>. La primera vez tarda, porque compila los dos servicios Kotlin. Cuando el backend está sano, la aplicación responde en <a href="http://localhost:8090">http://localhost:8090</a>.</p>
+  <table>
+    <thead><tr><th>Rol</th><th>Usuario</th><th>Contraseña</th></tr></thead>
+    <tbody>
+      <tr><td>Comprador</td><td><code>buyer</code></td><td><code>buyer123</code></td></tr>
+      <tr><td>Agencia Despegar</td><td><code>agency</code></td><td><code>agency123</code></td></tr>
+      <tr><td>Administrador</td><td><code>vferreyra</code></td><td><code>vferreyra</code></td></tr>
+    </tbody>
+  </table>
+  <p>También hay un segundo comprador, <code>buyer2</code>, y los administradores <code>facosta</code> y <code>adisanto</code>. La contraseña del administrador es el mismo nombre de usuario. El registro de la pantalla siempre crea un comprador. Las agencias y las cuentas de prueba salen del arranque: no hay pantalla para crearlas.</p>
+  <p>El paso a paso de cada pantalla está en <a href="demo.md">docs/demo.md</a>. Para borrar los datos de prueba: <code>docker compose down -v</code>.</p>
+</section>
+
+<section id="arquitectura">
+  <h2>Cómo se conecta</h2>
+  <figure>
+    <svg viewBox="0 0 640 250" role="img" aria-label="El navegador habla con el backend. El backend es el único que llama a flights-service. Cada uno tiene su PostgreSQL.">
+      <rect class="box" x="16" y="70" width="150" height="70" rx="8"/>
+      <text class="ink" x="91" y="100" text-anchor="middle" font-size="15">Navegador</text>
+      <text class="muted" x="91" y="122" text-anchor="middle" font-size="12">:8090</text>
+      <line x1="166" y1="105" x2="214" y2="105" stroke="#8c3b2a" stroke-width="1.6"/>
+      <polygon points="214,105 204,100 204,110" fill="#8c3b2a"/>
+      <rect class="box" x="220" y="28" width="190" height="154" rx="8"/>
+      <text class="ink" x="315" y="58" text-anchor="middle" font-size="15">Backend</text>
+      <text class="muted" x="315" y="78" text-anchor="middle" font-size="12">:8080 · Flyway</text>
+      <rect class="box" x="248" y="100" width="134" height="52" rx="6"/>
+      <text class="ink" x="315" y="130" text-anchor="middle" font-size="13">PostgreSQL</text>
+      <text class="muted" x="315" y="146" text-anchor="middle" font-size="11">paquetes, compras</text>
+      <line x1="410" y1="105" x2="458" y2="105" stroke="#8c3b2a" stroke-width="1.6"/>
+      <polygon points="458,105 448,100 448,110" fill="#8c3b2a"/>
+      <rect class="box" x="464" y="28" width="160" height="154" rx="8"/>
+      <text class="ink" x="544" y="58" text-anchor="middle" font-size="15">flights-service</text>
+      <text class="muted" x="544" y="78" text-anchor="middle" font-size="12">:8081, red interna</text>
+      <rect class="box" x="484" y="100" width="120" height="52" rx="6"/>
+      <text class="ink" x="544" y="130" text-anchor="middle" font-size="13">PostgreSQL</text>
+      <text class="muted" x="544" y="146" text-anchor="middle" font-size="11">vuelos, asientos</text>
+    </svg>
+    <figcaption>El navegador baja la interfaz y después habla solo con el backend. El backend es el único que conoce a flights-service. Cada uno tiene su PostgreSQL. En el compose, el puerto 8081 no se publica a la máquina.</figcaption>
+  </figure>
+  <p>Separamos vuelos porque en el dominio es un sistema de afuera. Eso obliga a dos bases y a una compra que no puede ser una sola transacción. A cambio, el backend no depende del esquema de vuelos.</p>
+  <p>La sesión es un JWT. El servidor no la guarda. El rol lo controla el backend: esconder un botón no alcanza. Si otro rol llama a la API, recibe 403.</p>
+  <p>El esquema del backend lo versiona Flyway. En producción se valida y no se reescribe. El historial de una compra guarda una copia del precio, el hotel y las ciudades. Si la agencia edita el paquete después, esa compra queda como estaba.</p>
+</section>
+
+<section id="recorrido">
+  <h2>Qué hace cada rol</h2>
+  <p>El comprador entra en <code>/trips</code>, filtra y abre el detalle. El filtro, la página y el orden los calcula el backend. Puede guardar el paquete, comprarlo y reseñarlo una sola vez, si ya lo compró.</p>
+  <p>La agencia, en <code>/agency</code>, publica y borra sus paquetes. Elige los vuelos de una lista, sin escribir ids. En <code>/agency/sales</code> ve las ventas de su agencia.</p>
+  <p>El administrador entra en <code>/admin</code>. Desde ahí carga vuelos (<code>/admin/flights</code>) y arma paquetes para cualquier agencia (<code>/admin/packages</code>). Los hoteles se editan en <code>/hotels</code>. El listado de hoteles lo ve cualquier usuario logueado.</p>
+</section>
+
+<section id="compra">
+  <h2>Qué pasa al comprar</h2>
+  <p>La compra descuenta un asiento en la ida y otro en la vuelta, en el otro servicio. Si no hay lugar en la vuelta, el backend cancela la ida y no deja la compra creada. Si falla el guardado, cancela las dos ventas.</p>
+  <figure>
+    <svg viewBox="0 0 640 210" role="img" aria-label="El backend vende la ida, vende la vuelta y recién entonces guarda la compra.">
+      <text class="ink" x="70" y="22" text-anchor="middle" font-size="13">Comprador</text>
+      <text class="ink" x="230" y="22" text-anchor="middle" font-size="13">Backend</text>
+      <text class="ink" x="400" y="22" text-anchor="middle" font-size="13">Vuelos</text>
+      <text class="ink" x="560" y="22" text-anchor="middle" font-size="13">Su base</text>
+      <line x1="70" y1="32" x2="70" y2="190" stroke="#e4ddd0"/>
+      <line x1="230" y1="32" x2="230" y2="190" stroke="#e4ddd0"/>
+      <line x1="400" y1="32" x2="400" y2="190" stroke="#e4ddd0"/>
+      <line x1="560" y1="32" x2="560" y2="190" stroke="#e4ddd0"/>
+      <line x1="70" y1="58" x2="222" y2="58" stroke="#8c3b2a"/>
+      <polygon points="230,58 220,53 220,63" fill="#8c3b2a"/>
+      <text class="muted" x="150" y="50" text-anchor="middle" font-size="12">comprar</text>
+      <line x1="230" y1="96" x2="392" y2="96" stroke="#8c3b2a"/>
+      <polygon points="400,96 390,91 390,101" fill="#8c3b2a"/>
+      <text class="muted" x="315" y="88" text-anchor="middle" font-size="12">vender ida</text>
+      <line x1="230" y1="132" x2="392" y2="132" stroke="#8c3b2a"/>
+      <polygon points="400,132 390,127 390,137" fill="#8c3b2a"/>
+      <text class="muted" x="315" y="124" text-anchor="middle" font-size="12">vender vuelta</text>
+      <line x1="230" y1="172" x2="552" y2="172" stroke="#8c3b2a"/>
+      <polygon points="560,172 550,167 550,177" fill="#8c3b2a"/>
+      <text class="muted" x="300" y="164" text-anchor="middle" font-size="12">guardar la compra</text>
+    </svg>
+    <figcaption>La secuencia está en <code>PurchaseService.purchase</code>. No hay una transacción que cubra las dos bases.</figcaption>
+  </figure>
+  <p>Si <code>flights-service</code> no responde, el backend reintenta hasta tres veces cuando falla la conexión. Si las últimas llamadas fallan seguido, el circuit breaker deja de llamarlo unos segundos y el usuario recibe 503. Un vuelo inexistente o sin lugar no abre ese circuito: es un error de la operación, no una caída del servicio. El estado se ve en <code>/actuator/health</code>.</p>
+</section>
+
+<section id="swagger">
+  <h2>El contrato</h2>
+  <p>Swagger del backend: <a href="http://localhost:8080/swagger-ui/index.html">http://localhost:8080/swagger-ui/index.html</a>. La portada dice qué rol puede llamar cada grupo. Comprar, buscar paquetes, cargar un vuelo y reseñar además dicen qué status devuelven.</p>
+  <p>Para probar una ruta privada: <code>POST /auth/login</code>, copiar el token y pegarlo en Authorize, sin la palabra Bearer. El login y el registro no piden token.</p>
+  <p><code>flights-service</code> no tiene Swagger. Sus vuelos se consultan y se cargan por los endpoints de vuelos de este backend.</p>
+</section>
+
+<section id="entrega">
+  <h2>Cómo lo entregamos</h2>
+  <p>Un <code>docker compose up --build</code> levanta la aplicación, las dos bases y el monitoreo. Los tests de aceptación y de interfaz usan otro compose, para no pisar esos datos.</p>
+  <p>Cada pull request corre lint y tests del módulo que toca. Backend y vuelos además esperan el Quality Gate de Sonar. Cucumber prueba las reglas por API. Cypress recorre la interfaz en un navegador. Las imágenes se publican solo en <code>main</code>, después de esos controles. La VM de Azure se prende a mano y no compila: baja esas imágenes.</p>
+  <p>Los comandos están en el <a href="../README.md">README</a>. El modelo de datos está en <a href="mer.puml">docs/mer.puml</a>. Las notas de trabajo del equipo, con el detalle de cada workflow, están en <a href="Entrega-2.html">Entrega-2.html</a>.</p>
+</section>
+
+</main>
+</body>
+</html>

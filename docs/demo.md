@@ -1,6 +1,6 @@
 # Guion de demo
 
-Recorrido de unos 13 minutos. Qué mostrar en cada paso. La explicación de arquitectura, compra e infraestructura está en [Entrega-2.html](Entrega-2.html). Lo que puede hacer el administrador, en [admin.md](admin.md).
+Recorrido de unos 13 minutos. Qué mostrar en cada paso. La explicación de arquitectura y compra para la cátedra está en [catedra.html](catedra.html). Las notas del equipo, en [Entrega-2.html](Entrega-2.html). Lo que puede hacer el administrador, en [admin.md](admin.md).
 
 ## Antes de empezar
 
@@ -40,12 +40,10 @@ La primera vez, Kibana no tiene vista de datos. En Stack Management, Data Views,
 
 ## 3. Administrador (`vferreyra` / `vferreyra`)
 
-1. **Hoteles** (`/hotels`). Alta, edición y baja.
+1. **Hoteles** (`/hotels`). El listado lo ve cualquier usuario logueado. Alta, edición y baja son del administrador.
 2. **Panel** (`/admin`).
    - `/admin/flights`: cargar un vuelo de ida y uno de vuelta.
    - `/admin/packages`: crear un paquete para Despegar con esos vuelos.
-   - `/admin/agencies` y `/admin/users`: una agencia o una cuenta, si hay tiempo.
-   - `/admin/sales`: ventas de todas las agencias.
 3. Entrar como `buyer` y abrir `/admin`. Tiene que decir "Sin permiso".
 
 ## 4. Detrás de la pantalla

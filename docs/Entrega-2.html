@@ -291,7 +291,7 @@ details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; 
   <h2>El sistema, en un minuto</h2>
   <div class="prose">
     <p>Compra Tu Viaje es una aplicación para buscar y comprar paquetes turísticos. Un paquete combina un hotel, un vuelo de ida y un vuelo de vuelta, con un precio, y lo publica una agencia.</p>
-    <p>El comprador busca, guarda favoritos, compra y reseña. La agencia publica sus paquetes y ve sus ventas. El administrador carga hoteles, vuelos, agencias, usuarios y paquetes de cualquier agencia.</p>
+    <p>El comprador busca, guarda favoritos, compra y reseña. La agencia publica sus paquetes y ve sus ventas. El administrador carga hoteles, vuelos y paquetes de cualquier agencia.</p>
     <p>Los vuelos no están en la base de la aplicación. Los administra <code>flights-service</code>, con su propia base. El backend lo consulta por HTTP para listar vuelos y para vender o cancelar asientos. El frontend es una SPA en React que habla solo con el backend.</p>
   </div>
   <div class="say">
@@ -319,11 +319,11 @@ details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; 
     </div>
     <div>
       <h3>Agencia</h3>
-      <p>Publica, edita y borra sus propios paquetes. Elige los vuelos de una lista. Ve las ventas de su agencia y las filtra por comprador, paquete y fechas.</p>
+      <p>Publica y borra sus propios paquetes. La API también le deja editar los suyos. Elige los vuelos de una lista. Ve las ventas de su agencia y las filtra por comprador, paquete y fechas.</p>
     </div>
     <div>
       <h3>Administrador</h3>
-      <p>Gestiona hoteles, vuelos, agencias, usuarios y vendedores, paquetes de cualquier agencia y el historial de ventas de todas. No compra.</p>
+      <p>Gestiona hoteles, vuelos y paquetes de cualquier agencia. No compra. Las cuentas y las agencias salen del seed.</p>
     </div>
   </div>
   <p class="fact">El enunciado de la cátedra no está copiado en el repositorio. Esta sección sale del modelo, de las rutas y de lo que la aplicación deja hacer. Si el texto oficial dice otra cosa en un detalle, manda ese texto.</p>
@@ -540,10 +540,7 @@ details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; 
   <table>
     <thead><tr><th>Área</th><th>Pantalla</th><th>API</th></tr></thead>
     <tbody>
-      <tr><td>Inicio del panel</td><td><code>/admin</code></td><td>Tarjetas hacia el resto. No tiene un endpoint propio</td></tr>
-      <tr><td>Usuarios y vendedores</td><td><code>/admin/users</code></td><td><code>GET/POST /admin/users</code>, <code>PUT /admin/users/{id}</code></td></tr>
-      <tr><td>Agencias</td><td><code>/admin/agencies</code></td><td><code>GET/POST /agencies</code>, <code>PUT /agencies/{id}</code></td></tr>
-      <tr><td>Ventas de todas las agencias</td><td><code>/admin/sales</code>, <code>/admin/sales/:id</code></td><td><code>GET /admin/sales</code>. El detalle usa <code>GET /purchases/{id}</code></td></tr>
+      <tr><td>Inicio del panel</td><td><code>/admin</code></td><td>Tarjetas hacia paquetes, vuelos y hoteles. No tiene un endpoint propio</td></tr>
       <tr><td>Paquetes de cualquier agencia</td><td><code>/admin/packages</code></td><td><code>POST/PUT/DELETE /packages</code> (agencia o admin)</td></tr>
       <tr><td>Vuelos</td><td><code>/admin/flights</code></td><td><code>POST /flights</code> exige ADMIN y delega en flights-service</td></tr>
       <tr><td>Hoteles</td><td><code>/hotels</code>, <code>/hotels/new</code>, <code>/hotels/:id/edit</code></td><td><code>POST/PUT/DELETE /hotels</code> exigen ADMIN. El listado es para cualquier logueado</td></tr>
@@ -554,19 +551,15 @@ details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; 
     <div>
       <h3>Qué se hace en cada pantalla</h3>
       <ul>
-        <li><b>Usuarios.</b> Alta de cuentas, rol, agencia del vendedor, y habilitar o deshabilitar.</li>
-        <li><b>Agencias.</b> Alta y edición del nombre, para colgar vendedores y paquetes.</li>
         <li><b>Paquetes.</b> Listado de todas las agencias, formulario con selector de agencia y de vuelos (<code>FlightPicker</code> consulta <code>GET /flights</code>).</li>
         <li><b>Vuelos.</b> Alta con aerolínea, origen, destino, fecha, capacidad y disponibilidad. El backend rechaza origen igual a destino, capacidad no positiva y disponibilidad negativa.</li>
-        <li><b>Ventas.</b> Historial de todas las agencias, con filtros, y el detalle de una compra.</li>
         <li><b>Hoteles.</b> Nombre, ciudad (desde <code>GET /cities</code>) y URL de la foto. Borrar pide confirmación.</li>
       </ul>
     </div>
     <div>
       <h3>Cómo se protege</h3>
       <ul>
-        <li><code>SecurityConfig</code>: <code>/admin/**</code>, alta y edición de agencias, escritura de hoteles y <code>POST /flights</code> con <code>hasRole("ADMIN")</code>. Escribir paquetes pide agencia o administrador.</li>
-        <li>Los controllers de <code>/admin/users</code> y <code>/admin/sales</code> además llevan <code>@PreAuthorize("hasRole('ADMIN')")</code>.</li>
+        <li><code>SecurityConfig</code>: escritura de hoteles y <code>POST /flights</code> con <code>hasRole("ADMIN")</code>. Escribir paquetes pide agencia o administrador. No hay API <code>/admin</code>: el panel es solo interfaz.</li>
         <li>En el frontend, <code>adminRoute</code> envuelve <code>/admin</code> y sus hijas con <code>RequireAdmin</code>. Un comprador o una agencia que abre esas rutas ve "Sin permiso".</li>
       </ul>
       <p>Para la demo: <code>vferreyra</code> / <code>vferreyra</code>. También son administradores <code>facosta</code> y <code>adisanto</code>, con la contraseña igual al usuario. El detalle de pantallas está en <a href="admin.md">docs/admin.md</a>.</p>
@@ -977,8 +970,7 @@ details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; 
         <li>Login, búsqueda y detalle. Contraseña incorrecta y reintento.</li>
         <li>Un comprador no entra al alta de hoteles ni a esa API. El administrador crea, edita y borra un hotel.</li>
         <li>Compra desde el detalle. El historial sobrevive a recargar.</li>
-        <li>Administración: vuelos, paquetes, selector de la agencia, y el error al borrar un paquete que ya se compró.</li>
-        <li>Usuarios: alta de agencia y vendedor, seguimiento de una venta, bloqueo de cuenta y cambio de permisos. Comprador y agencia no entran a <code>/admin/users</code>, <code>/admin/agencies</code> ni <code>/admin/sales</code>.</li>
+        <li>Administración: vuelos, paquetes, selector de la agencia, y el error al borrar un paquete que ya se compró. Comprador y agencia no entran a <code>/admin</code>.</li>
       </ul>
     </div>
   </div>
@@ -1034,7 +1026,7 @@ cd frontend &amp;&amp; npm run e2e:run -- --browser electron</code></pre>
     <details><summary>¿Por qué CSRF está desactivado?</summary><div class="ans"><p>La API no usa cookie de sesión. El token va en un encabezado que el navegador no agrega solo. CSRF protege sesiones por cookie.</p></div></details>
     <details><summary>¿Dónde se controla el rol?</summary><div class="ans"><p>En <code>SecurityConfig</code>, por método y ruta. Algunos servicios vuelven a mirar el rol y responden 403, por ejemplo al comprar. Las guardas del frontend son de interfaz.</p></div></details>
     <details><summary>¿Dónde está el secreto del JWT?</summary><div class="ans"><p>En la variable <code>JWT_SECRET</code>. El valor de <code>application.properties</code> es para desarrollo. En un entorno real hay que definirla.</p></div></details>
-    <details><summary>¿Cómo se crea un administrador?</summary><div class="ans"><p>El registro público crea compradores. Administradores, agencias y el usuario de agencia salen de <code>DataBootstrap</code>. Desde <code>/admin/users</code> un administrador también puede crear cuentas.</p></div></details>
+    <details><summary>¿Cómo se crea un administrador?</summary><div class="ans"><p>El registro público crea compradores. Administradores, agencias y el usuario de agencia salen de <code>DataBootstrap</code>. No hay pantalla para crear cuentas.</p></div></details>
   </div>
 
   <div class="qgroup">

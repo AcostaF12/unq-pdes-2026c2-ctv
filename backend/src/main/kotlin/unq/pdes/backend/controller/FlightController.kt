@@ -2,6 +2,10 @@ package unq.pdes.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.dtos.models.FlightDto
 import unq.pdes.backend.controller.dtos.requests.FlightRequestDto
+import unq.pdes.backend.controller.dtos.responses.ErrorDto
 import unq.pdes.backend.service.FlightService
 import java.time.LocalDate
 
@@ -31,8 +36,12 @@ class FlightController(
     )
     @GetMapping
     fun search(
-        @Parameter(description = "Código de ciudad de origen") @RequestParam(required = false) origin: String?,
-        @Parameter(description = "Código de ciudad de destino") @RequestParam(required = false) destination: String?,
+        @Parameter(description = "Código IATA de la ciudad de origen, por ejemplo BUE.")
+        @RequestParam(required = false)
+        origin: String?,
+        @Parameter(description = "Código IATA de la ciudad de destino, por ejemplo PAR.")
+        @RequestParam(required = false)
+        destination: String?,
         @Parameter(description = "Fecha del vuelo (yyyy-MM-dd)")
         @RequestParam(required = false)
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -48,7 +57,27 @@ class FlightController(
         @PathVariable id: Long,
     ): ResponseEntity<FlightDto> = ResponseEntity.ok(FlightDto.fromExternal(flightService.findById(id)))
 
-    @Operation(summary = "Cargar vuelo", description = "Registra un nuevo vuelo en el servicio de vuelos. Solo ADMIN.")
+    @Operation(
+        summary = "Cargar vuelo",
+        description =
+            "Solo ADMIN. El origen y el destino son códigos IATA de ciudades que ya existen, y tienen que ser " +
+                "distintos. La disponibilidad no puede superar la capacidad. No se reintenta: un corte a mitad " +
+                "podría crear el vuelo dos veces.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "201", description = "Vuelo cargado en flights-service."),
+        ApiResponse(
+            responseCode = "400",
+            description = "Ciudad inexistente, origen igual al destino, o disponibilidad mayor que la capacidad.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+        ApiResponse(responseCode = "403", description = "El usuario no es administrador."),
+        ApiResponse(
+            responseCode = "503",
+            description = "flights-service no responde.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+    )
     @PostMapping
     fun create(
         @Valid @RequestBody request: FlightRequestDto,
