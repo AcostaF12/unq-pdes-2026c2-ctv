@@ -61,6 +61,18 @@ class ExceptionControllerAdvice {
     fun handleFlightsServiceUnavailableException(ex: FlightsServiceUnavailableException): ResponseEntity<ErrorDto> =
         buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.message ?: "Flights service is unavailable.")
 
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDeniedException(ex: AccessDeniedException): ResponseEntity<ErrorDto> {
+        return buildResponse(HttpStatus.FORBIDDEN, ex.message ?: "Access denied.")
+    }
+
+    @ExceptionHandler(FlightsServiceUnavailableException::class)
+    fun handleFlightsServiceUnavailableException(
+        ex: FlightsServiceUnavailableException,
+    ): ResponseEntity<ErrorDto> {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.message ?: "Flights service is unavailable.")
+    }
+
     @ExceptionHandler(RuntimeException::class)
     fun handleGenericException(ex: RuntimeException): ResponseEntity<ErrorDto> =
         buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error has occurred.")
