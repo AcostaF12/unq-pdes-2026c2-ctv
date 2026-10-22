@@ -36,6 +36,7 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     * id : bigint <<PK>>
     --
     * name : varchar <<NOT NULL>>
+    * active : boolean <<NOT NULL>>
   }
 
   entity "user" as user {

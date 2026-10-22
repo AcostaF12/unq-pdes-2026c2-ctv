@@ -62,5 +62,6 @@ Los resultados locales no acreditan aprobación remota de Sonar ni publicación 
 - Backend: 443 tests aprobados, sin omisiones, build y ktlint correctos.
 - Vuelos: 67 tests aprobados, incluidos los de PostgreSQL, idempotencia y concurrencia; build y ktlint correctos.
 - Frontend: 222 tests aprobados, build correcto y lint sin errores. Permanece una advertencia previa de dependencias de `useMemo` en `Profile.tsx`.
-- Cypress: se valida nuevamente el conjunto integrado; incluye las consultas y cuatro reportes conservados de `dev`.
+- Cypress: 15 escenarios aprobados en siete suites, incluidos usuarios, roles, ventas, archivo/publicación y las consultas y cuatro reportes conservados de `dev`.
+- Aceptación: 13 escenarios y 67 pasos Cucumber aprobados contra los servicios reales en Docker.
 - Reinicio real de ambos servicios: comparación de datos antes/después sin cambios de usuarios, permisos, paquetes, historial, stock ni reservas.
