@@ -54,6 +54,11 @@ export async function getAgencyPurchases(filters: PurchaseHistoryFilters): Promi
   return data
 }
 
+export async function getAdminSales(filters: PurchaseHistoryFilters): Promise<PurchaseHistoryPage> {
+  const { data } = await apiClient.get<PurchaseHistoryPage>('/admin/sales', { params: filters })
+  return data
+}
+
 export async function hasPurchasedPackage(packageId: number): Promise<boolean> {
   const { data } = await apiClient.get<boolean>(`/purchases/me/packages/${packageId}`)
   return data

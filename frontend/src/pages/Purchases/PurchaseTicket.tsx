@@ -4,7 +4,7 @@ import { confirmationCode, formatPurchaseDate } from '../../lib/format'
 
 interface PurchaseTicketProps {
   purchase: Purchase
-  audience?: 'buyer' | 'agency'
+  audience?: 'buyer' | 'agency' | 'admin'
   index?: number
 }
 
@@ -30,9 +30,9 @@ export function PurchaseEmptyScene() {
 export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: PurchaseTicketProps) {
   const { travelPackage } = purchase
   const tripPath = `/trips/${travelPackage.id}`
-  const detailPath = `/purchases/${purchase.id}`
+  const detailPath = audience === 'admin' ? `/admin/sales/${purchase.id}` : `/purchases/${purchase.id}`
   const counterparty =
-    audience === 'agency'
+    audience !== 'buyer'
       ? `${purchase.buyer.firstName} ${purchase.buyer.lastName} (@${purchase.buyer.username})`
       : travelPackage.agency.name
 
@@ -40,6 +40,7 @@ export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: Purc
     <article className="purchase-ticket reveal" style={{ ['--i' as string]: index }}>
       <div className="purchase-ticket__body">
         <p className="purchase-ticket__meta">{counterparty}</p>
+        {audience === 'admin' ? <p className="purchase-ticket__meta">{travelPackage.agency.name}</p> : null}
         <h2 className="purchase-ticket__name">
           <Link to={tripPath}>{travelPackage.name}</Link>
         </h2>

@@ -84,3 +84,9 @@ Ruta: `/admin/flights`.
 
 - Contrato de la API: Swagger en http://localhost:8080/swagger-ui/index.html.
 - Guion de demo: [demo.md](demo.md).
+
+## Usuarios, ventas y paquetes archivados
+
+El panel agrega gestión de usuarios y vendedores, roles, estado de cuenta e historial global de ventas. `/admin/users` permite crear y editar cuentas; `/admin/queries/users` conserva la consulta sin edición. Un vendedor necesita cuenta habilitada y agencia activa. El administrador no puede deshabilitarse ni quitarse su propio rol.
+
+El panel de paquetes permite archivar una oferta vendida y publicarla nuevamente con vuelos vigentes y lugares disponibles. Archivar conserva compras, favoritos y reseñas. Ver [seed y ciclo de vida](seed-y-ciclo-de-vida.md) y las [decisiones de integración](pr-19-integracion.md).

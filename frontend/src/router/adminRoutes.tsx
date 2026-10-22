@@ -5,8 +5,12 @@ import { lazyPage } from './lazyPage'
 const AdminHome = lazyPage(() => import('../pages/Admin/AdminHome'), 'AdminHome')
 const AdminPackages = lazyPage(() => import('../pages/Admin/AdminPackages'), 'AdminPackages')
 const AdminFlights = lazyPage(() => import('../pages/Admin/AdminFlights'), 'AdminFlights')
+const AdminUsers = lazyPage(() => import('../pages/Admin/AdminUsers'), 'AdminUsers')
 const AdminAgencies = lazyPage(() => import('../pages/Admin/AdminAgencies'), 'AdminAgencies')
-const AdminUsers = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminUsers')
+const AdminSales = lazyPage(() => import('../pages/Admin/AdminSales'), 'AdminSales')
+const PurchaseDetail = lazyPage(() => import('../pages/Purchases/PurchaseDetail'), 'PurchaseDetail')
+
+const QueryUsers = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminUsers')
 const AdminFavorites = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminFavorites')
 const AdminReviews = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminReviews')
 const AdminPurchases = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminPurchases')
@@ -23,11 +27,14 @@ export const adminRoute: RouteObject = {
     { index: true, element: <AdminHome /> },
     { path: 'packages', element: <AdminPackages /> },
     { path: 'flights', element: <AdminFlights /> },
-    { path: 'agencies', element: <AdminAgencies /> },
     { path: 'users', element: <AdminUsers /> },
+    { path: 'agencies', element: <AdminAgencies /> },
+    { path: 'queries/users', element: <QueryUsers /> },
     { path: 'favorites', element: <AdminFavorites /> },
     { path: 'reviews', element: <AdminReviews /> },
     { path: 'purchases', element: <AdminPurchases /> },
     { path: 'reports', element: <AdminReports /> },
+    { path: 'sales', element: <AdminSales /> },
+    { path: 'sales/:id', element: <PurchaseDetail /> },
   ],
 }

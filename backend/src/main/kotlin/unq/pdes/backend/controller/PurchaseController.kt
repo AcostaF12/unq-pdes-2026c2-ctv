@@ -98,7 +98,7 @@ class PurchaseController(
         summary = "Detalle de compra",
         description =
             "Incluye los vuelos de ida y vuelta cuando están disponibles y, para el comprador, su reseña. " +
-                "Solo el comprador o la agencia vendedora pueden consultarla.",
+                "Solo el comprador, la agencia vendedora o un administrador pueden consultarla.",
     )
     @GetMapping("/{id}")
     fun byId(

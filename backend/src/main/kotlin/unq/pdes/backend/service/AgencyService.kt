@@ -22,7 +22,8 @@ class AgencyService(
         firstName: String,
         lastName: String,
     ): Agency {
-        val agency = agencyRepository.save(Agency.Builder().name(name.trim()).build())
+        require(password.toByteArray(Charsets.UTF_8).size <= 72) { "La contraseña supera los 72 bytes." }
+        val agency = agencyRepository.save(Agency.Builder().name(validatedName(name)).build())
         userService.createAgencyUser(username.trim(), password, firstName.trim(), lastName.trim(), agency)
         return agency
     }
@@ -33,11 +34,20 @@ class AgencyService(
         name: String,
         active: Boolean,
     ): Agency {
-        require(name.isNotBlank()) { "The agency must have a name." }
         val agency = findById(id)
-        agency.name = name.trim()
+        agency.name = validatedName(name, id)
         agency.active = active
         return agencyRepository.save(agency)
+    }
+
+    private fun validatedName(
+        name: String,
+        id: Long? = null,
+    ): String {
+        val normalized = name.trim()
+        require(normalized.isNotBlank() && normalized.length <= 160) { "El nombre de la agencia debe tener entre 1 y 160 caracteres." }
+        require(agencyRepository.findAllByNameIgnoreCase(normalized).none { it.id != id }) { "Ya existe una agencia con ese nombre." }
+        return normalized
     }
 
     @Transactional(readOnly = true)

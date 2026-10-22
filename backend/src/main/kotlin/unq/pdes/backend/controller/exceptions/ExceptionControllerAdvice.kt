@@ -1,6 +1,7 @@
 package unq.pdes.backend.controller.exceptions
 
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -15,6 +16,10 @@ import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
 
 @ControllerAdvice
 class ExceptionControllerAdvice {
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleConflict(ex: DataIntegrityViolationException): ResponseEntity<ErrorDto> =
+        buildResponse(HttpStatus.CONFLICT, "La operación entra en conflicto con los datos existentes.")
+
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorDto> =
         buildResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid request.")

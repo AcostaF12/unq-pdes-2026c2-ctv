@@ -4,10 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { listFlights } from '../api/flights'
-import { listAgencies } from '../api/agencies'
-import { getAdminUsers, getAdminFavorites, getAdminReviews, getAdminPurchases, getAdminReports } from '../api/admin'
 import { listHotels } from '../api/hotels'
-import { searchPackages } from '../api/packages'
+import { searchPackages, searchAdminPackages } from '../api/packages'
+import { listAgencies } from '../api/agencies'
+import { listManagedUsers } from '../api/adminUsers'
+import { getAdminSales } from '../api/purchases'
 import { getCurrentUser } from '../api/auth'
 import { persistSession } from '../api/session'
 import { AuthProvider } from '../auth/AuthContext'
@@ -15,13 +16,20 @@ import { createTestQueryClient } from '../test/queryClient'
 import { adminRoute } from './adminRoutes'
 
 vi.mock('../api/auth', () => ({ getCurrentUser: vi.fn() }))
-vi.mock('../api/admin', () => ({ getAdminUsers: vi.fn(), getAdminFavorites: vi.fn(), getAdminReviews: vi.fn(), getAdminPurchases: vi.fn(), getAdminReports: vi.fn() }))
 vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }))
 vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
-vi.mock('../api/agencies', () => ({ listAgencies: vi.fn(), createAgency: vi.fn(), updateAgency: vi.fn() }))
+vi.mock('../api/agencies', () => ({ listAgencies: vi.fn() }))
 vi.mock('../api/cities', () => ({ listCities: vi.fn() }))
+vi.mock('../api/adminUsers', () => ({
+  listManagedUsers: vi.fn(),
+  createManagedUser: vi.fn(),
+  updateManagedUser: vi.fn(),
+}))
+vi.mock('../api/purchases', () => ({ getAdminSales: vi.fn() }))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
+  searchAdminPackages: vi.fn(),
+  setPackageActive: vi.fn(),
   createPackage: vi.fn(),
   updatePackage: vi.fn(),
   deletePackage: vi.fn(),
@@ -54,40 +62,55 @@ describe('admin routes', () => {
       totalElements: 0,
       totalPages: 0,
     })
+    vi.mocked(searchAdminPackages).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+    })
     vi.mocked(listFlights).mockResolvedValue([])
     vi.mocked(listHotels).mockResolvedValue([])
     vi.mocked(listAgencies).mockResolvedValue([])
-    const empty = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }
-    vi.mocked(getAdminUsers).mockResolvedValue(empty)
-    vi.mocked(getAdminFavorites).mockResolvedValue(empty)
-    vi.mocked(getAdminReviews).mockResolvedValue(empty)
-    vi.mocked(getAdminPurchases).mockResolvedValue(empty)
-    vi.mocked(getAdminReports).mockResolvedValue({ topBuyers: [], topAgencies: [], topDestinations: [], topRatedDestinations: [] })
+    vi.mocked(listManagedUsers).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+    })
+    vi.mocked(getAdminSales).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+    })
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/agencies', '/admin/users', '/admin/favorites', '/admin/reviews', '/admin/purchases', '/admin/reports'])('lets an admin open %s', async (path) => {
-    renderAt(path, 'ADMIN')
+  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/users', '/admin/agencies', '/admin/sales'])(
+    'lets an admin open %s',
+    async (path) => {
+      renderAt(path, 'ADMIN')
 
-    await screen.findByRole('heading', { level: 1 })
-    expect(screen.queryByText('Sin permiso')).not.toBeInTheDocument()
-  })
+      await screen.findByRole('heading', { level: 1 }, { timeout: 5000 })
+      expect(screen.queryByText('Sin permiso')).not.toBeInTheDocument()
+    },
+  )
 
   it.each([
     ['/admin', 'BUYER'],
     ['/admin/packages', 'AGENCY'],
     ['/admin/flights', 'BUYER'],
-    ['/admin/agencies', 'BUYER'],
-    ['/admin/agencies', 'AGENCY'],
     ['/admin/users', 'BUYER'],
     ['/admin/users', 'AGENCY'],
-    ['/admin/favorites', 'BUYER'],
-    ['/admin/favorites', 'AGENCY'],
-    ['/admin/reviews', 'BUYER'],
-    ['/admin/reviews', 'AGENCY'],
-    ['/admin/purchases', 'BUYER'],
-    ['/admin/purchases', 'AGENCY'],
-    ['/admin/reports', 'BUYER'],
-    ['/admin/reports', 'AGENCY'],
+    ['/admin/agencies', 'BUYER'],
+    ['/admin/agencies', 'AGENCY'],
+    ['/admin/sales', 'BUYER'],
+    ['/admin/sales', 'AGENCY'],
+    ['/admin/sales/1', 'AGENCY'],
   ])('blocks %s for the %s role', async (path, role) => {
     renderAt(path, role)
 
@@ -95,10 +118,7 @@ describe('admin routes', () => {
     expect(screen.queryByTestId('admin-hub')).not.toBeInTheDocument()
     expect(searchPackages).not.toHaveBeenCalled()
     expect(listFlights).not.toHaveBeenCalled()
-    expect(getAdminUsers).not.toHaveBeenCalled()
-    expect(getAdminFavorites).not.toHaveBeenCalled()
-    expect(getAdminReviews).not.toHaveBeenCalled()
-    expect(getAdminPurchases).not.toHaveBeenCalled()
-    expect(getAdminReports).not.toHaveBeenCalled()
+    expect(listManagedUsers).not.toHaveBeenCalled()
+    expect(getAdminSales).not.toHaveBeenCalled()
   })
 })

@@ -46,6 +46,9 @@ open class User protected constructor(
     @Column(name = "last_name", nullable = false, length = 80)
     var lastName: String = builder.lastName!!
 
+    @Column(nullable = false)
+    var enabled: Boolean = true
+
     fun updateProfile(
         firstName: String,
         lastName: String,

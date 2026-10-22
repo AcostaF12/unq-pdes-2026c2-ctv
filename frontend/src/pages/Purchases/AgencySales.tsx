@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { getApiErrorMessage } from '../../api/errors'
-import { getAgencyPurchases } from '../../api/purchases'
+import { getAdminSales, getAgencyPurchases } from '../../api/purchases'
 import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HeroScene } from '../../components/HeroScene/HeroScene'
@@ -12,14 +13,14 @@ import { HistoryPagination } from '../../components/HistoryPagination/HistoryPag
 import { PurchaseEmptyScene, PurchaseTicket } from './PurchaseTicket'
 import './Purchases.css'
 
-export function AgencySales() {
+export function AgencySales({ admin = false }: { admin?: boolean }) {
   const [page, setPage] = useState(0)
   const [draft, setDraft] = useState({ buyerUsername: '', packageName: '', from: '', to: '' })
   const [filters, setFilters] = useState(draft)
   const size = 20
   const salesQuery = useQuery({
-    queryKey: queryKeys.purchases.agencyPage({ ...filters, page, size }),
-    queryFn: () => getAgencyPurchases({ ...filters, page, size }),
+    queryKey: admin ? ['admin', 'sales', { ...filters, page, size }] : queryKeys.purchases.agencyPage({ ...filters, page, size }),
+    queryFn: () => admin ? getAdminSales({ ...filters, page, size }) : getAgencyPurchases({ ...filters, page, size }),
   })
 
   const sales = salesQuery.data?.content ?? []
@@ -37,11 +38,12 @@ export function AgencySales() {
 
   return (
     <section className="page">
+      {admin ? <Link className="catalog__back" to="/admin">← Administración</Link> : null}
       <HeroScene
         compact
-        eyebrow="Tu agencia"
-        title="Ventas de la agencia"
-        subtitle="Seguí cada compra de tus paquetes."
+        eyebrow={admin ? 'Administración' : 'Tu agencia'}
+        title={admin ? 'Ventas de todas las agencias' : 'Ventas de la agencia'}
+        subtitle={admin ? 'Consultá compradores, agencias y el detalle de cada venta.' : 'Seguí cada compra de tus paquetes.'}
       />
       <form className="history-filters" onSubmit={applyFilters}>
         <Input
@@ -90,14 +92,14 @@ export function AgencySales() {
       ) : sales.length === 0 ? (
         <EmptyState
           title="Todavía no hay ventas"
-          message="Cuando alguien compre un paquete de tu agencia, el pasaje aparece acá."
+          message={admin ? 'Las ventas que coincidan con los filtros aparecerán acá.' : 'Cuando alguien compre un paquete de tu agencia, el pasaje aparece acá.'}
           illustration={<PurchaseEmptyScene />}
         />
       ) : (
         <ul className="purchase-list">
           {sales.map((sale, index) => (
             <li key={sale.id}>
-              <PurchaseTicket purchase={sale} audience="agency" index={index} />
+              <PurchaseTicket purchase={sale} audience={admin ? 'admin' : 'agency'} index={index} />
             </li>
           ))}
         </ul>

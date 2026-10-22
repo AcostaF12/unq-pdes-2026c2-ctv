@@ -153,8 +153,8 @@ class PurchaseDetailControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = ["ADMIN"])
-    fun `06 - GET purchase detail as admin should return 403`() {
-        mvc.perform(get("/purchases/{id}", purchaseId)).andExpect(status().isForbidden)
+    fun `06 - GET purchase detail as admin should show the sale`() {
+        mvc.perform(get("/purchases/{id}", purchaseId)).andExpect(status().isOk)
     }
 
     @Test

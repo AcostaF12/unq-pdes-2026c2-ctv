@@ -16,6 +16,7 @@ data class TravelPackageDto(
     val returnFlightId: Long,
     val averageScore: Double? = null,
     val reviewCount: Int = 0,
+    val active: Boolean = true,
 ) {
     companion object {
         fun fromModel(
@@ -34,6 +35,7 @@ data class TravelPackageDto(
                 returnFlightId = travelPackage.returnFlightId,
                 averageScore = summary?.averageScore,
                 reviewCount = summary?.reviewCount?.toInt() ?: 0,
+                active = travelPackage.active,
             )
     }
 }

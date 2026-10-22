@@ -20,6 +20,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
+import unq.pdes.backend.external.flights.ExternalDemoReservationDto
 import unq.pdes.backend.external.flights.ExternalFlightRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
@@ -36,6 +37,38 @@ class FlightsClientTest {
         val builder = RestClient.builder()
         server = MockRestServiceServer.bindTo(builder).build()
         client = FlightsClient("http://flights", builder)
+    }
+
+    @Test
+    fun `demo client discovers actual ids and sends the typed idempotent reservation contract`() {
+        val key = "ctv-demo-v1:PAR:0:0"
+        server
+            .expect(requestTo("http://flights/internal/demo/flights"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(
+                withSuccess(
+                    """
+                    [{"id":900,"airline":"Demo","flightDate":"2026-12-01","departureTime":"08:00:00",
+                    "origin":"BUE","destination":"PAR","capacity":180,"availability":100,"seedKey":"$key"}]
+                    """.trimIndent(),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        server
+            .expect(requestTo("http://flights/internal/demo/reservations"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(
+                content().json(
+                    """
+                    {"reservations":[{"key":"ctv-demo-v1:buyer:trip:0","flightId":900,"passengerName":"Buyer Demo"}]}
+                    """.trimIndent(),
+                ),
+            ).andRespond(withStatus(HttpStatus.NO_CONTENT))
+        val catalog = client.seedCatalog()
+        assertEquals(900L, catalog.single().id)
+        assertEquals(key, catalog.single().seedKey)
+        client.reserveDemoSeats(listOf(ExternalDemoReservationDto("ctv-demo-v1:buyer:trip:0", 900, "Buyer Demo")))
+        server.verify()
     }
 
     @Test

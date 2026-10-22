@@ -54,3 +54,15 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 - **Tests.** Suites de backend, vuelos y frontend, 13 escenarios de aceptación con Cucumber y 10 tests end-to-end con Cypress. Consultar los logs de CI para los resultados de la versión presentada.
 - **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
 - **Ejecutar las pruebas.** Ver la sección *Testing* del README.
+
+## Extensión del recorrido: usuarios y ciclo de vida
+
+1. Crear una agencia con su cuenta responsable y agregar otro vendedor desde `/admin/users`.
+2. Comprar un paquete y consultar su detalle desde `/admin/sales`.
+3. Archivar el paquete y comprobar que se conserva el historial y se rechazan nuevas compras. Publicarlo otra vez.
+4. Deshabilitar al vendedor: su sesión anterior y un nuevo login deben ser rechazados. Habilitarlo y cambiar su rol; verificar los permisos en la siguiente petición.
+5. Desactivar la agencia: bloquear sus vendedores y nuevas compras, conservando los datos históricos.
+6. Recorrer `/admin/reports`, favoritos, reseñas y compras globales.
+7. Reiniciar ambos servicios y comprobar que la seed no restablece los cambios.
+
+Ver el [dataset y sus credenciales](seed-y-ciclo-de-vida.md).

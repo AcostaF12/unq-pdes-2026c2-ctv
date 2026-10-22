@@ -19,6 +19,9 @@ class FlightService(
     fun findAll(): List<Flight> = flightRepository.findAll()
 
     @Transactional(readOnly = true)
+    fun seeded(): List<Flight> = flightRepository.findAllBySeedKeyIsNotNull()
+
+    @Transactional(readOnly = true)
     fun search(
         origin: String?,
         destination: String?,
@@ -63,7 +66,9 @@ class FlightService(
         flightId: Long,
         passengerName: String,
     ): FlightSale {
-        val flight = findById(flightId)
+        val flight =
+            flightRepository.findForUpdate(flightId)
+                ?: throw EntityNotFoundException("There is no Flight with id: $flightId.")
         require(flight.availability > 0) { "The flight has no availability." }
         flight.availability = flight.availability - 1
         flightRepository.save(flight)
@@ -79,10 +84,9 @@ class FlightService(
     @Transactional
     fun cancelSale(saleId: Long) {
         val sale =
-            flightSaleRepository
-                .findById(saleId)
-                .orElseThrow { EntityNotFoundException("There is no FlightSale with id: $saleId.") }
-        val flight = sale.flight
+            flightSaleRepository.findForUpdate(saleId)
+                ?: throw EntityNotFoundException("There is no FlightSale with id: $saleId.")
+        val flight = flightRepository.findForUpdate(sale.flight.id!!)!!
         flight.availability = flight.availability + 1
         flightRepository.save(flight)
         flightSaleRepository.delete(sale)

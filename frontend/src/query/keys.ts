@@ -17,6 +17,7 @@ export interface PurchaseHistoryQueryFilters {
 }
 
 export const queryKeys = {
+  adminUsers: ['admin', 'users'] as const,
   cities: ['cities'] as const,
   agencies: ['agencies'] as const,
   flights: {

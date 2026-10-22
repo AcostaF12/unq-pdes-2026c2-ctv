@@ -25,6 +25,9 @@ class FlightSale private constructor(
     @Column(name = "passenger_name", nullable = false, length = 160)
     var passengerName: String = builder.passengerName!!
 
+    @Column(name = "seed_key", unique = true, length = 300)
+    var seedKey: String? = null
+
     override fun equals(other: Any?): Boolean = (other is FlightSale) && id == other.id
 
     override fun hashCode(): Int = id.hashCode()

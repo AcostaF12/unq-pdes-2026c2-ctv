@@ -13,6 +13,7 @@ data class FlightDto(
     val destination: String,
     val capacity: Int,
     val availability: Int,
+    val seedKey: String? = null,
 ) {
     companion object {
         fun fromModel(flight: Flight): FlightDto =
@@ -25,6 +26,7 @@ data class FlightDto(
                 destination = flight.destination,
                 capacity = flight.capacity,
                 availability = flight.availability,
+                seedKey = flight.seedKey,
             )
     }
 

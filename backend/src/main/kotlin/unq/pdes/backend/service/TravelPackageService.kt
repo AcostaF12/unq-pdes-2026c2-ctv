@@ -42,6 +42,7 @@ class TravelPackageService(
     fun search(
         criteria: TravelPackageSearchCriteria,
         pageable: Pageable,
+        active: Boolean? = true,
         includeInactiveAgencies: Boolean = false,
     ): Page<TravelPackage> {
         val sanitizedPageable = TravelPackageSearchPageable.sanitize(pageable)
@@ -49,6 +50,7 @@ class TravelPackageService(
             TravelPackageSearchSpecification.matching(
                 criteria,
                 TravelPackageSearchPageable.ratingDirection(sanitizedPageable),
+                active,
                 includeInactiveAgencies,
             )
         val startedAt = System.nanoTime()
@@ -67,6 +69,30 @@ class TravelPackageService(
     fun findMine(username: String): List<TravelPackage> {
         val agencyUser = requireAgencyUser(username)
         return travelPackageRepository.findByAgencyId(agencyUser.agency.id!!)
+    }
+
+    @Transactional
+    fun findForUpdate(id: Long): TravelPackage =
+        travelPackageRepository.findForUpdate(id)
+            ?: throw EntityNotFoundException("There is no TravelPackage with id: $id.")
+
+    @Transactional
+    fun setActive(
+        username: String,
+        id: Long,
+        active: Boolean,
+    ): TravelPackage {
+        val manager = requireManager(username)
+        val existing = findForUpdate(id)
+        requireCanModify(manager, existing)
+        if (active) {
+            val outbound = flightsClient.findById(existing.outboundFlightId)
+            val inbound = flightsClient.findById(existing.returnFlightId)
+            require(!outbound.flightDate.isBefore(java.time.LocalDate.now())) { "No se puede publicar un paquete con vuelos vencidos." }
+            require(outbound.availability > 0 && inbound.availability > 0) { "Los vuelos deben tener lugares disponibles." }
+        }
+        existing.active = active
+        return travelPackageRepository.save(existing)
     }
 
     @Transactional
@@ -110,7 +136,7 @@ class TravelPackageService(
         agencyId: Long? = null,
     ): TravelPackage {
         val manager = requireManager(username)
-        val existing = findById(id)
+        val existing = findForUpdate(id)
         requireCanModify(manager, existing)
         val agency = resolveAgency(manager, agencyId)
         require(agency.id == existing.agency.id || !purchaseRepository.existsByTravelPackageId(id)) {
@@ -123,6 +149,7 @@ class TravelPackageService(
             TravelPackage
                 .Builder()
                 .id(id)
+                .active(existing.active)
                 .agency(agency)
                 .hotel(hotel)
                 .origin(origin)
@@ -140,7 +167,7 @@ class TravelPackageService(
         username: String,
         id: Long,
     ) {
-        val travelPackage = findById(id)
+        val travelPackage = findForUpdate(id)
         requireCanModify(requireManager(username), travelPackage)
         require(!purchaseRepository.existsByTravelPackageId(id)) {
             "Cannot delete a package that already has purchases."

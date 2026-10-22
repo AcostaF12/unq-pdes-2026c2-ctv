@@ -23,7 +23,7 @@ class CustomUserDetailsService(
         return SpringUser(
             user.username,
             user.password,
-            (user as? AgencyUser)?.agency?.active ?: true,
+            user.enabled && ((user as? AgencyUser)?.agency?.active ?: true),
             true,
             true,
             true,

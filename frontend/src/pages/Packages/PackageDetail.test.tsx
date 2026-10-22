@@ -90,20 +90,6 @@ describe('PackageDetail page', () => {
     mockedHasPurchasedPackage.mockResolvedValue(false)
   })
 
-  it('does not offer purchases when the agency is inactive', async () => {
-    mockedGetPackage.mockResolvedValue({ ...travelPackage, agency: { ...travelPackage.agency, active: false } })
-    mockedGetFavorites.mockResolvedValue([])
-    render(
-      <QueryClientProvider client={createTestQueryClient()}>
-        <AuthProvider><MemoryRouter initialEntries={['/trips/10']}>
-          <Routes><Route path="/trips/:id" element={<PackageDetail />} /></Routes>
-        </MemoryRouter></AuthProvider>
-      </QueryClientProvider>,
-    )
-    expect(await screen.findByRole('button', { name: 'Agencia inactiva' })).toBeDisabled()
-    expect(mockedBuyPackage).not.toHaveBeenCalled()
-  })
-
   it('refetches favorites after starring a package', async () => {
     const user = userEvent.setup()
     let favorites: Favorite[] = []
@@ -154,9 +140,7 @@ describe('PackageDetail page', () => {
       </QueryClientProvider>,
     )
 
-    expect(
-      await screen.findByText('No pudimos cargar este paquete. Intentá de nuevo.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('No pudimos cargar este paquete. Intentá de nuevo.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /volver al catálogo/i })).toHaveAttribute('href', '/trips')
   })
 
@@ -173,6 +157,22 @@ describe('PackageDetail page', () => {
       </QueryClientProvider>,
     )
   }
+
+  it('keeps inactive agency history visible and prevents starting checkout', async () => {
+    mockedGetPackage.mockResolvedValue({ ...travelPackage, agency: { ...travelPackage.agency, active: false } })
+    renderDetail()
+    expect(await screen.findByRole('button', { name: 'Agencia inactiva' })).toBeDisabled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mockedBuyPackage).not.toHaveBeenCalled()
+  })
+
+  it('keeps archived package details visible and blocks checkout', async () => {
+    mockedGetPackage.mockResolvedValue({ ...travelPackage, active: false })
+    renderDetail()
+    expect(await screen.findByRole('button', { name: 'Paquete archivado' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Comprar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
 
   it('confirms the purchase in a dialog and shows the booking code', async () => {
     const user = userEvent.setup()
@@ -293,7 +293,10 @@ describe('PackageDetail page', () => {
     )
 
     expect(await screen.findByRole('heading', { name: 'París Gourmet' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver todos →' })).toHaveAttribute('href', '/trips?destination=PAR')
+    expect(screen.getByRole('link', { name: 'Ver todos →' })).toHaveAttribute(
+      'href',
+      '/trips?destination=PAR',
+    )
     expect(mockedSearchPackages).toHaveBeenCalledWith({ destination: 'PAR', size: 4 })
     // the current package only appears as the page heading, not as a suggestion
     expect(screen.getAllByRole('heading', { name: 'París Romántico' })).toHaveLength(1)

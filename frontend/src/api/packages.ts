@@ -39,6 +39,7 @@ export interface TravelPackage {
   returnFlightId: number
   averageScore?: number | null
   reviewCount?: number
+  active?: boolean
 }
 
 export interface TravelPackageDetail extends TravelPackage {
@@ -81,6 +82,18 @@ export interface PagedResult<T> {
 
 export async function searchPackages(params?: PackageSearchParams): Promise<PagedResult<TravelPackage>> {
   const { data } = await apiClient.get<PagedResult<TravelPackage>>('/packages', { params })
+  return data
+}
+
+export async function searchAdminPackages(
+  params?: PackageSearchParams & { active?: boolean },
+): Promise<PagedResult<TravelPackage>> {
+  const { data } = await apiClient.get<PagedResult<TravelPackage>>('/admin/packages', { params })
+  return data
+}
+
+export async function setPackageActive(id: number, active: boolean): Promise<TravelPackage> {
+  const { data } = await apiClient.put<TravelPackage>(`/packages/${id}/status`, { active })
   return data
 }
 

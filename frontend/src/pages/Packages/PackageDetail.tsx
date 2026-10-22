@@ -193,11 +193,7 @@ export function PackageDetail() {
       ? tripNights(detail.outboundFlight.flightDate, detail.returnFlight.flightDate)
       : null
   const passengerName = user ? `${user.firstName} ${user.lastName}` : ''
-  const checkoutStatus = buyMutation.isPending
-    ? 'processing'
-    : buyMutation.isSuccess
-      ? 'success'
-      : 'review'
+  const checkoutStatus = buyMutation.isPending ? 'processing' : buyMutation.isSuccess ? 'success' : 'review'
   const favoriteError = favorites.error
 
   return (
@@ -249,8 +245,18 @@ export function PackageDetail() {
           ) : null}
           {isBuyer ? (
             <div className="catalog__actions">
-              <Button type="button" onClick={openCheckout} disabled={purchased || detail.agency.active === false}>
-                {purchased ? 'Ya comprado' : detail.agency.active === false ? 'Agencia inactiva' : 'Comprar'}
+              <Button
+                type="button"
+                onClick={openCheckout}
+                disabled={purchased || detail.active === false || detail.agency.active === false}
+              >
+                {detail.active === false
+                  ? 'Paquete archivado'
+                  : detail.agency.active === false
+                    ? 'Agencia inactiva'
+                    : purchased
+                      ? 'Ya comprado'
+                      : 'Comprar'}
               </Button>
               <FavoriteButton
                 variant="labeled"
@@ -273,15 +279,9 @@ export function PackageDetail() {
       <section className="package-reviews">
         <h2>Reseñas</h2>
         <ReviewSummary reviews={detail.reviews} average={detail.averageScore} />
-        {detail.reviews.length === 0 ? (
-          <p className="catalog__muted">Todavía no hay reseñas.</p>
-        ) : null}
+        {detail.reviews.length === 0 ? <p className="catalog__muted">Todavía no hay reseñas.</p> : null}
         {detail.reviews.map((review, index) => (
-          <article
-            className="review-item reveal"
-            key={review.id}
-            style={{ ['--i' as string]: index }}
-          >
+          <article className="review-item reveal" key={review.id} style={{ ['--i' as string]: index }}>
             <span className="review-item__avatar" aria-hidden="true">
               {review.buyerUsername.slice(0, 1).toUpperCase()}
             </span>
@@ -316,11 +316,7 @@ export function PackageDetail() {
                 ))}
               </div>
             </fieldset>
-            <Input
-              label="Comentario"
-              value={comment}
-              onChange={(event) => setComment(event.target.value)}
-            />
+            <Input label="Comentario" value={comment} onChange={(event) => setComment(event.target.value)} />
             {reviewMutation.isError ? (
               <p className="catalog__error" role="alert">
                 {getApiErrorMessage(reviewMutation.error) ?? 'No se pudo publicar la reseña.'}
@@ -340,13 +336,17 @@ export function PackageDetail() {
         seeAllTo={`/trips?destination=${encodeURIComponent(detail.destination.code)}`}
       />
 
-      {checkoutOpen ? (
+      {checkoutOpen && detail.active !== false && detail.agency.active !== false ? (
         <CheckoutDialog
           detail={detail}
           passengerName={passengerName}
           status={checkoutStatus}
           purchase={buyMutation.data}
-          error={buyMutation.isError ? (getApiErrorMessage(buyMutation.error) ?? 'No se pudo completar la compra.') : null}
+          error={
+            buyMutation.isError
+              ? (getApiErrorMessage(buyMutation.error) ?? 'No se pudo completar la compra.')
+              : null
+          }
           onConfirm={() => buyMutation.mutate()}
           onClose={closeCheckout}
         />

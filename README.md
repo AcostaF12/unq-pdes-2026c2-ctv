@@ -170,8 +170,10 @@ La VM de demo está en `northcentralus`. Cuando está encendida, estas son sus d
 | Zipkin | http://64.236.199.81:9411 |
 | Kibana | http://64.236.199.81:5601 |
 
-La demo usa el perfil `prod`. El backend valida el esquema que administra Flyway y carga datos de ejemplo faltantes; el servicio de vuelos usa `create-drop`. No es un entorno preparado para conservar datos reales de producción.
+La demo usa el perfil `prod`. Ambos servicios validan el esquema administrado por Flyway y conservan los datos al reiniciar. El overlay de demo habilita la seed versionada; para una instalación sin datos de ejemplo usar `SEED_ENABLED=false`.
 
 ## Notas de las entregas
 
 [Release notes de la Entrega 2](docs/release-notes-entrega-2.md).
+
+La seed completa, sus credenciales, la persistencia y el archivo de paquetes se describen en [seed y ciclo de vida](docs/seed-y-ciclo-de-vida.md). La integración administrativa se documenta en [revisión de la PR 19](docs/pr-19-integracion.md).

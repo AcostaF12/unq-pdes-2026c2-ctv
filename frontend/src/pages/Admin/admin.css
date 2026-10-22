@@ -82,6 +82,14 @@
   gap: var(--space-3);
 }
 
+.admin-form__fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
 .admin-form__grid .field {
   min-width: 0;
 }

@@ -1,34 +1,23 @@
 package unq.pdes.backend.config.bootstrap
 
+import java.math.BigDecimal
+
 /**
- * Flight ids published by flights-service's bootstrap (keep both formulas in sync).
- *
- * Destinations are [DESTINATIONS] in order, each with three date variants (v = 0..2).
- * For destination index i and variant v: outbound id = (i * 3 + v) * 2 + 1, return id = (i * 3 + v) * 2 + 2.
+ * Stable keys shared with the internal flights demo catalog. Database ids are discovered at startup.
  */
 object SeedFlightIds {
     val DESTINATIONS = listOf("PAR", "LON", "ROM", "NYC", "RIO", "BCN", "CUN", "TYO", "DXB")
 
     private const val VARIANTS = 3
 
-    fun outbound(
+    fun key(
         destination: String,
         variant: Int,
-    ): Long = pairIndex(destination, variant) * 2 + 1
-
-    fun inbound(
-        destination: String,
-        variant: Int,
-    ): Long = pairIndex(destination, variant) * 2 + 2
-
-    private fun pairIndex(
-        destination: String,
-        variant: Int,
-    ): Long {
-        val destinationIndex = DESTINATIONS.indexOf(destination)
-        require(destinationIndex >= 0) { "There are no seeded flights for destination $destination." }
-        require(variant in 0 until VARIANTS) { "The flight variant must be between 0 and ${VARIANTS - 1}." }
-        return (destinationIndex * VARIANTS + variant).toLong()
+        leg: Int,
+    ): String {
+        require(destination in DESTINATIONS) { "There are no seeded flights for destination $destination." }
+        require(variant in 0 until VARIANTS && leg in 0..1) { "Invalid demo flight variant or leg." }
+        return "ctv-demo-v1:$destination:$variant:$leg"
     }
 }
 
@@ -74,6 +63,42 @@ data class FavoriteSeed(
 @Suppress("LargeClass")
 object SeedData {
     const val ORIGIN_CODE = "BUE"
+
+    val CITIES =
+        mapOf(
+            "BUE" to "Buenos Aires",
+            "PAR" to "Paris",
+            "LON" to "London",
+            "ROM" to "Rome",
+            "NYC" to "New York",
+            "TYO" to "Tokyo",
+            "RIO" to "Rio de Janeiro",
+            "BCN" to "Barcelona",
+            "CUN" to "Cancun",
+            "DXB" to "Dubai",
+        )
+
+    /** Validate the whole fixture graph before persisting it. */
+    fun validate() {
+        val names = PACKAGES.map { it.name }.toSet()
+        val buyers = BUYERS.map { it.username }.toSet()
+        val usernames = (ADMINS + BUYERS + AGENCY_USERS.values).map { it.username }
+        val purchases = PURCHASES.map { it.buyer to it.travelPackage }.toSet()
+        require(usernames.distinct().size == usernames.size) { "Duplicate demo usernames." }
+        require(AGENCY_USERS.keys == AGENCIES.toSet()) { "Every demo agency must have a seller." }
+        require(PACKAGES.size == names.size) { "Duplicate demo package names." }
+        require(PURCHASES.size == purchases.size) { "Duplicate demo purchases." }
+        PACKAGES.forEach { seed ->
+            require(seed.agency in AGENCIES && HOTELS.any { it.name == seed.hotel && it.cityCode == seed.destination })
+            require(BigDecimal(seed.price).signum() > 0)
+            SeedFlightIds.key(seed.destination, seed.flightVariant, 0)
+        }
+        require(PURCHASES.all { it.buyer in buyers && it.travelPackage in names && it.daysAgo >= 0 })
+        require(REVIEWS.all { (it.buyer to it.travelPackage) in purchases && it.score in 0..10 })
+        require(REVIEWS.map { it.buyer to it.travelPackage }.distinct().size == REVIEWS.size)
+        require(FAVORITES.all { it.buyer in buyers && it.travelPackage in names })
+        require(FAVORITES.distinct().size == FAVORITES.size)
+    }
 
     // Public demo credential, documented in the README; not a real secret.
     const val BUYER_PASSWORD = "buyer123" // NOSONAR
@@ -124,6 +149,8 @@ object SeedData {
         mapOf(
             "Despegar" to UserSeed("agency", "agency123", "Agus", "Agency"),
             "Almundo" to UserSeed("agency2", "agency123", "Martina", "Almundo"),
+            AGENCY_FLECHA_TOURS to UserSeed("agency3", "agency123", "Carolina", "Flecha"),
+            AGENCY_RUMBO_AUSTRAL to UserSeed("agency4", "agency123", "Diego", "Austral"),
         )
 
     private val CITY_PHOTOS =
