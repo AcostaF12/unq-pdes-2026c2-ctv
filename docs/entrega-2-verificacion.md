@@ -59,8 +59,8 @@ Los resultados locales no acreditan aprobación remota de Sonar ni publicación 
 
 ## Resultado local del 22 de octubre de 2026
 
-- Backend: 426 tests aprobados, sin omisiones, build y ktlint correctos.
-- Vuelos: 64 tests aprobados, incluidos los de PostgreSQL, idempotencia y concurrencia; build y ktlint correctos.
-- Frontend: 204 tests aprobados, build correcto y lint sin errores. Permanece una advertencia previa de dependencias de `useMemo` en `Profile.tsx`.
-- Cypress: 14 escenarios aprobados en siete suites con servicios y bases reales.
+- Backend: 443 tests aprobados, sin omisiones, build y ktlint correctos.
+- Vuelos: 67 tests aprobados, incluidos los de PostgreSQL, idempotencia y concurrencia; build y ktlint correctos.
+- Frontend: 222 tests aprobados, build correcto y lint sin errores. Permanece una advertencia previa de dependencias de `useMemo` en `Profile.tsx`.
+- Cypress: se valida nuevamente el conjunto integrado; incluye las consultas y cuatro reportes conservados de `dev`.
 - Reinicio real de ambos servicios: comparación de datos antes/después sin cambios de usuarios, permisos, paquetes, historial, stock ni reservas.

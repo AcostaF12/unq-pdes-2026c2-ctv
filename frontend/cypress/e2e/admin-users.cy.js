@@ -153,6 +153,25 @@ describe('Administración de usuarios, vendedores y agencias', () => {
     cy.then(() => expect(sellerId).to.be.a('number'))
   })
 
+  it('conserva las consultas y los cuatro reportes integrados en dev', () => {
+    loginThroughUI('vferreyra', 'vferreyra')
+    for (const [path, heading] of [
+      ['/admin/queries/users', 'Usuarios'],
+      ['/admin/favorites', 'Favoritos'],
+      ['/admin/reviews', 'Reseñas'],
+      ['/admin/purchases', 'Compras'],
+    ]) {
+      cy.visit(path)
+      cy.contains('h1', heading).should('be.visible')
+      cy.get('table tbody tr').should('have.length.greaterThan', 0)
+      cy.contains('No se pudo cargar la consulta').should('not.exist')
+    }
+    cy.visit('/admin/reports')
+    cy.contains('h1', 'Reportes Top 5').should('be.visible')
+    cy.get('table').should('have.length', 4)
+    cy.get('table tbody tr').should('have.length.greaterThan', 0)
+  })
+
   for (const account of [
     { username: 'buyer', password: 'buyer123' },
     { username: 'agency', password: 'agency123' },
