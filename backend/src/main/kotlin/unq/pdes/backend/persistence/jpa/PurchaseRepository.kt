@@ -19,14 +19,14 @@ interface PurchaseRepository :
 
     @Query(
         """SELECT p FROM Purchase p
-            WHERE p.agency.id = :agencyId
+            WHERE (:agencyId IS NULL OR p.agency.id = :agencyId)
               AND (:buyerUsername IS NULL OR p.buyerSnapshot.username = :buyerUsername)
               AND (:packageName IS NULL OR LOWER(p.travelSnapshot.name) LIKE LOWER(CONCAT('%', CAST(:packageName AS string), '%')))
               AND (CAST(:fromInclusive AS LocalDateTime) IS NULL OR p.purchasedAt >= :fromInclusive)
               AND (CAST(:toExclusive AS LocalDateTime) IS NULL OR p.purchasedAt < :toExclusive)""",
     )
     fun searchAgencyHistory(
-        @Param("agencyId") agencyId: Long,
+        @Param("agencyId") agencyId: Long?,
         @Param("buyerUsername") buyerUsername: String?,
         @Param("packageName") packageName: String?,
         @Param("fromInclusive") fromInclusive: LocalDateTime?,
