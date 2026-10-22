@@ -30,7 +30,20 @@ Desde el panel se accede a cuatro listados paginados:
 
 Las pantallas y los endpoints del mismo nombre son exclusivos de ADMIN. Las respuestas usan `content`, `page`, `size`, `totalElements` y `totalPages`. La API admite `page` desde 0 y `size` entre 1 y 100, con valores por defecto 0 y 20. No hay edición ni borrado desde estas consultas y no se consulta el servicio de vuelos.
 
-Las compras muestran sus datos históricos aunque el paquete cambie. Las consultas incluyen registros de agencias inactivas. Los reportes Top 5 se implementarán aparte.
+Las compras muestran sus datos históricos aunque el paquete cambie. Las consultas incluyen registros de agencias inactivas.
+
+### Reportes Top 5
+
+En `/admin/reports`, desde "Ver reportes", se muestran cuatro rankings de sólo lectura. El endpoint `GET /admin/reports` también es exclusivo de ADMIN.
+
+- Compradores con más compras: cantidad de compras por comprador.
+- Agencias con más ventas: cantidad de compras vendidas por agencia.
+- Destinos más vendidos: cantidad de compras por código de destino histórico, guardado al comprar. Editar el destino del paquete no mueve ventas anteriores a otro destino.
+- Destinos mejor puntuados: promedio de todas las reseñas de los paquetes del destino actual. Cada reseña pesa lo mismo, incluso si el puntaje es cero. Se muestra la cantidad de reseñas que forma el promedio.
+
+Se considera todo el historial, incluidas agencias inactivas. Cada reporte devuelve como máximo cinco filas; los grupos sin compras o sin reseñas no aparecen. La base agrupa, ordena y limita los resultados, sin cargar todo el historial ni consultar la API de vuelos.
+
+Los empates por cantidad se resuelven por nombre de comprador/agencia y luego ID, o por código de destino. Los empates de puntaje se resuelven por cantidad de reseñas y luego código. El orden usa los promedios sin redondear; la pantalla los muestra con hasta dos decimales. Si un código de destino tiene distintos nombres históricos, se muestra el mayor nombre en orden alfabético, agrupando siempre por código. Los nombres de compradores y agencias son los actuales.
 
 ### Agencias
 
