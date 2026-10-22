@@ -72,6 +72,45 @@ describe('FlightPicker', () => {
     expect(screen.getByLabelText('Vuelo de ida')).toBeDisabled()
     expect(screen.getByLabelText('Vuelo de ida')).toHaveDisplayValue('Elegí un hotel primero')
     expect(mockedListFlights).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Fecha de ida')).toBeDisabled()
+    expect(screen.getByLabelText('Fecha de vuelta')).toBeDisabled()
+  })
+
+  it('offers unique sorted dates for the route and keeps other dates visible after filtering', async () => {
+    const user = userEvent.setup()
+    mockedListFlights.mockResolvedValue([
+      laterOutboundToParis, outboundToParis,
+      { ...outboundToParis, id: 100, departureTime: '12:00' },
+    ])
+    renderPicker('PAR')
+    const dates = screen.getByLabelText('Fecha de ida')
+    await waitFor(() => expect(optionLabels(dates)).toEqual([
+      'Todas las fechas', '01/12/2026', '05/12/2026',
+    ]))
+    await user.selectOptions(dates, '2026-12-01')
+    expect(screen.getByLabelText('Vuelo de ida').querySelectorAll('option')).toHaveLength(3)
+    expect(optionLabels(dates)).toEqual(['Todas las fechas', '01/12/2026', '05/12/2026'])
+    await user.selectOptions(dates, '')
+    expect(screen.getByLabelText('Vuelo de ida').querySelectorAll('option')).toHaveLength(4)
+  })
+
+  it('offers only return dates on the reverse route that are not before departure', async () => {
+    const user = userEvent.setup()
+    mockedListFlights.mockResolvedValue([
+      ...allFlights,
+      { ...returnFromParis, id: 101, flightDate: '2026-11-30' },
+      { ...returnFromParis, id: 102, flightDate: '2026-12-12' },
+    ])
+    renderPicker('PAR')
+    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await waitFor(() => expect(optionLabels(screen.getByLabelText('Fecha de vuelta'))).toEqual([
+      'Todas las fechas', '10/12/2026', '12/12/2026',
+    ]))
+    await user.selectOptions(screen.getByLabelText('Fecha de vuelta'), '2026-12-12')
+    expect(screen.getByLabelText('Vuelo de vuelta').querySelector('option[value="2"]')).toBeNull()
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '6')
+    expect(screen.getByLabelText('Fecha de vuelta')).toHaveValue('')
   })
 
   it('offers only flights to the hotel city and the matching reverse flights', async () => {
@@ -121,6 +160,37 @@ describe('FlightPicker', () => {
     renderPicker('PAR')
 
     expect(await screen.findByRole('option', { name: 'No hay vuelos hacia PAR' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Fecha de ida')).toBeDisabled()
+    expect(screen.getByLabelText('Fecha de ida')).toHaveDisplayValue('No hay fechas para esta ruta')
+  })
+
+  it('shows loading feedback until route dates arrive', async () => {
+    mockedListFlights.mockReturnValue(new Promise(() => {}))
+    renderPicker('PAR')
+    expect(screen.getByLabelText('Fecha de ida')).toBeDisabled()
+    expect(screen.getByLabelText('Fecha de ida')).toHaveDisplayValue('Cargando fechas…')
+  })
+
+  it('clears both date filters when the origin changes and reloads dates for that route', async () => {
+    const user = userEvent.setup()
+    mockedListFlights.mockImplementation(async (params) => allFlights.filter((flight) =>
+      (!params?.origin || flight.origin === params.origin)
+      && (!params?.destination || flight.destination === params.destination),
+    ))
+    renderPicker('PAR')
+    await waitFor(() => expect(screen.getByLabelText('Fecha de ida')).toBeEnabled())
+    await user.selectOptions(screen.getByLabelText('Fecha de ida'), '2026-12-01')
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await waitFor(() => expect(screen.getByLabelText('Fecha de vuelta')).toBeEnabled())
+    await user.selectOptions(screen.getByLabelText('Fecha de vuelta'), '2026-12-10')
+    await user.selectOptions(screen.getByLabelText('Origen de ida'), 'MAD')
+    expect(screen.getByLabelText('Fecha de ida')).toHaveValue('')
+    expect(screen.getByLabelText('Fecha de vuelta')).toHaveValue('')
+    await waitFor(() => expect(screen.getByLabelText('Fecha de ida')).toHaveDisplayValue('No hay fechas para esta ruta'))
+    await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
+    await waitFor(() => expect(optionLabels(screen.getByLabelText('Fecha de ida'))).toEqual([
+      'Todas las fechas', '01/12/2026', '05/12/2026',
+    ]))
   })
 
   it('shows the server message when flights cannot be loaded', async () => {
@@ -142,9 +212,6 @@ describe('FlightPicker', () => {
     await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
     fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '2026-12-01' } })
 
-    await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
-      destination: 'PAR', origin: 'BUE', date: '2026-12-01',
-    }))
     await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toEqual([
       'Elegí un vuelo de ida', 'Aerolíneas Test · 2026-12-01 08:30 · BUE → PAR · 40 lugares',
     ]))
@@ -186,14 +253,10 @@ describe('FlightPicker', () => {
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
     await screen.findByRole('option', { name: describeFlight(returnFromParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
-    fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-11' } })
-
-    await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
-      origin: 'PAR', destination: 'BUE', date: '2026-12-11',
-    }))
+    await user.selectOptions(screen.getByLabelText('Fecha de vuelta'), '2026-12-10')
     expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('1')
     expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
-    expect(await screen.findByRole('option', { name: 'No hay vuelos de regreso para esa ruta' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Vuelo de vuelta').querySelector('option[value="2"]')).not.toBeNull()
 
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '' } })
     expect(await screen.findByRole('option', { name: describeFlight(returnFromParis) })).toBeInTheDocument()

@@ -4,7 +4,6 @@ import { listCities } from '../../api/cities'
 import { getApiErrorMessage } from '../../api/errors'
 import { listFlights } from '../../api/flights'
 import { queryKeys } from '../../query/keys'
-import { Input } from '../Input/Input'
 import { Select } from '../Select/Select'
 import { describeFlight, outboundOptions, returnOptions } from './flightOptions'
 import './FlightPicker.css'
@@ -36,7 +35,6 @@ export function FlightPicker({
   const outboundParams = {
     destination: destinationCode ?? '',
     ...(origin ? { origin } : {}),
-    ...(outboundDate ? { date: outboundDate } : {}),
   }
   const outboundQuery = useQuery({
     queryKey: queryKeys.flights.search(outboundParams),
@@ -44,17 +42,18 @@ export function FlightPicker({
     enabled: destinationCode !== null,
   })
 
-  const outbound = useMemo(
+  const outboundFlights = useMemo(
     () => outboundOptions(outboundQuery.data ?? [], destinationCode),
     [outboundQuery.data, destinationCode],
   )
+  const outboundDates = [...new Set(outboundFlights.map((flight) => flight.flightDate))]
+  const outbound = outboundFlights.filter((flight) => !outboundDate || flight.flightDate === outboundDate)
   const selectedOutbound = outbound.find((flight) => String(flight.id) === outboundFlightId)
 
   const returnParams = selectedOutbound
     ? {
         origin: selectedOutbound.destination,
         destination: selectedOutbound.origin,
-        ...(returnDate ? { date: returnDate } : {}),
       }
     : null
   const returnQuery = useQuery({
@@ -62,10 +61,10 @@ export function FlightPicker({
     queryFn: () => listFlights(returnParams ?? {}),
     enabled: returnParams !== null,
   })
-  const inbound = useMemo(
-    () => returnOptions(returnQuery.data ?? [], selectedOutbound),
-    [returnQuery.data, selectedOutbound],
-  )
+  const returnFlights = returnOptions(returnQuery.data ?? [], selectedOutbound)
+    .filter((flight) => selectedOutbound && flight.flightDate >= selectedOutbound.flightDate)
+  const returnDates = [...new Set(returnFlights.map((flight) => flight.flightDate))]
+  const inbound = returnFlights.filter((flight) => !returnDate || flight.flightDate === returnDate)
 
   const loadError = outboundQuery.error ?? returnQuery.error ?? citiesQuery.error
 
@@ -90,7 +89,7 @@ export function FlightPicker({
   return (
     <div className="flight-picker" data-testid="flight-picker">
       <div className="flight-picker__filters" role="group" aria-label="Filtrar vuelos">
-        <p className="flight-picker__hint">Filtros opcionales. El destino lo determina el hotel elegido.</p>
+        <p className="flight-picker__hint">El destino lo determina el hotel elegido. Las fechas muestran los vuelos cargados para la ruta.</p>
         <Select
           label="Origen de ida"
           data-testid="package-flight-origin"
@@ -98,6 +97,8 @@ export function FlightPicker({
           disabled={citiesQuery.isPending || citiesQuery.isError}
           onChange={(event) => {
             setOrigin(event.target.value)
+            setOutboundDate('')
+            setReturnDate('')
             onChange({ outboundFlightId: '', returnFlightId: '' })
           }}
         >
@@ -106,26 +107,33 @@ export function FlightPicker({
             <option key={city.code} value={city.code}>{city.name} ({city.code})</option>
           ))}
         </Select>
-        <Input
+        <Select
           label="Fecha de ida"
           data-testid="package-outbound-date"
-          type="date"
+          disabled={destinationCode === null || outboundQuery.isPending || outboundQuery.isError || outboundDates.length === 0}
           value={outboundDate}
           onChange={(event) => {
             setOutboundDate(event.target.value)
+            setReturnDate('')
             onChange({ outboundFlightId: '', returnFlightId: '' })
           }}
-        />
-        <Input
+        >
+          <option value="">{destinationCode === null ? 'Elegí un hotel primero' : outboundQuery.isPending ? 'Cargando fechas…' : outboundDates.length === 0 ? 'No hay fechas para esta ruta' : 'Todas las fechas'}</option>
+          {outboundDates.map((date) => <option key={date} value={date}>{date.split('-').reverse().join('/')}</option>)}
+        </Select>
+        <Select
           label="Fecha de vuelta"
           data-testid="package-return-date"
-          type="date"
+          disabled={!selectedOutbound || returnQuery.isPending || returnQuery.isError || returnDates.length === 0}
           value={returnDate}
           onChange={(event) => {
             setReturnDate(event.target.value)
             onChange({ outboundFlightId, returnFlightId: '' })
           }}
-        />
+        >
+          <option value="">{!selectedOutbound ? 'Elegí primero el vuelo de ida' : returnQuery.isPending ? 'Cargando fechas…' : returnDates.length === 0 ? 'No hay fechas de regreso' : 'Todas las fechas'}</option>
+          {returnDates.map((date) => <option key={date} value={date}>{date.split('-').reverse().join('/')}</option>)}
+        </Select>
       </div>
       <Select
         label="Vuelo de ida"
@@ -133,7 +141,10 @@ export function FlightPicker({
         value={outboundFlightId}
         disabled={destinationCode === null}
         error={outboundError}
-        onChange={(event) => onChange({ outboundFlightId: event.target.value, returnFlightId: '' })}
+        onChange={(event) => {
+          setReturnDate('')
+          onChange({ outboundFlightId: event.target.value, returnFlightId: '' })
+        }}
       >
         <option value="">{outboundPlaceholder}</option>
         {outbound.map((flight) => (

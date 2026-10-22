@@ -128,6 +128,7 @@ export function PackageForm({
         ))}
       </Select>
       <FlightPicker
+        key={hotelId}
         destinationCode={selectedHotel?.city.code ?? null}
         outboundFlightId={outboundFlightId}
         returnFlightId={returnFlightId}

@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { listCities } from '../../api/cities'
@@ -114,16 +114,11 @@ describe('AgencyPackages page', () => {
     }
 
     await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
-    fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '2026-12-01' } })
-    fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-10' } })
-    await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
-      origin: 'BUE', destination: 'PAR', date: '2026-12-01',
-    }))
+    await user.selectOptions(screen.getByLabelText('Fecha de ida'), '2026-12-01')
     await waitFor(() => expect(screen.getByLabelText('Vuelo de ida').querySelector('option[value="1"]')).not.toBeNull())
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
-      origin: 'PAR', destination: 'BUE', date: '2026-12-10',
-    }))
+    await waitFor(() => expect(screen.getByLabelText('Fecha de vuelta')).toBeEnabled())
+    await user.selectOptions(screen.getByLabelText('Fecha de vuelta'), '2026-12-10')
     await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta').querySelector('option[value="2"]')).not.toBeNull())
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
     await user.click(screen.getByRole('button', { name: mode === 'edit' ? 'Guardar cambios' : 'Crear paquete' }))
@@ -151,6 +146,27 @@ describe('AgencyPackages page', () => {
     await user.click(screen.getByRole('button', { name: 'Crear paquete' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('El vuelo de vuelta debe ser la ruta inversa')
+  })
+
+  it('clears route dates and flights when the hotel changes', async () => {
+    const user = userEvent.setup()
+    renderAgencyPackages()
+    await screen.findByLabelText('Hotel')
+    await user.selectOptions(screen.getByLabelText('Hotel'), '1')
+    await waitFor(() => expect(screen.getByLabelText('Fecha de ida')).toBeEnabled())
+    await user.selectOptions(screen.getByLabelText('Fecha de ida'), '2026-12-01')
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await waitFor(() => expect(screen.getByLabelText('Fecha de vuelta')).toBeEnabled())
+    await user.selectOptions(screen.getByLabelText('Fecha de vuelta'), '2026-12-10')
+    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    await user.selectOptions(screen.getByLabelText('Hotel'), '')
+    expect(screen.getByLabelText('Fecha de ida')).toHaveValue('')
+    expect(screen.getByLabelText('Fecha de vuelta')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
+    await user.selectOptions(screen.getByLabelText('Hotel'), '1')
+    await screen.findByRole('option', { name: '01/12/2026' })
+    expect(screen.getByLabelText('Fecha de ida')).toHaveValue('')
   })
 
   it('still lets the agency delete one of its packages', async () => {
