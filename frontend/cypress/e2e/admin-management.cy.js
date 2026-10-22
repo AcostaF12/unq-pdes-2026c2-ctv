@@ -274,20 +274,31 @@ describe('Administración: vuelos y paquetes', () => {
 })
 
 describe('Agencia: alta de paquetes con selector de vuelos', () => {
-  it('crea un paquete eligiendo hotel y vuelos de las listas y luego lo elimina', () => {
+  it('filtra vuelos por origen y fechas al crear y editar un paquete y luego lo elimina', () => {
     const suffix = uniqueSuffix()
     const airline = `Cypress Agencia ${suffix}`
     const packageName = `Agencia E2E ${suffix}`
+    const outboundDate = isoDateIn(75)
+    const returnDate = isoDateIn(82)
     cy.intercept('POST', '**/packages').as('createPackage')
+    cy.intercept('PUT', '**/packages/*').as('updatePackage')
     cy.intercept('DELETE', '**/packages/*').as('deletePackage')
+    cy.intercept({
+      method: 'GET', pathname: '/flights',
+      query: { origin: 'BUE', destination: 'PAR', date: outboundDate },
+    }).as('filteredOutbound')
+    cy.intercept({
+      method: 'GET', pathname: '/flights',
+      query: { origin: 'PAR', destination: 'BUE', date: returnDate },
+    }).as('filteredReturn')
 
     const flightsUrl = Cypress.expose('flightsUrl')
     cy.request('POST', `${flightsUrl}/flights`, {
-      airline, flightDate: isoDateIn(75), departureTime: '07:45:00',
+      airline, flightDate: outboundDate, departureTime: '07:45:00',
       origin: 'BUE', destination: 'PAR', capacity: 4, availability: 4,
     }).its('status').should('eq', 201)
     cy.request('POST', `${flightsUrl}/flights`, {
-      airline, flightDate: isoDateIn(82), departureTime: '19:10:00',
+      airline, flightDate: returnDate, departureTime: '19:10:00',
       origin: 'PAR', destination: 'BUE', capacity: 4, availability: 4,
     }).its('status').should('eq', 201)
 
@@ -299,8 +310,14 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
       cy.get('[data-testid="package-outbound-flight"]').should('be.disabled')
       fieldByLabel('Nombre').type(packageName)
       fieldByLabel('Hotel').select(HOTEL_OPTION)
+      fieldByLabel('Origen de ida').select('BUE')
+      fieldByLabel('Fecha de ida').type(outboundDate)
+      fieldByLabel('Fecha de vuelta').type(returnDate)
     })
+    cy.wait('@filteredOutbound').its('response.statusCode').should('eq', 200)
     selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
+    cy.get('[data-testid="package-outbound-flight"] option:selected').should('contain.text', outboundDate)
+    cy.wait('@filteredReturn').its('response.statusCode').should('eq', 200)
     cy.get('[data-testid="package-return-flight"]').should('be.enabled')
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
     cy.get('[data-testid="package-form"]').within(() => {
@@ -317,6 +334,33 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
       cy.contains('Buenos Aires → Paris').should('be.visible')
       cy.contains('USD 1850').should('be.visible')
     })
+
+    cy.get(`button[aria-label="Editar ${packageName}"]`).click()
+    cy.get('[data-testid="package-return-flight"]').should('not.have.value', '')
+    cy.get('[data-testid="package-flight-origin"]').select('BUE')
+    cy.get('[data-testid="package-outbound-flight"]').should('have.value', '')
+    cy.get('[data-testid="package-return-flight"]').should('have.value', '').and('be.disabled')
+    cy.get('[data-testid="package-outbound-date"]').type(outboundDate)
+    cy.get('[data-testid="package-return-date"]').type(returnDate)
+    selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
+    selectOptionContaining('[data-testid="package-return-flight"]', airline)
+    cy.get('[data-testid="package-return-date"]').clear()
+    cy.get('[data-testid="package-outbound-flight"]').should('not.have.value', '')
+    cy.get('[data-testid="package-return-flight"]').should('have.value', '')
+    cy.get('[data-testid="package-return-date"]').type(returnDate)
+    selectOptionContaining('[data-testid="package-return-flight"]', airline)
+    cy.get('[data-testid="package-form"]').within(() => {
+      fieldByLabel('Precio').clear().type('1950')
+      cy.contains('button', /^Guardar cambios$/).click()
+    })
+    cy.wait('@updatePackage').then(({ request, response }) => {
+      expect(response.statusCode).to.eq(200)
+      expect(request.body).not.to.have.property('agencyId')
+      expect(response.body.price).to.eq(1950)
+    })
+    cy.contains('li', packageName).contains('USD 1950').should('be.visible')
+    cy.reload()
+    cy.contains('li', packageName).contains('USD 1950').should('be.visible')
 
     cy.contains('li', packageName).contains('button', /^Eliminar$/).click()
     cy.wait('@deletePackage').its('response.statusCode').should('eq', 204)

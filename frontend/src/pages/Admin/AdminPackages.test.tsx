@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { listAgencies } from '../../api/agencies'
+import { listCities } from '../../api/cities'
 import { listFlights } from '../../api/flights'
 import { listHotels } from '../../api/hotels'
 import {
@@ -19,6 +20,7 @@ import { createTestQueryClient } from '../../test/queryClient'
 import { AdminPackages } from './AdminPackages'
 
 vi.mock('../../api/agencies', () => ({ listAgencies: vi.fn() }))
+vi.mock('../../api/cities', () => ({ listCities: vi.fn() }))
 vi.mock('../../api/flights', () => ({ listFlights: vi.fn() }))
 vi.mock('../../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../../api/packages', () => ({
@@ -83,6 +85,7 @@ describe('AdminPackages page', () => {
     ])
     vi.mocked(listHotels).mockResolvedValue([parisHotel, buenosAiresHotel])
     vi.mocked(listFlights).mockResolvedValue(allFlights)
+    vi.mocked(listCities).mockResolvedValue([parisHotel.city, buenosAiresHotel.city])
   })
 
   it('lists every package with its agency, route and price', async () => {

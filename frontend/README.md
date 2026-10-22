@@ -35,6 +35,11 @@ src/
 
 El diseño de la fase 1 y el backlog están en [`docs/frontend`](../docs/frontend).
 
+Al crear o editar paquetes, el selector de vuelos permite filtrar por ciudad de origen,
+fecha de ida y fecha de vuelta. Los filtros son opcionales: el destino depende del hotel
+y el regreso usa la ruta inversa de la ida elegida. Cambiar origen o fecha de ida limpia
+ambos vuelos seleccionados; cambiar la fecha de vuelta limpia solamente el regreso.
+
 ## Pruebas e2e
 
 Desde la raíz del repositorio, con Docker Desktop abierto:
@@ -80,7 +85,8 @@ de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios r
 `admin-management.cy.js` cubre la sección Administración: acceso por rol, alta de vuelos de ida y
 vuelta, alta de un paquete para una agencia, su compra por un comprador, edición y eliminación
 (incluido el rechazo al borrar un paquete ya comprado) y el alta de paquetes desde la agencia con
-el selector de vuelos. Los vuelos no tienen endpoint de baja: quedan hasta ejecutar `down`.
+el selector de vuelos, sus filtros de origen y fechas y la edición del paquete de la agencia.
+Los vuelos no tienen endpoint de baja: quedan hasta ejecutar `down`.
 La compra prepara un comprador, dos vuelos y un paquete propios mediante APIs;
 la operación de compra se hace desde la interfaz. El hotel usa un nombre único
 y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `down`.

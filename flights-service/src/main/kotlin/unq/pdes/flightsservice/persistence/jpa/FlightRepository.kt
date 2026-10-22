@@ -23,7 +23,7 @@ interface FlightRepository : JpaRepository<Flight, Long> {
         WHERE f.availability > 0
         AND (:origin IS NULL OR f.origin = :origin)
         AND (:destination IS NULL OR f.destination = :destination)
-        AND (:date IS NULL OR f.flightDate = :date)
+        AND (CAST(:date AS date) IS NULL OR f.flightDate = :date)
         ORDER BY f.flightDate, f.departureTime
         """,
     )

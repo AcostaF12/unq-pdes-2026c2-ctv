@@ -38,19 +38,29 @@ end
   check(!sonar.nil?, "#{mod} must enforce the Sonar Quality Gate")
   check(sonar['if'] == "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository", "#{mod} must only skip Sonar for fork PRs")
   check(!sonar['continue-on-error'], "#{mod} must propagate Sonar failures")
-  run = sonar.fetch('run')
-  # SonarCloud free only exposes Quality Gate status on main; elsewhere analyze without waiting.
-  check(run.include?('WAIT=false'), "#{mod} must default Quality Gate wait to false off main")
-  check(run.include?('refs/heads/main') && run.include?('WAIT=true'), "#{mod} must wait for the Quality Gate on main")
-  command = './gradlew sonar -Dsonar.qualitygate.wait="${WAIT}" -Dsonar.qualitygate.timeout=300'
-  check(run.include?(command), "#{mod} must run Sonar with Quality Gate wait controlled by branch")
-  # Exercise token validation and failure propagation without contacting Sonar.
-  script = run.sub(command, 'exit 23')
-  ['', 'local-test-token'].each do |token|
-    output, _, status = Open3.capture3({ 'SONAR_TOKEN' => token, 'GITHUB_REF' => 'refs/heads/dev' }, 'sh', stdin_data: script)
-    check(status.exitstatus == (token.empty? ? 1 : 23), "#{mod} must reject missing tokens and failed analysis")
-    check(output.include?('SONAR_TOKEN'), "#{mod} must explain missing configuration") if token.empty?
-    check(!output.include?(token), "#{mod} must not expose tokens") unless token.empty?
+  # Run the real branch logic, replacing only Gradle to avoid contacting Sonar.
+  stub = "gradle_stub() { printf '%s\\n' \"$@\"; return \"$SONAR_EXIT_CODE\"; }\n"
+  script = stub + sonar.fetch('run').gsub('./gradlew', 'gradle_stub')
+  {
+    'refs/heads/main' => true,
+    'refs/heads/dev' => false,
+    'refs/heads/feature/ci-test' => false,
+    'refs/pull/22/merge' => false,
+  }.each do |ref, wait|
+    [['', 0], ['local-test-token', 0], ['local-test-token', 23]].each do |token, exit_code|
+      env = { 'SONAR_TOKEN' => token, 'GITHUB_REF' => ref, 'SONAR_EXIT_CODE' => exit_code.to_s }
+      output, _, status = Open3.capture3(env, 'bash', '-e', '-o', 'pipefail', stdin_data: script)
+      expected_exit = token.empty? ? 1 : exit_code
+      check(status.exitstatus == expected_exit, "#{mod} must reject missing tokens and propagate analysis failures on #{ref}")
+      if token.empty?
+        check(output.include?('SONAR_TOKEN'), "#{mod} must explain missing configuration")
+        check(!output.include?('-Dsonar.'), "#{mod} must reject missing tokens before running Sonar")
+      else
+        expected_args = ['sonar', "-Dsonar.qualitygate.wait=#{wait}", '-Dsonar.qualitygate.timeout=300']
+        check(output.lines.map(&:chomp) == expected_args, "#{mod} must analyze #{ref} with Quality Gate wait=#{wait}")
+        check(!output.include?(token), "#{mod} must not expose tokens")
+      end
+    end
   end
 end
 

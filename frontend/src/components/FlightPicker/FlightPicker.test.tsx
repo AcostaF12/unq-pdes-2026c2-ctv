@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { listCities } from '../../api/cities'
 import { listFlights } from '../../api/flights'
 import { allFlights, apiError, laterOutboundToParis, outboundToParis, returnFromParis } from '../../test/fixtures'
 import { createTestQueryClient } from '../../test/queryClient'
@@ -12,6 +13,7 @@ import { describeFlight, describeSeats, outboundOptions, returnOptions } from '.
 vi.mock('../../api/flights', () => ({
   listFlights: vi.fn(),
 }))
+vi.mock('../../api/cities', () => ({ listCities: vi.fn() }))
 
 const mockedListFlights = vi.mocked(listFlights)
 
@@ -58,6 +60,10 @@ describe('FlightPicker', () => {
   beforeEach(() => {
     mockedListFlights.mockReset()
     mockedListFlights.mockResolvedValue(allFlights)
+    vi.mocked(listCities).mockResolvedValue([
+      { code: 'BUE', name: 'Buenos Aires' },
+      { code: 'MAD', name: 'Madrid' },
+    ])
   })
 
   it('asks for a hotel first and does not load flights without a destination', () => {
@@ -122,5 +128,83 @@ describe('FlightPicker', () => {
     renderPicker('PAR')
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Servicio de vuelos caído')
+  })
+
+  it('combines origin and outbound date with the hotel destination and allows clearing them', async () => {
+    const user = userEvent.setup()
+    mockedListFlights.mockImplementation(async (params) => allFlights.filter((flight) =>
+      (!params?.origin || flight.origin === params.origin)
+      && (!params?.destination || flight.destination === params.destination)
+      && (!params?.date || flight.flightDate === params.date),
+    ))
+    renderPicker('PAR')
+    await screen.findByRole('option', { name: 'Buenos Aires (BUE)' })
+    await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
+    fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '2026-12-01' } })
+
+    await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
+      destination: 'PAR', origin: 'BUE', date: '2026-12-01',
+    }))
+    await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toEqual([
+      'Elegí un vuelo de ida', 'Aerolíneas Test · 2026-12-01 08:30 · BUE → PAR · 40 lugares',
+    ]))
+
+    await user.selectOptions(screen.getByLabelText('Origen de ida'), '')
+    fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '' } })
+    await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toHaveLength(3))
+    expect(screen.getByLabelText('Origen de ida')).toHaveValue('')
+  })
+
+  it.each(['Origen de ida', 'Fecha de ida'])('clears both selected flights when %s changes', async (label) => {
+    const user = userEvent.setup()
+    renderPicker('PAR')
+    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+
+    if (label === 'Origen de ida') {
+      await user.selectOptions(screen.getByLabelText(label), 'MAD')
+    } else {
+      fireEvent.change(screen.getByLabelText(label), { target: { value: '2026-12-05' } })
+    }
+
+    expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toBeDisabled()
+  })
+
+  it('filters the reverse route by return date and clears only the selected return flight', async () => {
+    const user = userEvent.setup()
+    mockedListFlights.mockImplementation(async (params) => allFlights.filter((flight) =>
+      (!params?.origin || flight.origin === params.origin)
+      && (!params?.destination || flight.destination === params.destination)
+      && (!params?.date || flight.flightDate === params.date),
+    ))
+    renderPicker('PAR')
+    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-11' } })
+
+    await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
+      origin: 'PAR', destination: 'BUE', date: '2026-12-11',
+    }))
+    expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('1')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
+    expect(await screen.findByRole('option', { name: 'No hay vuelos de regreso para esa ruta' })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '' } })
+    expect(await screen.findByRole('option', { name: describeFlight(returnFromParis) })).toBeInTheDocument()
+  })
+
+  it('shows city loading errors without blocking unfiltered flight selection', async () => {
+    vi.mocked(listCities).mockRejectedValue(apiError('No pudimos cargar las ciudades', 503))
+    renderPicker('PAR')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar las ciudades')
+    expect(screen.getByLabelText('Origen de ida')).toBeDisabled()
+    expect(await screen.findByRole('option', { name: describeFlight(outboundToParis) })).toBeInTheDocument()
   })
 })

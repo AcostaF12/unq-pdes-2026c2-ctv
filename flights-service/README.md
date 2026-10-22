@@ -25,3 +25,8 @@ La ruta anterior `POST /flights/{id}/sales`, con `passengerName` en el cuerpo, s
 ## Tests
 
 Desde esta carpeta, con Java 25: `bash gradlew test ktlintCheck`.
+
+Con Docker abierto también se ejecutan nueve casos de búsqueda contra PostgreSQL 16
+mediante Testcontainers. Cubren las combinaciones de origen, destino y fecha, el orden
+de los resultados y la exclusión de vuelos sin lugares. Sin Docker, esos casos se omiten;
+el resto de los tests usa H2. En GitHub Actions hay Docker disponible.
