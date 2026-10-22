@@ -59,6 +59,16 @@ export function AdminHome() {
       </div>
       <div className="admin-hub__grid">
         <article className="admin-card">
+          <h2>Consultas del sistema</h2>
+          <p>Consultá usuarios, favoritos, reseñas y compras sin modificar sus datos.</p>
+          <div className="page__actions">
+            <Link className="admin-card__link" to="/admin/users">Usuarios</Link>
+            <Link className="admin-card__link" to="/admin/favorites">Favoritos</Link>
+            <Link className="admin-card__link" to="/admin/reviews">Reseñas</Link>
+            <Link className="admin-card__link" to="/admin/purchases">Compras</Link>
+          </div>
+        </article>
+        <article className="admin-card">
           <h2>Agencias</h2>
           <p>Creá agencias con su cuenta, editá sus nombres y administrá su estado.</p>
           <Link className="admin-card__link" to="/admin/agencies">Gestionar agencias</Link>
