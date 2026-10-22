@@ -1,123 +1,120 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { createAgency, listAgencies, updateAgency } from '../../api/agencies'
-import { getApiErrorMessage } from '../../api/errors'
+import { createAgency, listAgencies, updateAgency, type CreateAgencyPayload } from '../../api/agencies'
 import type { Agency } from '../../api/packages'
+import { getApiErrorMessage } from '../../api/errors'
 import { Button } from '../../components/Button/Button'
 import { Input } from '../../components/Input/Input'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { queryKeys } from '../../query/keys'
-import { ADMIN_PATH } from '../../router/paths'
-import '../Packages/packages.css'
 import './admin.css'
+
+const emptyForm: CreateAgencyPayload = { name: '', username: '', password: '', firstName: '', lastName: '' }
 
 export function AdminAgencies() {
   const client = useQueryClient()
-  const agencies = useQuery({ queryKey: queryKeys.agencies, queryFn: listAgencies })
   const [editing, setEditing] = useState<Agency | null>(null)
-  const [name, setName] = useState('')
+  const [form, setForm] = useState(emptyForm)
+  const [confirming, setConfirming] = useState<Agency | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const agencies = useQuery({ queryKey: queryKeys.agencies, queryFn: listAgencies })
+  const refresh = async () => {
+    await client.invalidateQueries({ queryKey: queryKeys.agencies })
+    await client.invalidateQueries({ queryKey: queryKeys.packages.all })
+  }
   const save = useMutation({
-    mutationFn: () => (editing ? updateAgency(editing.id, name.trim()) : createAgency(name.trim())),
+    mutationFn: (payload: CreateAgencyPayload) => editing
+      ? updateAgency(editing.id, { name: payload.name, active: editing.active !== false })
+      : createAgency(payload),
     onSuccess: async () => {
-      setName('')
+      setNotice(editing ? 'Agencia actualizada.' : 'Agencia creada.')
       setEditing(null)
-      setNotice('Agencia guardada.')
-      await Promise.all([
-        client.invalidateQueries({ queryKey: queryKeys.agencies }),
-        client.invalidateQueries({ queryKey: queryKeys.adminUsers }),
-        client.invalidateQueries({ queryKey: queryKeys.packages.all }),
-      ])
+      setForm(emptyForm)
+      await refresh()
     },
   })
+  const toggle = useMutation({
+    mutationFn: (agency: Agency) => updateAgency(agency.id, { name: agency.name, active: agency.active === false }),
+    onSuccess: async (agency) => {
+      setConfirming(null)
+      setNotice(agency.active === false ? 'Agencia desactivada.' : 'Agencia reactivada.')
+      await refresh()
+    },
+  })
+  const busy = save.isPending || toggle.isPending
+  const openForm = (agency: Agency | null) => {
+    save.reset()
+    toggle.reset()
+    setConfirming(null)
+    setNotice(null)
+    setEditing(agency)
+    setForm({ ...emptyForm, name: agency?.name ?? '' })
+  }
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (name.trim()) save.mutate()
+    setNotice(null)
+    save.mutate({ ...form, name: form.name.trim(), username: form.username.trim(), firstName: form.firstName.trim(), lastName: form.lastName.trim() })
   }
+  const field = (name: keyof CreateAgencyPayload, label: string, maxLength: number, type = 'text') => (
+    <Input label={label} type={type} value={form[name]} required maxLength={maxLength}
+      minLength={name === 'password' ? 6 : 1}
+      autoComplete={name === 'password' ? 'new-password' : undefined}
+      onChange={(event) => setForm({ ...form, [name]: event.target.value })} />
+  )
   return (
     <section className="page">
-      <Link className="catalog__back" to={ADMIN_PATH}>
-        ← Administración
-      </Link>
+      <Link className="catalog__back" to="/admin">← Administración</Link>
       <h1 className="page__title">Agencias</h1>
-      <p className="catalog__muted">Creá la agencia antes de asignarle vendedores y paquetes.</p>
-      <form
-        className="admin-card"
-        onSubmit={submit}
-        aria-label={editing ? 'Editar agencia' : 'Nueva agencia'}
-      >
-        <h2>{editing ? 'Editar agencia' : 'Nueva agencia'}</h2>
-        <Input
-          label="Nombre de la agencia"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          maxLength={160}
-          disabled={save.isPending}
-        />
-        {save.error ? (
-          <p role="alert" className="package-form__error">
-            {getApiErrorMessage(save.error) ?? 'No pudimos guardar la agencia.'}
-          </p>
-        ) : null}
+      {notice ? <p role="status">{notice}</p> : null}
+      <form className="catalog__form" aria-label={editing ? 'Editar agencia' : 'Nueva agencia'} onSubmit={submit}>
+        <h2>{editing ? 'Editar agencia' : 'Nueva agencia y cuenta'}</h2>
+        <fieldset className="admin-form__grid" disabled={busy}>
+          <legend>{editing ? 'Datos de la agencia' : 'Datos de la agencia y su responsable'}</legend>
+          {field('name', 'Nombre de agencia', 160)}
+          {!editing ? <>
+            {field('username', 'Usuario', 60)}
+            {field('password', 'Contraseña', 72, 'password')}
+            {field('firstName', 'Nombre del responsable', 80)}
+            {field('lastName', 'Apellido del responsable', 80)}
+          </> : null}
+        </fieldset>
+        {save.isError ? <p role="alert">{getApiErrorMessage(save.error) ?? 'No se pudo guardar la agencia.'}</p> : null}
         <div className="page__actions">
-          <Button type="submit" loading={save.isPending} disabled={!name.trim()}>
-            {editing ? 'Guardar cambios' : 'Crear agencia'}
-          </Button>
-          {editing ? (
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={save.isPending}
-              onClick={() => {
-                setEditing(null)
-                setName('')
-                save.reset()
-              }}
-            >
-              Cancelar
-            </Button>
-          ) : null}
+          <Button type="submit" loading={save.isPending} disabled={busy}>{editing ? 'Guardar cambios' : 'Crear agencia'}</Button>
+          {editing ? <Button type="button" variant="ghost" disabled={busy} onClick={() => openForm(null)}>Cancelar</Button> : null}
         </div>
       </form>
-      {notice ? (
-        <p role="status" className="admin-notice">
-          {notice}
-        </p>
-      ) : null}
-      {agencies.isPending ? (
-        <ListSkeleton variant="rows" label="Cargando agencias" />
-      ) : agencies.error ? (
-        <EmptyState
-          tone="error"
-          title="No pudimos cargar las agencias"
-          message="Intentá de nuevo."
-          action={<Button onClick={() => void agencies.refetch()}>Reintentar</Button>}
-        />
-      ) : !agencies.data.length ? (
-        <EmptyState title="Sin agencias" message="Completá el formulario para crear una." />
-      ) : (
+      {toggle.isError ? <p role="alert">{getApiErrorMessage(toggle.error) ?? 'No se pudo cambiar el estado.'}</p> : null}
+      {agencies.isPending ? <ListSkeleton variant="rows" count={3} label="Cargando agencias" /> : agencies.isError ? (
+        <EmptyState tone="error" title="No se pudieron cargar las agencias" message="Intentá de nuevo."
+          action={<Button onClick={() => void agencies.refetch()}>Reintentar</Button>} />
+      ) : agencies.data.length === 0 ? <EmptyState title="Sin agencias" message="Creá la primera agencia con su cuenta." /> : (
         <ul className="admin-list" aria-label="Agencias registradas">
-          {agencies.data.map((agency) => (
-            <li key={agency.id} className="admin-row">
-              <h2 className="admin-row__title">{agency.name}</h2>
-              <Button
-                variant="ghost"
-                disabled={save.isPending}
-                aria-label={`Editar ${agency.name}`}
+          {agencies.data.map((agency) => <li className="admin-row" key={agency.id}>
+            <div className="admin-row__main"><h2>{agency.name}</h2><p>{agency.active === false ? 'Inactiva' : 'Activa'}</p></div>
+            <div className="page__actions">
+              <Button variant="ghost" disabled={busy} aria-label={`Editar ${agency.name}`} onClick={() => openForm(agency)}>Editar</Button>
+              <Button variant="ghost" disabled={busy || editing !== null} aria-label={`${agency.active === false ? 'Reactivar' : 'Desactivar'} ${agency.name}`}
                 onClick={() => {
-                  setEditing(agency)
-                  setName(agency.name)
+                  toggle.reset()
                   setNotice(null)
-                  save.reset()
-                }}
-              >
-                Editar
+                  if (agency.active === false) {
+                    toggle.mutate(agency)
+                  } else {
+                    setConfirming(agency)
+                  }
+                }}>
+                {agency.active === false ? 'Reactivar' : 'Desactivar'}
               </Button>
-            </li>
-          ))}
+            </div>
+            {confirming?.id === agency.id ? <div role="group" aria-label={`Confirmar desactivación de ${agency.name}`}>
+              <p>La agencia no podrá operar y sus paquetes dejarán de ofrecerse. Las compras e historiales se conservan.</p>
+              <Button disabled={busy} onClick={() => toggle.mutate(agency)}>Confirmar desactivación</Button>
+              <Button variant="ghost" disabled={busy} onClick={() => setConfirming(null)}>Cancelar</Button>
+            </div> : null}
+          </li>)}
         </ul>
       )}
     </section>

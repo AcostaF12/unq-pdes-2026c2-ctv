@@ -27,7 +27,7 @@ class AdminPackageController(
         @PageableDefault(size = 20, sort = ["name"]) pageable: Pageable,
         @RequestParam(required = false) active: Boolean?,
     ): PageDto<TravelPackageDto> {
-        val result = packages.search(request.toCriteria(), pageable, active)
+        val result = packages.search(request.toCriteria(), pageable, active, includeInactiveAgencies = true)
         val summaries = reviews.summarize(result.content.mapNotNull { it.id })
         return PageDto.from(result) { TravelPackageDto.fromModel(it, summaries[it.id]) }
     }

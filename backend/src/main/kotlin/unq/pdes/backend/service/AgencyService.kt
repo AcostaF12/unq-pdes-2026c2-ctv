@@ -9,23 +9,34 @@ import unq.pdes.backend.persistence.jpa.AgencyRepository
 @Service
 class AgencyService(
     private val agencyRepository: AgencyRepository,
+    private val userService: UserService,
 ) {
     @Transactional(readOnly = true)
     fun findAll(): List<Agency> = agencyRepository.findAllByOrderByNameAsc()
 
     @Transactional
-    fun create(name: String): Agency {
-        val normalized = validatedName(name)
-        return agencyRepository.save(Agency.Builder().name(normalized).build())
+    fun create(
+        name: String,
+        username: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+    ): Agency {
+        require(password.toByteArray(Charsets.UTF_8).size <= 72) { "La contraseña supera los 72 bytes." }
+        val agency = agencyRepository.save(Agency.Builder().name(validatedName(name)).build())
+        userService.createAgencyUser(username.trim(), password, firstName.trim(), lastName.trim(), agency)
+        return agency
     }
 
     @Transactional
     fun update(
         id: Long,
         name: String,
+        active: Boolean,
     ): Agency {
         val agency = findById(id)
         agency.name = validatedName(name, id)
+        agency.active = active
         return agencyRepository.save(agency)
     }
 

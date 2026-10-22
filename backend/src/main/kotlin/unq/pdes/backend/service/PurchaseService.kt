@@ -153,6 +153,7 @@ class PurchaseService(
             throw AccessDeniedException("Only buyers can purchase packages.")
         }
         val travelPackage = travelPackageService.findForUpdate(packageId)
+        require(travelPackage.agency.active) { "This agency is inactive. The package is not available for purchase." }
         require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
         val passengerName = "${buyer.firstName} ${buyer.lastName}"
 

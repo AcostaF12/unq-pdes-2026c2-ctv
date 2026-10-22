@@ -19,6 +19,9 @@ class Agency private constructor(
     @Column(nullable = false, length = 160)
     var name: String = builder.name!!
 
+    @Column(nullable = false)
+    var active: Boolean = true
+
     override fun equals(other: Any?): Boolean = (other is Agency) && id == other.id
 
     override fun hashCode(): Int = id.hashCode()

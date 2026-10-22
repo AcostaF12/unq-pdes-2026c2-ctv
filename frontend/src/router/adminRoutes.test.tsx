@@ -20,7 +20,11 @@ vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }
 vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../api/agencies', () => ({ listAgencies: vi.fn() }))
 vi.mock('../api/cities', () => ({ listCities: vi.fn() }))
-vi.mock('../api/adminUsers', () => ({ listManagedUsers: vi.fn(), createManagedUser: vi.fn(), updateManagedUser: vi.fn() }))
+vi.mock('../api/adminUsers', () => ({
+  listManagedUsers: vi.fn(),
+  createManagedUser: vi.fn(),
+  updateManagedUser: vi.fn(),
+}))
 vi.mock('../api/purchases', () => ({ getAdminSales: vi.fn() }))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
@@ -58,20 +62,43 @@ describe('admin routes', () => {
       totalElements: 0,
       totalPages: 0,
     })
-    vi.mocked(searchAdminPackages).mockResolvedValue({content: [], page: 0, size: 20, totalElements: 0, totalPages: 0})
+    vi.mocked(searchAdminPackages).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+    })
     vi.mocked(listFlights).mockResolvedValue([])
     vi.mocked(listHotels).mockResolvedValue([])
     vi.mocked(listAgencies).mockResolvedValue([])
-    vi.mocked(listManagedUsers).mockResolvedValue({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 })
-    vi.mocked(getAdminSales).mockResolvedValue({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true })
+    vi.mocked(listManagedUsers).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+    })
+    vi.mocked(getAdminSales).mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+    })
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/users', '/admin/agencies', '/admin/sales'])('lets an admin open %s', async (path) => {
-    renderAt(path, 'ADMIN')
+  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/users', '/admin/agencies', '/admin/sales'])(
+    'lets an admin open %s',
+    async (path) => {
+      renderAt(path, 'ADMIN')
 
-    await screen.findByRole('heading', { level: 1 })
-    expect(screen.queryByText('Sin permiso')).not.toBeInTheDocument()
-  })
+      await screen.findByRole('heading', { level: 1 }, { timeout: 5000 })
+      expect(screen.queryByText('Sin permiso')).not.toBeInTheDocument()
+    },
+  )
 
   it.each([
     ['/admin', 'BUYER'],

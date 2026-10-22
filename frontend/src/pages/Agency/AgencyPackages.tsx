@@ -6,7 +6,9 @@ import {
   createPackage,
   deletePackage,
   getAgencyPackages,
+  updatePackage,
   setPackageActive,
+  type TravelPackage,
   type TravelPackagePayload,
 } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
@@ -19,6 +21,7 @@ import '../Packages/packages.css'
 export function AgencyPackages() {
   const queryClient = useQueryClient()
   const [formKey, setFormKey] = useState(0)
+  const [editingPackage, setEditingPackage] = useState<TravelPackage | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
   const packagesQuery = useQuery({
@@ -32,11 +35,13 @@ export function AgencyPackages() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.packages.all })
   }
 
-  const createMutation = useMutation({
-    mutationFn: createPackage,
+  const saveMutation = useMutation({
+    mutationFn: (payload: TravelPackagePayload) =>
+      editingPackage ? updatePackage(editingPackage.id, payload) : createPackage(payload),
     onSuccess: async () => {
       setFormKey((key) => key + 1)
-      setMessage('Paquete creado.')
+      setMessage(editingPackage ? 'Paquete actualizado.' : 'Paquete creado.')
+      setEditingPackage(null)
       await invalidatePackages()
     },
   })
@@ -56,9 +61,16 @@ export function AgencyPackages() {
     },
   })
 
-  const onCreate = (payload: TravelPackagePayload) => {
+  const openForm = (travelPackage: TravelPackage | null) => {
+    saveMutation.reset()
     setMessage(null)
-    createMutation.mutate(payload)
+    setEditingPackage(travelPackage)
+    setFormKey((key) => key + 1)
+  }
+
+  const onSave = (payload: TravelPackagePayload) => {
+    setMessage(null)
+    saveMutation.mutate(payload)
   }
 
   const loadError = packagesQuery.error
@@ -86,15 +98,17 @@ export function AgencyPackages() {
 
       <PackageForm
         key={formKey}
-        title="Nuevo paquete"
-        submitLabel="Crear paquete"
-        submitting={createMutation.isPending}
+        title={editingPackage ? 'Editar paquete' : 'Nuevo paquete'}
+        submitLabel={editingPackage ? 'Guardar cambios' : 'Crear paquete'}
+        initialPackage={editingPackage ?? undefined}
+        submitting={saveMutation.isPending}
         serverError={
-          createMutation.isError
-            ? (getApiErrorMessage(createMutation.error) ?? 'No se pudo crear el paquete.')
+          saveMutation.isError
+            ? (getApiErrorMessage(saveMutation.error) ?? 'No se pudo guardar el paquete.')
             : null
         }
-        onSubmit={onCreate}
+        onSubmit={onSave}
+        onCancel={editingPackage ? () => openForm(null) : undefined}
       />
 
       {loadError ? (
@@ -138,6 +152,16 @@ export function AgencyPackages() {
               <Button
                 type="button"
                 variant="ghost"
+                aria-label={`Editar ${item.name}`}
+                disabled={saveMutation.isPending}
+                onClick={() => openForm(item)}
+              >
+                Editar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={saveMutation.isPending || editingPackage?.id === item.id}
                 onClick={() => deleteMutation.mutate(item.id)}
                 loading={deleteMutation.isPending && deleteMutation.variables === item.id}
               >

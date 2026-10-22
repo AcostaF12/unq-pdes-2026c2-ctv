@@ -35,8 +35,6 @@ class SecurityConfig(
             it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             it.requestMatchers("/auth/**", "/error").permitAll()
             it.requestMatchers("/admin/**").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.POST, "/agencies").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.PUT, "/agencies/**").hasRole("ADMIN")
 
             it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
@@ -48,6 +46,9 @@ class SecurityConfig(
             it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
 
             it.requestMatchers(HttpMethod.POST, "/flights").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.POST, "/agencies/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.PUT, "/agencies/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.DELETE, "/agencies/**").hasRole("ADMIN")
 
             it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")

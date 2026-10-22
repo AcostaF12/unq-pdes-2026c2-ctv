@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.dtos.models.AgencyDto
-import unq.pdes.backend.controller.dtos.requests.AgencyRequestDto
+import unq.pdes.backend.controller.dtos.requests.CreateAgencyRequestDto
+import unq.pdes.backend.controller.dtos.requests.UpdateAgencyRequestDto
 import unq.pdes.backend.service.AgencyService
 
 @Tag(name = "Agency Services", description = "Consulta de agencias.")
@@ -27,18 +27,25 @@ class AgencyController(
     @GetMapping
     fun all(): ResponseEntity<List<AgencyDto>> = ResponseEntity.ok(agencyService.findAll().map { AgencyDto.fromModel(it) })
 
-    @Operation(summary = "Crear agencia", description = "Solo administradores. Permite luego asignar vendedores y paquetes.")
-    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Crear agencia y su cuenta", description = "Solo ADMIN. Crea ambas en una transacción.")
     @PostMapping
     fun create(
-        @Valid @RequestBody request: AgencyRequestDto,
-    ): ResponseEntity<AgencyDto> = ResponseEntity.status(HttpStatus.CREATED).body(AgencyDto.fromModel(agencyService.create(request.name)))
+        @Valid @RequestBody request: CreateAgencyRequestDto,
+    ): ResponseEntity<AgencyDto> =
+        ResponseEntity
+            .status(
+                HttpStatus.CREATED,
+            ).body(
+                AgencyDto.fromModel(
+                    agencyService.create(request.name, request.username, request.password, request.firstName, request.lastName),
+                ),
+            )
 
-    @Operation(summary = "Actualizar agencia", description = "Solo administradores. Conserva vendedores, paquetes e historial.")
-    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Editar o desactivar agencia", description = "Solo ADMIN. Conserva paquetes e historial.")
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,
-        @Valid @RequestBody request: AgencyRequestDto,
-    ): AgencyDto = AgencyDto.fromModel(agencyService.update(id, request.name))
+        @Valid @RequestBody request: UpdateAgencyRequestDto,
+    ): ResponseEntity<AgencyDto> =
+        ResponseEntity.ok(AgencyDto.fromModel(agencyService.update(id, request.name, requireNotNull(request.active))))
 }

@@ -10,6 +10,12 @@ const AdminAgencies = lazyPage(() => import('../pages/Admin/AdminAgencies'), 'Ad
 const AdminSales = lazyPage(() => import('../pages/Admin/AdminSales'), 'AdminSales')
 const PurchaseDetail = lazyPage(() => import('../pages/Purchases/PurchaseDetail'), 'PurchaseDetail')
 
+const QueryUsers = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminUsers')
+const AdminFavorites = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminFavorites')
+const AdminReviews = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminReviews')
+const AdminPurchases = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminPurchases')
+const AdminReports = lazyPage(() => import('../pages/Admin/AdminReports'), 'AdminReports')
+
 export const adminRoute: RouteObject = {
   path: 'admin',
   element: (
@@ -23,6 +29,11 @@ export const adminRoute: RouteObject = {
     { path: 'flights', element: <AdminFlights /> },
     { path: 'users', element: <AdminUsers /> },
     { path: 'agencies', element: <AdminAgencies /> },
+    { path: 'queries/users', element: <QueryUsers /> },
+    { path: 'favorites', element: <AdminFavorites /> },
+    { path: 'reviews', element: <AdminReviews /> },
+    { path: 'purchases', element: <AdminPurchases /> },
+    { path: 'reports', element: <AdminReports /> },
     { path: 'sales', element: <AdminSales /> },
     { path: 'sales/:id', element: <PurchaseDetail /> },
   ],

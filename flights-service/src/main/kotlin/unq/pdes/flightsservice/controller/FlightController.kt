@@ -15,6 +15,7 @@ import unq.pdes.flightsservice.controller.dtos.models.FlightDto
 import unq.pdes.flightsservice.controller.dtos.models.FlightSaleDto
 import unq.pdes.flightsservice.controller.dtos.requests.FlightRequestDto
 import unq.pdes.flightsservice.controller.dtos.requests.FlightSaleRequestDto
+import unq.pdes.flightsservice.controller.dtos.requests.SaleRequestDto
 import unq.pdes.flightsservice.service.FlightService
 import java.time.LocalDate
 
@@ -22,7 +23,7 @@ import java.time.LocalDate
 class FlightController(
     private val flightService: FlightService,
 ) {
-    @GetMapping("/flights")
+    @GetMapping("/flights", "/vuelos")
     fun search(
         @RequestParam(required = false) origin: String?,
         @RequestParam(required = false) destination: String?,
@@ -62,6 +63,11 @@ class FlightController(
         val sale = flightService.sell(id, request.passengerName)
         return ResponseEntity.status(HttpStatus.CREATED).body(FlightSaleDto.fromModel(sale))
     }
+
+    @PostMapping("/venta")
+    fun sell(
+        @Valid @RequestBody request: SaleRequestDto,
+    ): ResponseEntity<FlightSaleDto> = sell(request.flightId, FlightSaleRequestDto(request.passengerName))
 
     @DeleteMapping("/flights/sales/{id}")
     fun cancelSale(

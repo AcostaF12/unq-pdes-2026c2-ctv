@@ -25,10 +25,14 @@ describe('Administración de usuarios, vendedores y agencias', () => {
 
     loginThroughUI('vferreyra', 'vferreyra')
     cy.visit('/admin/agencies')
-    fieldByLabel('Nombre de la agencia').type(agencyName)
+    fieldByLabel('Nombre de agencia').type(agencyName)
+    fieldByLabel('Usuario').type(`owner_${suffix}`)
+    fieldByLabel('Contraseña').type(password, { log: false })
+    fieldByLabel('Nombre del responsable').type('Ana')
+    fieldByLabel('Apellido del responsable').type('Responsable')
     cy.contains('button', /^Crear agencia$/).click()
     cy.wait('@createAgency').its('response.statusCode').should('eq', 201)
-    cy.contains('[role="status"]', 'Agencia guardada.').should('be.visible')
+    cy.contains('[role="status"]', 'Agencia creada.').should('be.visible')
 
     cy.visit('/admin/users')
     cy.contains('button', /^Nuevo usuario$/).click()

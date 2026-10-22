@@ -140,9 +140,7 @@ describe('PackageDetail page', () => {
       </QueryClientProvider>,
     )
 
-    expect(
-      await screen.findByText('No pudimos cargar este paquete. Intentá de nuevo.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('No pudimos cargar este paquete. Intentá de nuevo.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /volver al catálogo/i })).toHaveAttribute('href', '/trips')
   })
 
@@ -159,6 +157,14 @@ describe('PackageDetail page', () => {
       </QueryClientProvider>,
     )
   }
+
+  it('keeps inactive agency history visible and prevents starting checkout', async () => {
+    mockedGetPackage.mockResolvedValue({ ...travelPackage, agency: { ...travelPackage.agency, active: false } })
+    renderDetail()
+    expect(await screen.findByRole('button', { name: 'Agencia inactiva' })).toBeDisabled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mockedBuyPackage).not.toHaveBeenCalled()
+  })
 
   it('keeps archived package details visible and blocks checkout', async () => {
     mockedGetPackage.mockResolvedValue({ ...travelPackage, active: false })
@@ -287,7 +293,10 @@ describe('PackageDetail page', () => {
     )
 
     expect(await screen.findByRole('heading', { name: 'París Gourmet' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver todos →' })).toHaveAttribute('href', '/trips?destination=PAR')
+    expect(screen.getByRole('link', { name: 'Ver todos →' })).toHaveAttribute(
+      'href',
+      '/trips?destination=PAR',
+    )
     expect(mockedSearchPackages).toHaveBeenCalledWith({ destination: 'PAR', size: 4 })
     // the current package only appears as the page heading, not as a suggestion
     expect(screen.getAllByRole('heading', { name: 'París Romántico' })).toHaveLength(1)

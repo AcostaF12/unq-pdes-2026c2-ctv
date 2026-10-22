@@ -43,10 +43,16 @@ class TravelPackageService(
         criteria: TravelPackageSearchCriteria,
         pageable: Pageable,
         active: Boolean? = true,
+        includeInactiveAgencies: Boolean = false,
     ): Page<TravelPackage> {
         val sanitizedPageable = TravelPackageSearchPageable.sanitize(pageable)
         val specification =
-            TravelPackageSearchSpecification.matching(criteria, TravelPackageSearchPageable.ratingDirection(sanitizedPageable), active)
+            TravelPackageSearchSpecification.matching(
+                criteria,
+                TravelPackageSearchPageable.ratingDirection(sanitizedPageable),
+                active,
+                includeInactiveAgencies,
+            )
         val startedAt = System.nanoTime()
         val result = travelPackageRepository.findAll(specification, TravelPackageSearchPageable.withoutRating(sanitizedPageable))
         searchMetrics.record(criteria, result.totalElements, Duration.ofNanos(System.nanoTime() - startedAt))

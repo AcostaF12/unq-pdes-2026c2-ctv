@@ -5,6 +5,7 @@ import type { Hotel } from './hotels'
 export interface Agency {
   id: number
   name: string
+  active?: boolean
 }
 
 export interface Flight {

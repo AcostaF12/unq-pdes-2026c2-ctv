@@ -1,6 +1,6 @@
 # Guion de demo
 
-Recorrido de unos 13 minutos. Qué mostrar en cada paso. La explicación de arquitectura, compra e infraestructura está en [Entrega-2.html](Entrega-2.html). Lo que puede hacer el administrador, en [admin.md](admin.md).
+Recorrido de unos 8 minutos. Cada paso indica qué mostrar y qué decir.
 
 ## Antes de empezar
 
@@ -18,48 +18,51 @@ Con todo `healthy`, abrir estas pestañas:
 | Zipkin | http://localhost:9411 |
 | Kibana | http://localhost:5601 |
 
-Para volver a los datos iniciales: `docker compose down -v` y levantar de nuevo.
-
-La primera vez, Kibana no tiene vista de datos. En Stack Management, Data Views, crear `ctv-logs-*` con campo de tiempo `@timestamp`. Conviene dejarla hecha antes de la demo.
+Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volver a levantar.
 
 ## 1. Comprador (`buyer` / `buyer123`)
 
-1. **Login.** La navegación muestra solo lo que su rol puede usar.
-2. **Paquetes** (`/trips`). Filtrar por destino y precio, y ordenar. La URL cambia: el filtrado, la paginación y el orden se resuelven en el backend.
-3. **Detalle.** Fotos, vuelo de ida y de vuelta, puntaje y reseñas.
+1. **Login.** Ingresar con `buyer`. La navegación solo muestra lo que su rol puede usar.
+2. **Paquetes** (`/trips`). Filtrar por destino, rango de precio y ordenar por precio. El filtrado, la paginación y el orden se resuelven en el backend.
+3. **Detalle** de un paquete: carrusel de fotos, vuelo de ida y de vuelta, puntaje promedio y reseñas.
 4. **Favoritos.** Marcar un paquete y verlo en `/favorites`.
-5. **Compra.** Elegir un paquete que no diga que ya está comprado. El backend reserva ida y vuelta en `flights-service`. Si falla la vuelta, cancela la ida.
-6. **Mis compras** (`/purchases`). Aparece el precio abonado. Probar un filtro. El historial guarda una copia de lo pagado: no cambia si después se edita el paquete. El detalle está en `/purchases/:id`.
+5. **Compra.** Comprar un paquete que no diga "Ya comprado". El backend reserva los asientos de ida y de vuelta en `flights-service`, un servicio aparte con su propia base. Si falla la segunda reserva, cancela la primera.
+6. **Mis compras** (`/purchases`). La compra aparece con el precio abonado. El historial guarda una copia de lo que se pagó, así que no cambia si el paquete se edita después.
 
 ## 2. Agencia (`agency` / `agency123`)
 
-1. Entrar como `agency` (Despegar).
-2. **Mis paquetes** (`/agency`). Crear uno eligiendo los vuelos de la lista, sin escribir ids. Se puede eliminar si nadie lo compró.
-3. **Ventas** (`/agency/sales`). Compras de sus paquetes.
-4. Un comprador que abre `/agency` ve "Sin permiso".
+1. Ingresar como `agency` (Despegar).
+2. **Mis paquetes** (`/agency`): crear, editar y eliminar paquetes de la agencia. Al editar, se cargan los valores actuales y se puede guardar o cancelar.
+3. **Ventas** (`/agency/sales`): compras realizadas sobre sus paquetes.
+4. Mostrar que un comprador que entra a `/agency` ve "Sin permiso".
 
 ## 3. Administrador (`vferreyra` / `vferreyra`)
 
-1. **Hoteles** (`/hotels`). Alta, edición y baja.
-2. **Panel** (`/admin`).
-   - `/admin/flights`: cargar un vuelo de ida y uno de vuelta.
-   - `/admin/packages`: crear un paquete para Despegar con esos vuelos.
-   - `/admin/agencies` y `/admin/users`: una agencia o una cuenta, si hay tiempo.
-   - `/admin/sales`: ventas de todas las agencias.
-3. Entrar como `buyer` y abrir `/admin`. Tiene que decir "Sin permiso".
+1. **Hoteles** (`/hotels`): alta, edición y baja desde la interfaz. Esas rutas solo existen para el rol administrador.
+2. Más funciones de administración (paquetes de cualquier agencia y carga de vuelos): ver [Sección Administración](admin.md).
 
-## 4. Detrás de la pantalla
+## 4. Lo que hay detrás
 
-- **Swagger.** Contrato de la API.
-- **Resiliencia.** `docker compose stop flights-service`, intentar comprar y mostrar el 503. El circuito figura en http://localhost:8080/actuator/health. Después, `docker compose start flights-service`.
-- **Grafana.** Dashboard *CTV - Overview*.
-- **Zipkin.** Una traza del servicio `backend`.
-- **Kibana.** Discover, filtrar por `service`.
+- **Swagger.** Contrato completo de la API.
+- **Resiliencia.** El backend protege las llamadas a `flights-service` con Resilience4j (reintentos, timeout y circuit breaker). El estado del breaker figura en `http://localhost:8080/actuator/health`.
+- **Grafana.** Dashboard *CTV - Overview*: servicios activos, uptime, memoria de la JVM y requests por segundo.
+- **Zipkin.** Buscar trazas del servicio `backend` y abrir una.
+- **Kibana.** La primera vez no hay vista de datos: *Stack Management → Data Views → Create*, nombre y patrón `ctv-logs-*`, campo de tiempo `@timestamp`. Luego, en *Discover*, filtrar por `service`.
 
-## 5. Cómo se entrega
+## 5. Calidad
 
-La [verificación de la entrega 2](entrega-2-verificacion.md) contiene la matriz de roles y los comandos para repetir las pruebas.
+- **Tests.** Suites de backend, vuelos y frontend, 13 escenarios de aceptación con Cucumber y 10 tests end-to-end con Cypress. Consultar los logs de CI para los resultados de la versión presentada.
+- **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
+- **Ejecutar las pruebas.** Ver la sección *Testing* del README.
 
-- Los badges del [README](../README.md) apuntan a GitHub Actions y a Sonar.
-- En `main`, las imágenes se publican en GHCR y en Docker Hub después de los controles.
-- La VM de Azure se prende con el workflow `Deploy Demo (Azure VM)` y conviene apagarla con `stop` al terminar. Suele estar apagada.
+## Extensión del recorrido: usuarios y ciclo de vida
+
+1. Crear una agencia con su cuenta responsable y agregar otro vendedor desde `/admin/users`.
+2. Comprar un paquete y consultar su detalle desde `/admin/sales`.
+3. Archivar el paquete y comprobar que se conserva el historial y se rechazan nuevas compras. Publicarlo otra vez.
+4. Deshabilitar al vendedor: su sesión anterior y un nuevo login deben ser rechazados. Habilitarlo y cambiar su rol; verificar los permisos en la siguiente petición.
+5. Desactivar la agencia: bloquear sus vendedores y nuevas compras, conservando los datos históricos.
+6. Recorrer `/admin/reports`, favoritos, reseñas y compras globales.
+7. Reiniciar ambos servicios y comprobar que la seed no restablece los cambios.
+
+Ver el [dataset y sus credenciales](seed-y-ciclo-de-vida.md).

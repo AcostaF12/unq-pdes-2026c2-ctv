@@ -6,12 +6,20 @@ export async function listAgencies(): Promise<Agency[]> {
   return data
 }
 
-export async function createAgency(name: string): Promise<Agency> {
-  const { data } = await apiClient.post<Agency>('/agencies', { name })
+export interface CreateAgencyPayload {
+  name: string
+  username: string
+  password: string
+  firstName: string
+  lastName: string
+}
+
+export async function createAgency(payload: CreateAgencyPayload): Promise<Agency> {
+  const { data } = await apiClient.post<Agency>('/agencies', payload)
   return data
 }
 
-export async function updateAgency(id: number, name: string): Promise<Agency> {
-  const { data } = await apiClient.put<Agency>(`/agencies/${id}`, { name })
+export async function updateAgency(id: number, payload: { name: string; active: boolean }): Promise<Agency> {
+  const { data } = await apiClient.put<Agency>(`/agencies/${id}`, payload)
   return data
 }

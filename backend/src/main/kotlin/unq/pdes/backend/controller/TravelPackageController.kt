@@ -45,10 +45,16 @@ class TravelPackageController(
     )
     @GetMapping
     fun search(
+        @AuthenticationPrincipal principal: UserDetails,
         @ModelAttribute request: TravelPackageSearchRequestDto,
         @PageableDefault(size = 20, sort = ["name"]) pageable: Pageable,
     ): ResponseEntity<PageDto<TravelPackageDto>> {
-        val packages = travelPackageService.search(request.toCriteria(), pageable)
+        val packages =
+            travelPackageService.search(
+                request.toCriteria(),
+                pageable,
+                includeInactiveAgencies = principal.authorities.any { it.authority == "ROLE_ADMIN" },
+            )
         val summaries = reviewService.summarize(packages.content.mapNotNull { it.id })
         return ResponseEntity.ok(PageDto.from(packages) { TravelPackageDto.fromModel(it, summaries[it.id]) })
     }

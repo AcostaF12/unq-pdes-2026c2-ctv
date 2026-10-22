@@ -72,25 +72,20 @@ npm run e2e:open
 ```
 
 `e2e:open` abre la interfaz de Cypress para ver las acciones en el navegador.
-`npm run e2e:run` ejecuta los tests sin abrir la interfaz, igual que en CI.
-El entorno Docker anterior debe estar levantado. Los escenarios viven
-en `frontend/cypress/e2e/` y terminan en `.cy.js` o `.cy.ts`.
+`npm run e2e:run` ejecuta los tests sin abrir la interfaz, como se hará en CI.
+El entorno Docker anterior debe estar levantado. Los escenarios se escribirán
+en `frontend/cypress/e2e/` con nombres terminados en `.cy.js` o `.cy.ts`;
 La suite verifica login/búsqueda/detalle, compra/historial, creación/edición/eliminación
 de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios reales.
 `admin-management.cy.js` cubre la sección Administración: acceso por rol, alta de vuelos de ida y
 vuelta, alta de un paquete para una agencia, su compra por un comprador, edición y eliminación
 (incluido el rechazo al borrar un paquete ya comprado) y el alta de paquetes desde la agencia con
 el selector de vuelos. Los vuelos no tienen endpoint de baja: quedan hasta ejecutar `down`.
-`admin-users.cy.js` cubre la creación de agencia y vendedor, el seguimiento de una venta,
-el bloqueo con tokens existentes, los cambios de rol y el rechazo de las rutas administrativas
-para comprador y vendedor. Ver [verificación de la entrega 2](../docs/entrega-2-verificacion.md).
 La compra prepara un comprador, dos vuelos y un paquete propios mediante APIs;
 la operación de compra se hace desde la interfaz. El hotel usa un nombre único
 y se elimina al finalizar el recorrido. Los datos restantes se eliminan con `down`.
 La configuración está en `frontend/cypress.config.js` y apunta a http://localhost:18090.
 No se generan videos ni capturas automáticas de fallos.
-
-`package-lifecycle.cy.js` verifica archivar un paquete vendido, consultar su historial y volver a publicarlo. El administrador filtra estados en `/admin/packages`; una oferta archivada no admite nuevas compras.
 
 Para ejecutar toda la suite en Electron: `npm run e2e:run -- --browser electron`.
 El workflow `Acceptance and E2E CI` ejecuta este comando en cada PR y push a `dev` o `main`,

@@ -4,7 +4,13 @@ import { listFlights } from '../../api/flights'
 import { listHotels } from '../../api/hotels'
 import { searchPackages } from '../../api/packages'
 import { queryKeys } from '../../query/keys'
-import { ADMIN_AGENCIES_PATH, ADMIN_FLIGHTS_PATH, ADMIN_PACKAGES_PATH, ADMIN_SALES_PATH, ADMIN_USERS_PATH } from '../../router/paths'
+import {
+  ADMIN_AGENCIES_PATH,
+  ADMIN_FLIGHTS_PATH,
+  ADMIN_PACKAGES_PATH,
+  ADMIN_SALES_PATH,
+  ADMIN_USERS_PATH,
+} from '../../router/paths'
 import '../Packages/packages.css'
 import './admin.css'
 
@@ -20,10 +26,14 @@ interface AdminCardProps {
 
 function AdminCard({ id, title, description, count, countLabel, links, showCount = true }: AdminCardProps) {
   return (
-    <article className="admin-card" data-testid={`admin-card-${id}`} aria-labelledby={`admin-card-${id}-title`}>
+    <article
+      className="admin-card"
+      data-testid={`admin-card-${id}`}
+      aria-labelledby={`admin-card-${id}-title`}
+    >
       <h2 id={`admin-card-${id}-title`}>{title}</h2>
       <p className="admin-card__count" data-testid={`admin-count-${id}`}>
-        {showCount ? count ?? '—' : null}
+        {showCount ? (count ?? '—') : null}
         <span className="admin-card__count-label"> {countLabel}</span>
       </p>
       <p className="catalog__muted">{description}</p>
@@ -86,6 +96,31 @@ export function AdminHome() {
           countLabel="Seguimiento de operaciones"
           links={[{ to: ADMIN_SALES_PATH, label: 'Consultar ventas' }]}
         />
+        <article className="admin-card">
+          <h2>Reportes Top 5</h2>
+          <p>Compradores, agencias y destinos con más actividad y destinos mejor puntuados.</p>
+          <Link className="admin-card__link" to="/admin/reports">
+            Ver reportes
+          </Link>
+        </article>
+        <article className="admin-card">
+          <h2>Consultas del sistema</h2>
+          <p>Consultá usuarios, favoritos, reseñas y compras sin modificar sus datos.</p>
+          <div className="page__actions">
+            <Link className="admin-card__link" to="/admin/queries/users">
+              Usuarios
+            </Link>
+            <Link className="admin-card__link" to="/admin/favorites">
+              Favoritos
+            </Link>
+            <Link className="admin-card__link" to="/admin/reviews">
+              Reseñas
+            </Link>
+            <Link className="admin-card__link" to="/admin/purchases">
+              Compras
+            </Link>
+          </div>
+        </article>
         <AdminCard
           id="packages"
           title="Paquetes"

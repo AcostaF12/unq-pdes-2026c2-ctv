@@ -283,7 +283,11 @@ class AdminUserControllerTest {
                         "Authorization",
                         "Bearer $adminToken",
                     ).contentType(MediaType.APPLICATION_JSON)
-                        .content("""{"name":" New Agency "}"""),
+                        .content(
+                            """
+                            {"name":" New Agency ","username":"newowner","password":"secret123","firstName":"Ana","lastName":"Owner"}
+                            """.trimIndent(),
+                        ),
                 ).andExpect(status().isCreated)
                 .andExpect(jsonPath("$.name").value("New Agency"))
                 .andReturn()
@@ -296,7 +300,7 @@ class AdminUserControllerTest {
                     "Authorization",
                     "Bearer $adminToken",
                 ).contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"name":"Renamed Agency"}"""),
+                    .content("""{"name":"Renamed Agency","active":true}"""),
             ).andExpect(status().isOk)
             .andExpect(jsonPath("$.name").value("Renamed Agency"))
         mvc
@@ -307,7 +311,11 @@ class AdminUserControllerTest {
                     "Authorization",
                     "Bearer $adminToken",
                 ).contentType(MediaType.APPLICATION_JSON)
-                    .content("""{"name":"renamed agency"}"""),
+                    .content(
+                        """
+                        {"name":"renamed agency","username":"anotherowner","password":"secret123","firstName":"Ana","lastName":"Owner"}
+                        """.trimIndent(),
+                    ),
             ).andExpect(status().isBadRequest)
         val seller = factory.agencyUserNamed("seller", "Despegar")
         factory.packageNamed("Original package")
