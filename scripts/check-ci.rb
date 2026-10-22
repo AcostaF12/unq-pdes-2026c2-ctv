@@ -38,12 +38,16 @@ end
   check(!sonar.nil?, "#{mod} must enforce the Sonar Quality Gate")
   check(sonar['if'] == "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository", "#{mod} must only skip Sonar for fork PRs")
   check(!sonar['continue-on-error'], "#{mod} must propagate Sonar failures")
-  command = './gradlew sonar -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300'
-  check(sonar.fetch('run').include?(command), "#{mod} must wait for the Quality Gate")
+  run = sonar.fetch('run')
+  # SonarCloud free only exposes Quality Gate status on main; elsewhere analyze without waiting.
+  check(run.include?('WAIT=false'), "#{mod} must default Quality Gate wait to false off main")
+  check(run.include?('refs/heads/main') && run.include?('WAIT=true'), "#{mod} must wait for the Quality Gate on main")
+  command = './gradlew sonar -Dsonar.qualitygate.wait="${WAIT}" -Dsonar.qualitygate.timeout=300'
+  check(run.include?(command), "#{mod} must run Sonar with Quality Gate wait controlled by branch")
   # Exercise token validation and failure propagation without contacting Sonar.
-  script = sonar['run'].sub(command, 'exit 23')
+  script = run.sub(command, 'exit 23')
   ['', 'local-test-token'].each do |token|
-    output, _, status = Open3.capture3({ 'SONAR_TOKEN' => token }, 'sh', stdin_data: script)
+    output, _, status = Open3.capture3({ 'SONAR_TOKEN' => token, 'GITHUB_REF' => 'refs/heads/dev' }, 'sh', stdin_data: script)
     check(status.exitstatus == (token.empty? ? 1 : 23), "#{mod} must reject missing tokens and failed analysis")
     check(output.include?('SONAR_TOKEN'), "#{mod} must explain missing configuration") if token.empty?
     check(!output.include?(token), "#{mod} must not expose tokens") unless token.empty?
