@@ -27,14 +27,6 @@ class ExceptionControllerAdvice {
         return buildResponse(HttpStatus.BAD_REQUEST, message)
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleMethodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<ErrorDto> {
-        val message = ex.bindingResult.fieldErrors.firstOrNull()?.defaultMessage
-            ?: ex.bindingResult.globalErrors.firstOrNull()?.defaultMessage
-            ?: "Invalid request."
-        return buildResponse(HttpStatus.BAD_REQUEST, message)
-    }
-
     @ExceptionHandler(EntityNotFoundException::class)
     fun handleEntityNotFoundException(ex: EntityNotFoundException): ResponseEntity<ErrorDto> =
         buildResponse(HttpStatus.NOT_FOUND, ex.message ?: "Entity not found.")

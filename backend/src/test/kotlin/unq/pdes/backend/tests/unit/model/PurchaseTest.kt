@@ -154,16 +154,4 @@ class PurchaseTest {
 
         assertEquals("The purchase must belong to an agency.", exception.message)
     }
-
-    @Test
-    fun `09 - building without agency should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Purchase.Builder().buyer(buyer).travelPackage(travelPackage)
-                .purchasePrice(BigDecimal.TEN)
-                .purchasedAt(LocalDateTime.of(2026, 8, 20, 12, 0))
-                .build()
-        }
-
-        assertEquals("The purchase must belong to an agency.", exception.message)
-    }
 }
