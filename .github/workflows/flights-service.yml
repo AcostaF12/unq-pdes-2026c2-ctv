@@ -64,7 +64,12 @@ jobs:
             echo "::error::SONAR_TOKEN is required for internal CI and deploy checks. Configure the repository secret and pass it to reusable workflows."
             exit 1
           fi
-          ./gradlew sonar -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
+          # SonarCloud free: Quality Gate API only for main. Elsewhere analyze and rely on the SonarCloud GitHub check.
+          WAIT=false
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            WAIT=true
+          fi
+          ./gradlew sonar -Dsonar.qualitygate.wait="${WAIT}" -Dsonar.qualitygate.timeout=300
 
       - name: Explain skipped Sonar analysis for fork PR
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
