@@ -186,4 +186,65 @@ class FlightControllerTest {
             ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.errorData.description").value("The flight has no availability."))
     }
+
+    @Test
+    fun `GET vuelos filters available flights by route and date`() {
+        val flight = factory.anyFlight()
+        factory.flightWithAvailability(0)
+        factory.flightFrom("BUE", "LON")
+        mvc
+            .perform(
+                get("/vuelos")
+                    .param("origin", flight.origin)
+                    .param("destination", flight.destination)
+                    .param("date", flight.flightDate.toString()),
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].id").value(flight.id))
+    }
+
+    @Test
+    fun `POST venta records passenger and decrements availability`() {
+        val flight = factory.flightWithAvailability(1)
+        mvc
+            .perform(
+                post("/venta")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"flightId":${flight.id},"passengerName":"Bruno Buyer"}"""),
+            ).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.flightId").value(flight.id))
+            .andExpect(jsonPath("$.passengerName").value("Bruno Buyer"))
+        mvc
+            .perform(get("/flights/{id}", flight.id))
+            .andExpect(jsonPath("$.availability").value(0))
+        mvc
+            .perform(get("/vuelos"))
+            .andExpect(jsonPath("$.length()").value(0))
+        mvc
+            .perform(
+                post("/venta")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"flightId":${flight.id},"passengerName":"Another Buyer"}"""),
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `POST venta rejects invalid data and missing flights`() {
+        for (body in listOf(
+            """{"flightId":0,"passengerName":"Buyer"}""",
+            """{"flightId":1,"passengerName":" "}""",
+            """{"passengerName":"Buyer"}""",
+            """{"flightId":1}""",
+        )) {
+            mvc
+                .perform(post("/venta").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest)
+        }
+        mvc
+            .perform(
+                post("/venta")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"flightId":999999,"passengerName":"Buyer"}"""),
+            ).andExpect(status().isNotFound)
+    }
 }
