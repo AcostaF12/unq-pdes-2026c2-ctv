@@ -10,6 +10,7 @@ const AdminUsers = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminU
 const AdminFavorites = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminFavorites')
 const AdminReviews = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminReviews')
 const AdminPurchases = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminPurchases')
+const AdminReports = lazyPage(() => import('../pages/Admin/AdminReports'), 'AdminReports')
 
 export const adminRoute: RouteObject = {
   path: 'admin',
@@ -27,5 +28,6 @@ export const adminRoute: RouteObject = {
     { path: 'favorites', element: <AdminFavorites /> },
     { path: 'reviews', element: <AdminReviews /> },
     { path: 'purchases', element: <AdminPurchases /> },
+    { path: 'reports', element: <AdminReports /> },
   ],
 }

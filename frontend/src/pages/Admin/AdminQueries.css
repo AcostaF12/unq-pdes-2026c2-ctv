@@ -5,6 +5,11 @@
   background: var(--color-surface);
 }
 
+.admin-report-list {
+  display: grid;
+  gap: var(--space-5);
+}
+
 .admin-query-scroll:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;

@@ -2,6 +2,37 @@ import { apiClient } from './client'
 import type { Agency, PagedResult } from './packages'
 import type { Purchase } from './purchases'
 
+export interface CountRanking {
+  id: number
+  name: string
+  total: number
+}
+
+export interface DestinationCountRanking {
+  code: string
+  name: string
+  total: number
+}
+
+export interface DestinationRatingRanking {
+  code: string
+  name: string
+  average: number
+  reviewCount: number
+}
+
+export interface AdminReportsData {
+  topBuyers: CountRanking[]
+  topAgencies: CountRanking[]
+  topDestinations: DestinationCountRanking[]
+  topRatedDestinations: DestinationRatingRanking[]
+}
+
+export async function getAdminReports(): Promise<AdminReportsData> {
+  const { data } = await apiClient.get<AdminReportsData>('/admin/reports')
+  return data
+}
+
 export interface AdminUser {
   id: number
   username: string
