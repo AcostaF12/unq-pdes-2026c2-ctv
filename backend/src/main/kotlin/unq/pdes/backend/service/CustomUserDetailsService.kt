@@ -22,6 +22,10 @@ class CustomUserDetailsService(
         return SpringUser(
             user.username,
             user.password,
+            user.enabled,
+            true,
+            true,
+            true,
             listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
         )
     }
