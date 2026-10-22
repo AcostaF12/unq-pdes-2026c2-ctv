@@ -17,6 +17,21 @@ La navegación muestra las opciones de administración solo al rol administrador
 
 ## Qué puede hacer un administrador
 
+### Consultas de sólo lectura
+
+Desde el panel se accede a cuatro listados paginados:
+
+| Ruta | Información |
+| --- | --- |
+| `/admin/users` | Usuario, nombre, rol y agencia vinculada, sin credenciales. |
+| `/admin/favorites` | Comprador, paquete guardado y agencia. |
+| `/admin/reviews` | Comprador, paquete, puntaje de 0 a 10 y comentario. |
+| `/admin/purchases` | Comprador, paquete, agencia, fecha y precio abonado originales de la compra. |
+
+Las pantallas y los endpoints del mismo nombre son exclusivos de ADMIN. Las respuestas usan `content`, `page`, `size`, `totalElements` y `totalPages`. La API admite `page` desde 0 y `size` entre 1 y 100, con valores por defecto 0 y 20. No hay edición ni borrado desde estas consultas y no se consulta el servicio de vuelos.
+
+Las compras muestran sus datos históricos aunque el paquete cambie. Las consultas incluyen registros de agencias inactivas. Los reportes Top 5 se implementarán aparte.
+
 ### Agencias
 
 En `/admin/agencies` se listan las agencias y su estado. El administrador puede crear una agencia junto con su cuenta, editar su nombre, desactivarla y reactivarla. No se borran agencias.
