@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { listFlights } from '../api/flights'
+import { listAgencies } from '../api/agencies'
 import { listHotels } from '../api/hotels'
 import { searchPackages } from '../api/packages'
 import { getCurrentUser } from '../api/auth'
@@ -15,7 +16,7 @@ import { adminRoute } from './adminRoutes'
 vi.mock('../api/auth', () => ({ getCurrentUser: vi.fn() }))
 vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }))
 vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
-vi.mock('../api/agencies', () => ({ listAgencies: vi.fn() }))
+vi.mock('../api/agencies', () => ({ listAgencies: vi.fn(), createAgency: vi.fn(), updateAgency: vi.fn() }))
 vi.mock('../api/cities', () => ({ listCities: vi.fn() }))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
@@ -53,9 +54,10 @@ describe('admin routes', () => {
     })
     vi.mocked(listFlights).mockResolvedValue([])
     vi.mocked(listHotels).mockResolvedValue([])
+    vi.mocked(listAgencies).mockResolvedValue([])
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights'])('lets an admin open %s', async (path) => {
+  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/agencies'])('lets an admin open %s', async (path) => {
     renderAt(path, 'ADMIN')
 
     await screen.findByRole('heading', { level: 1 })
@@ -66,6 +68,8 @@ describe('admin routes', () => {
     ['/admin', 'BUYER'],
     ['/admin/packages', 'AGENCY'],
     ['/admin/flights', 'BUYER'],
+    ['/admin/agencies', 'BUYER'],
+    ['/admin/agencies', 'AGENCY'],
   ])('blocks %s for the %s role', async (path, role) => {
     renderAt(path, role)
 

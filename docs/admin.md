@@ -17,6 +17,14 @@ La navegación muestra las opciones de administración solo al rol administrador
 
 ## Qué puede hacer un administrador
 
+### Agencias
+
+En `/admin/agencies` se listan las agencias y su estado. El administrador puede crear una agencia junto con su cuenta, editar su nombre, desactivarla y reactivarla. No se borran agencias.
+
+La desactivación requiere confirmación. Bloquea el login y las solicitudes con tokens anteriores mientras la agencia esté inactiva, oculta sus paquetes del catálogo de venta y rechaza nuevas compras. Conserva las compras, favoritos y reseñas. Al reactivarla, sus cuentas y paquetes vuelven a estar disponibles; un token anterior no vencido vuelve a ser válido.
+
+Los campos de cuenta se cargan al crear la agencia. Esta pantalla no cambia usuarios ni contraseñas de cuentas existentes.
+
 ### Hoteles
 
 - Ver el catálogo (`/hotels`).

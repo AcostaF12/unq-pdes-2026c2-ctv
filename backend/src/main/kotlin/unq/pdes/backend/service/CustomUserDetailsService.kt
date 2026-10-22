@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import unq.pdes.backend.model.user.AgencyUser
 import unq.pdes.backend.persistence.jpa.UserRepository
 import org.springframework.security.core.userdetails.User as SpringUser
 
@@ -22,6 +23,10 @@ class CustomUserDetailsService(
         return SpringUser(
             user.username,
             user.password,
+            (user as? AgencyUser)?.agency?.active ?: true,
+            true,
+            true,
+            true,
             listOf(SimpleGrantedAuthority("ROLE_${user.role.name}")),
         )
     }

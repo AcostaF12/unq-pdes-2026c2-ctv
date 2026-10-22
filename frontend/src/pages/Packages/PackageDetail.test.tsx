@@ -90,6 +90,20 @@ describe('PackageDetail page', () => {
     mockedHasPurchasedPackage.mockResolvedValue(false)
   })
 
+  it('does not offer purchases when the agency is inactive', async () => {
+    mockedGetPackage.mockResolvedValue({ ...travelPackage, agency: { ...travelPackage.agency, active: false } })
+    mockedGetFavorites.mockResolvedValue([])
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <AuthProvider><MemoryRouter initialEntries={['/trips/10']}>
+          <Routes><Route path="/trips/:id" element={<PackageDetail />} /></Routes>
+        </MemoryRouter></AuthProvider>
+      </QueryClientProvider>,
+    )
+    expect(await screen.findByRole('button', { name: 'Agencia inactiva' })).toBeDisabled()
+    expect(mockedBuyPackage).not.toHaveBeenCalled()
+  })
+
   it('refetches favorites after starring a package', async () => {
     const user = userEvent.setup()
     let favorites: Favorite[] = []
