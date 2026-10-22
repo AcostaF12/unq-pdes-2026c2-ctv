@@ -13,6 +13,32 @@ class AgencyService(
     @Transactional(readOnly = true)
     fun findAll(): List<Agency> = agencyRepository.findAllByOrderByNameAsc()
 
+    @Transactional
+    fun create(name: String): Agency {
+        val normalized = validatedName(name)
+        return agencyRepository.save(Agency.Builder().name(normalized).build())
+    }
+
+    @Transactional
+    fun update(
+        id: Long,
+        name: String,
+    ): Agency {
+        val agency = findById(id)
+        agency.name = validatedName(name, id)
+        return agencyRepository.save(agency)
+    }
+
+    private fun validatedName(
+        name: String,
+        id: Long? = null,
+    ): String {
+        val normalized = name.trim()
+        require(normalized.isNotBlank() && normalized.length <= 160) { "El nombre de la agencia debe tener entre 1 y 160 caracteres." }
+        require(agencyRepository.findAllByNameIgnoreCase(normalized).none { it.id != id }) { "Ya existe una agencia con ese nombre." }
+        return normalized
+    }
+
     @Transactional(readOnly = true)
     fun findById(id: Long): Agency =
         agencyRepository
