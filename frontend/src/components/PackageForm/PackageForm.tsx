@@ -155,7 +155,7 @@ export function PackageForm({
           {submitLabel}
         </Button>
         {onCancel ? (
-          <Button type="button" variant="ghost" onClick={onCancel}>
+          <Button type="button" variant="ghost" disabled={submitting} onClick={onCancel}>
             Cancelar
           </Button>
         ) : null}
