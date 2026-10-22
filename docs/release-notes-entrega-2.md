@@ -46,7 +46,7 @@ Cucumber y Cypress usan entornos Docker aislados. Cypress corre por terminal con
 
 ## Calidad y validación del CI
 
-Sonar analiza backend y vuelos, incluyendo la cobertura de JaCoCo. Ahora CI espera hasta 300 segundos el resultado del Quality Gate, las condiciones de calidad configuradas en Sonar. Si no pasa, falla el job.
+Sonar analiza backend y vuelos, incluyendo la cobertura de JaCoCo. En push a `main`, CI espera hasta 300 segundos el Quality Gate; si no pasa, falla el job. En `dev` y en PRs el análisis sigue corriendo, pero no espera el gate: el plan free de SonarCloud no expone ese estado fuera de la rama principal, y el check de Sonar en GitHub cubre el resultado del PR.
 
 Una ejecución interna sin `SONAR_TOKEN` también falla. Los PR de forks omiten Sonar con un aviso porque no reciben los secretos; sus tests y lint siguen corriendo. No agregamos Sonar al frontend ni un mínimo fijo de 80 % de cobertura.
 
@@ -78,7 +78,7 @@ Si un control falla, no se publica ni se despliega. Las imágenes de pruebas y d
 
 Los [checks del PR #13](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/13/checks) conservan la evidencia de la implementación inicial del CI. No representan por sí solos el estado de la versión actual.
 
-En el commit `bea677a` de `dev`, pasaron [Cucumber y Cypress](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/39690660425), frontend y validación de workflows. Backend y vuelos pasaron build y tests, pero fallaron al consultar el Quality Gate: Sonar respondió que la organización no permite acceder a datos de ramas secundarias. Ambos proyectos tienen `main` como rama principal. Hay que resolver esa restricción; todavía no podemos afirmar que la versión actual pasó el Quality Gate.
+En el commit `bea677a` de `dev`, backend y vuelos fallaban al consultar el Quality Gate fuera de `main`. Eso quedó resuelto esperando el gate solo en `main` y alineando `check-ci.rb` con esa regla.
 
 Queda pendiente comprobar una ejecución real del deploy manual con los workflows reutilizados. No desplegamos a Azure durante estos cambios.
 
