@@ -58,6 +58,11 @@ export function AdminHome() {
         <h1 className="page__title">Administración</h1>
       </div>
       <div className="admin-hub__grid">
+        <article className="admin-card">
+          <h2>Agencias</h2>
+          <p>Creá agencias con su cuenta, editá sus nombres y administrá su estado.</p>
+          <Link className="admin-card__link" to="/admin/agencies">Gestionar agencias</Link>
+        </article>
         <AdminCard
           id="packages"
           title="Paquetes"

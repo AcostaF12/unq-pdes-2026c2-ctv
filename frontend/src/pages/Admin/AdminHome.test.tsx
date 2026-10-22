@@ -42,6 +42,7 @@ describe('AdminHome page', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Administración' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Gestionar paquetes' })).toHaveAttribute('href', '/admin/packages')
+    expect(screen.getByRole('link', { name: 'Gestionar agencias' })).toHaveAttribute('href', '/admin/agencies')
     expect(screen.getByRole('link', { name: 'Gestionar vuelos' })).toHaveAttribute('href', '/admin/flights')
     expect(screen.getByRole('link', { name: 'Gestionar hoteles' })).toHaveAttribute('href', '/hotels')
     expect(screen.getByRole('link', { name: 'Nuevo hotel' })).toHaveAttribute('href', '/hotels/new')

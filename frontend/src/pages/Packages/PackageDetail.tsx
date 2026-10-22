@@ -249,8 +249,8 @@ export function PackageDetail() {
           ) : null}
           {isBuyer ? (
             <div className="catalog__actions">
-              <Button type="button" onClick={openCheckout} disabled={purchased}>
-                {purchased ? 'Ya comprado' : 'Comprar'}
+              <Button type="button" onClick={openCheckout} disabled={purchased || detail.agency.active === false}>
+                {purchased ? 'Ya comprado' : detail.agency.active === false ? 'Agencia inactiva' : 'Comprar'}
               </Button>
               <FavoriteButton
                 variant="labeled"
