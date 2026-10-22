@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { listFlights } from '../api/flights'
 import { listAgencies } from '../api/agencies'
-import { getAdminUsers, getAdminFavorites, getAdminReviews, getAdminPurchases } from '../api/admin'
+import { getAdminUsers, getAdminFavorites, getAdminReviews, getAdminPurchases, getAdminReports } from '../api/admin'
 import { listHotels } from '../api/hotels'
 import { searchPackages } from '../api/packages'
 import { getCurrentUser } from '../api/auth'
@@ -15,7 +15,7 @@ import { createTestQueryClient } from '../test/queryClient'
 import { adminRoute } from './adminRoutes'
 
 vi.mock('../api/auth', () => ({ getCurrentUser: vi.fn() }))
-vi.mock('../api/admin', () => ({ getAdminUsers: vi.fn(), getAdminFavorites: vi.fn(), getAdminReviews: vi.fn(), getAdminPurchases: vi.fn() }))
+vi.mock('../api/admin', () => ({ getAdminUsers: vi.fn(), getAdminFavorites: vi.fn(), getAdminReviews: vi.fn(), getAdminPurchases: vi.fn(), getAdminReports: vi.fn() }))
 vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }))
 vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../api/agencies', () => ({ listAgencies: vi.fn(), createAgency: vi.fn(), updateAgency: vi.fn() }))
@@ -62,9 +62,10 @@ describe('admin routes', () => {
     vi.mocked(getAdminFavorites).mockResolvedValue(empty)
     vi.mocked(getAdminReviews).mockResolvedValue(empty)
     vi.mocked(getAdminPurchases).mockResolvedValue(empty)
+    vi.mocked(getAdminReports).mockResolvedValue({ topBuyers: [], topAgencies: [], topDestinations: [], topRatedDestinations: [] })
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/agencies', '/admin/users', '/admin/favorites', '/admin/reviews', '/admin/purchases'])('lets an admin open %s', async (path) => {
+  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/agencies', '/admin/users', '/admin/favorites', '/admin/reviews', '/admin/purchases', '/admin/reports'])('lets an admin open %s', async (path) => {
     renderAt(path, 'ADMIN')
 
     await screen.findByRole('heading', { level: 1 })
@@ -85,6 +86,8 @@ describe('admin routes', () => {
     ['/admin/reviews', 'AGENCY'],
     ['/admin/purchases', 'BUYER'],
     ['/admin/purchases', 'AGENCY'],
+    ['/admin/reports', 'BUYER'],
+    ['/admin/reports', 'AGENCY'],
   ])('blocks %s for the %s role', async (path, role) => {
     renderAt(path, role)
 
@@ -96,5 +99,6 @@ describe('admin routes', () => {
     expect(getAdminFavorites).not.toHaveBeenCalled()
     expect(getAdminReviews).not.toHaveBeenCalled()
     expect(getAdminPurchases).not.toHaveBeenCalled()
+    expect(getAdminReports).not.toHaveBeenCalled()
   })
 })

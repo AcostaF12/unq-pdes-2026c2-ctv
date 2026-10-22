@@ -43,6 +43,7 @@ describe('AdminHome page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Administración' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Gestionar paquetes' })).toHaveAttribute('href', '/admin/packages')
     expect(screen.getByRole('link', { name: 'Gestionar agencias' })).toHaveAttribute('href', '/admin/agencies')
+    expect(screen.getByRole('link', { name: 'Ver reportes' })).toHaveAttribute('href', '/admin/reports')
     for (const [label, path] of [['Usuarios', 'users'], ['Favoritos', 'favorites'], ['Reseñas', 'reviews'], ['Compras', 'purchases']]) {
       expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', `/admin/${path}`)
     }

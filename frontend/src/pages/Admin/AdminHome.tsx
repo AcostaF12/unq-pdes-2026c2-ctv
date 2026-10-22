@@ -59,6 +59,11 @@ export function AdminHome() {
       </div>
       <div className="admin-hub__grid">
         <article className="admin-card">
+          <h2>Reportes Top 5</h2>
+          <p>Compradores, agencias y destinos con más actividad y destinos mejor puntuados.</p>
+          <Link className="admin-card__link" to="/admin/reports">Ver reportes</Link>
+        </article>
+        <article className="admin-card">
           <h2>Consultas del sistema</h2>
           <p>Consultá usuarios, favoritos, reseñas y compras sin modificar sus datos.</p>
           <div className="page__actions">
