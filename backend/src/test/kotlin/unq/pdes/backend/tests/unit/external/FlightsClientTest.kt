@@ -3,12 +3,14 @@ package unq.pdes.backend.tests.unit.external
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest
@@ -18,6 +20,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
+import unq.pdes.backend.external.flights.ExternalFlightRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
 import java.io.IOException
@@ -248,5 +251,162 @@ class FlightsClientTest {
             }
 
         assertEquals("There is no Flight with id: 7.", exception.message)
+    }
+
+    @Test
+    fun `13 - search should send every filter as a query parameter and map the flights`() {
+        server
+            .expect(requestTo("http://flights/flights?origin=BUE&destination=PAR&date=2026-12-01"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess("[$FLIGHT_JSON]", MediaType.APPLICATION_JSON))
+
+        val flights = client.search("BUE", "PAR", LocalDate.of(2026, 12, 1))
+
+        assertEquals(1, flights.size)
+        assertEquals(7L, flights.first().id)
+        assertEquals("PAR", flights.first().destination)
+        server.verify()
+    }
+
+    @Test
+    fun `14 - search should omit the filters that are absent`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON))
+
+        assertTrue(client.search(null, null, null).isEmpty())
+        server.verify()
+    }
+
+    @Test
+    fun `15 - search should return an empty list when the body is empty`() {
+        server
+            .expect(requestTo("http://flights/flights?origin=BUE"))
+            .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
+
+        assertTrue(client.search("BUE", null, null).isEmpty())
+    }
+
+    @Test
+    fun `16 - search should map 4xx errors to IllegalArgumentException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withBadRequest()
+                    .body("""{"errorData":{"description":"Invalid date."}}""")
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(IllegalArgumentException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Invalid date.", exception.message)
+    }
+
+    @Test
+    fun `17 - search should map 5xx errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withServerError().body("""{"errorData":{"description":"Flights exploded."}}""").contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Flights exploded.", exception.message)
+    }
+
+    @Test
+    fun `18 - search should map connectivity errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withException(IOException("I/O error")))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Flights service is unavailable.", exception.message)
+    }
+
+    @Test
+    fun `19 - create should post the flight and map the created payload`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(
+                content().json(
+                    """{"airline":"Aerolineas Argentinas","origin":"BUE","destination":"PAR","capacity":180,"availability":42}""",
+                ),
+            ).andRespond(withStatus(HttpStatus.CREATED).body(FLIGHT_JSON).contentType(MediaType.APPLICATION_JSON))
+
+        val flight = client.create(newFlight())
+
+        assertEquals(7L, flight.id)
+        assertEquals(LocalTime.of(8, 0), flight.departureTime)
+        server.verify()
+    }
+
+    @Test
+    fun `20 - create should throw when the body is empty`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withStatus(HttpStatus.CREATED).body("").contentType(MediaType.APPLICATION_JSON))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Could not create the flight.", exception.message)
+    }
+
+    @Test
+    fun `21 - create should map 4xx errors to IllegalArgumentException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withBadRequest()
+                    .body("""{"errorData":{"description":"Availability cannot exceed capacity."}}""")
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(IllegalArgumentException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Availability cannot exceed capacity.", exception.message)
+    }
+
+    @Test
+    fun `22 - create should map 5xx errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withServerError().body("""{"errorData":{"description":"Flights exploded."}}""").contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Flights exploded.", exception.message)
+    }
+
+    @Test
+    fun `23 - create should map connectivity errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withException(IOException("I/O error")))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Flights service is unavailable.", exception.message)
+    }
+
+    private fun newFlight() =
+        ExternalFlightRequestDto(
+            airline = "Aerolineas Argentinas",
+            flightDate = LocalDate.of(2026, 12, 1),
+            departureTime = LocalTime.of(8, 0),
+            origin = "BUE",
+            destination = "PAR",
+            capacity = 180,
+            availability = 42,
+        )
+
+    private companion object {
+        const val FLIGHT_JSON =
+            """{"id":7,"airline":"Aerolineas Argentinas","flightDate":"2026-12-01","departureTime":"08:00:00","origin":"BUE","destination":"PAR","capacity":180,"availability":42}"""
     }
 }

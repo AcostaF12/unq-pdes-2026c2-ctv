@@ -12,6 +12,9 @@ export function formValuesFromSearchParams(params: URLSearchParams, fallbackOrig
     destination: params.get('destination') ?? defaults.destination,
     minPrice: params.get('minPrice') ?? defaults.minPrice,
     maxPrice: params.get('maxPrice') ?? defaults.maxPrice,
+    agencyId: params.get('agencyId') ?? defaults.agencyId,
+    hotel: params.get('hotel') ?? defaults.hotel,
+    minRating: params.get('minRating') ?? defaults.minRating,
   }
 }
 
@@ -26,20 +29,20 @@ export function sortFromSearchParams(params: URLSearchParams): PackageSort {
 
 export function filtersToSearchParams(filters: PackageSearchParams): URLSearchParams {
   const params = new URLSearchParams()
-  if (filters.name) {
-    params.set('name', filters.name)
-  }
-  if (filters.origin) {
-    params.set('origin', filters.origin)
-  }
-  if (filters.destination) {
-    params.set('destination', filters.destination)
-  }
-  if (filters.minPrice != null) {
-    params.set('minPrice', String(filters.minPrice))
-  }
-  if (filters.maxPrice != null) {
-    params.set('maxPrice', String(filters.maxPrice))
+  const entries: [string, string | number | undefined][] = [
+    ['name', filters.name],
+    ['origin', filters.origin],
+    ['destination', filters.destination],
+    ['minPrice', filters.minPrice],
+    ['maxPrice', filters.maxPrice],
+    ['agencyId', filters.agencyId],
+    ['hotel', filters.hotel],
+    ['minRating', filters.minRating],
+  ]
+  for (const [key, value] of entries) {
+    if (value !== undefined && value !== '') {
+      params.set(key, String(value))
+    }
   }
   return params
 }

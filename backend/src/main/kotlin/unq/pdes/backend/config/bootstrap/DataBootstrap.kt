@@ -107,33 +107,23 @@ class DataBootstrap(
 
     private fun loadHotels(): Map<String, Hotel> {
         if (hotelRepository.count() > 0) {
-            return hotelRepository.findAll().associateBy { it.city.code }
+            return hotelRepository.findAll().associateBy { it.name }
         }
-        return listOf(
-            hotel("Gran Hotel Buenos Aires", "BUE", "https://images.ctv.demo/hotels/gran-hotel-buenos-aires.jpg"),
-            hotel("Hotel Palacio de París", "PAR", "https://images.ctv.demo/hotels/palacio-de-paris.jpg"),
-            hotel("Hotel Real de Londres", "LON", "https://images.ctv.demo/hotels/real-de-londres.jpg"),
-            hotel("Hotel Villa Roma", "ROM", "https://images.ctv.demo/hotels/villa-roma.jpg"),
-            hotel("Hotel Central Park", "NYC", "https://images.ctv.demo/hotels/central-park.jpg"),
-            hotel("Hotel Costa de Río", "RIO", "https://images.ctv.demo/hotels/costa-de-rio.jpg"),
-        ).map { hotelService.save(it) }
-            .associateBy { it.city.code }
+        return SeedData.HOTELS
+            .map { hotelService.save(hotel(it)) }
+            .associateBy { it.name }
     }
 
-    private fun hotel(
-        name: String,
-        cityCode: String,
-        photoUrl: String,
-    ): Hotel =
+    private fun hotel(seed: HotelSeed): Hotel =
         Hotel
             .Builder()
-            .name(name)
-            .city(cityService.findByCode(cityCode))
-            .photoUrl(photoUrl)
+            .name(seed.name)
+            .city(cityService.findByCode(seed.cityCode))
+            .photoUrl(SeedData.photoUrl(seed))
             .build()
 
     private fun loadAgencies() {
-        listOf("Despegar", "Almundo").forEach { name ->
+        SeedData.AGENCIES.forEach { name ->
             if (!agencyRepository.existsByName(name)) {
                 agencyRepository.save(Agency.Builder().name(name).build())
             }
@@ -141,123 +131,90 @@ class DataBootstrap(
     }
 
     private fun loadUsers() {
-        listOf(
-            Triple("facosta", "Federico", "Acosta"),
-            Triple("vferreyra", "Valentin", "Ferreyra"),
-            Triple("adisanto", "Alan", "Disanto"),
-        ).forEach { (username, firstName, lastName) ->
-            if (!userRepository.existsByUsername(username)) {
-                userService.createAdmin(username, username, firstName, lastName)
+        SeedData.ADMINS.forEach { admin ->
+            if (!userRepository.existsByUsername(admin.username)) {
+                userService.createAdmin(admin.username, admin.password, admin.firstName, admin.lastName)
             }
         }
-        if (!userRepository.existsByUsername("buyer")) {
-            userService.register("buyer", "buyer123", "Bruno", "Buyer")
+        SeedData.BUYERS.forEach { buyer ->
+            if (!userRepository.existsByUsername(buyer.username)) {
+                userService.register(buyer.username, buyer.password, buyer.firstName, buyer.lastName)
+            }
         }
-        if (!userRepository.existsByUsername("buyer2")) {
-            userService.register("buyer2", "buyer123", "Camila", "Compradora")
-        }
-        if (!userRepository.existsByUsername("agency")) {
-            userService.createAgencyUser("agency", "agency123", "Agus", "Agency", agency("Despegar"))
+        SeedData.AGENCY_USERS.forEach { (agencyName, user) ->
+            if (!userRepository.existsByUsername(user.username)) {
+                userService.createAgencyUser(user.username, user.password, user.firstName, user.lastName, agency(agencyName))
+            }
         }
     }
 
-    private fun loadPackages(hotels: Map<String, Hotel>): List<TravelPackage> {
+    private fun loadPackages(hotels: Map<String, Hotel>): Map<String, TravelPackage> {
         if (travelPackageRepository.count() > 0) {
-            return travelPackageRepository.findAll()
+            return travelPackageRepository.findAll().associateBy { it.name }
         }
-        val despegar = agency("Despegar")
-        val almundo = agency("Almundo")
-        return listOf(
-            travelPackage(despegar, hotels.getValue("PAR"), "París Romántico", 1L, 2L, "1500.00"),
-            travelPackage(despegar, hotels.getValue("LON"), "Londres Clásico", 3L, 4L, "1800.00"),
-            travelPackage(despegar, hotels.getValue("ROM"), "Roma Imperial", 5L, 6L, "1650.00"),
-            travelPackage(almundo, hotels.getValue("NYC"), "Nueva York Urbano", 7L, 8L, "2200.00"),
-            travelPackage(almundo, hotels.getValue("RIO"), "Río Carnaval", 9L, 10L, "1300.00"),
-        ).map { travelPackageRepository.save(it) }
+        return SeedData.PACKAGES
+            .map { travelPackageRepository.save(travelPackage(it, hotels.getValue(it.hotel))) }
+            .associateBy { it.name }
     }
 
     private fun travelPackage(
-        agency: Agency,
+        seed: PackageSeed,
         hotel: Hotel,
-        name: String,
-        outboundFlightId: Long,
-        returnFlightId: Long,
-        price: String,
     ): TravelPackage =
         TravelPackage
             .Builder()
-            .agency(agency)
+            .agency(agency(seed.agency))
             .hotel(hotel)
-            .origin(cityService.findByCode("BUE"))
+            .origin(cityService.findByCode(SeedData.ORIGIN_CODE))
             .destination(hotel.city)
-            .name(name)
-            .outboundFlightId(outboundFlightId)
-            .returnFlightId(returnFlightId)
-            .price(BigDecimal(price))
+            .name(seed.name)
+            .outboundFlightId(SeedFlightIds.outbound(seed.destination, seed.flightVariant))
+            .returnFlightId(SeedFlightIds.inbound(seed.destination, seed.flightVariant))
+            .price(BigDecimal(seed.price))
             .build()
 
-    private fun loadFavorites(packages: List<TravelPackage>) {
+    private fun loadFavorites(packages: Map<String, TravelPackage>) {
         if (favoriteRepository.count() > 0) {
             return
         }
-        val buyer = user("buyer")
-        val buyer2 = user("buyer2")
-        listOf(
-            buyer to packages[0],
-            buyer to packages[1],
-            buyer to packages[2],
-            buyer2 to packages[3],
-            buyer2 to packages[4],
-        ).forEach { (buyer, travelPackage) ->
+        SeedData.FAVORITES.forEach { seed ->
             favoriteRepository.save(
                 Favorite
                     .Builder()
-                    .buyer(buyer)
-                    .travelPackage(travelPackage)
+                    .buyer(user(seed.buyer))
+                    .travelPackage(packages.getValue(seed.travelPackage))
                     .build(),
             )
         }
     }
 
-    private fun loadReviews(packages: List<TravelPackage>) {
+    private fun loadReviews(packages: Map<String, TravelPackage>) {
         if (reviewRepository.count() > 0) {
             return
         }
-        val buyer = user("buyer")
-        val buyer2 = user("buyer2")
-        listOf(
-            review(buyer, packages[0], 9, "Excelente experiencia, volvería sin dudarlo."),
-            review(buyer, packages[1], 7, "Muy bueno, aunque el hotel quedaba algo lejos del centro."),
-            review(buyer2, packages[3], 10, "Increíble, superó todas mis expectativas."),
-        ).forEach { reviewRepository.save(it) }
+        SeedData.REVIEWS.forEach { seed ->
+            reviewRepository.save(
+                Review
+                    .Builder()
+                    .buyer(user(seed.buyer))
+                    .travelPackage(packages.getValue(seed.travelPackage))
+                    .score(seed.score)
+                    .comment(seed.comment)
+                    .build(),
+            )
+        }
     }
 
-    private fun review(
-        buyer: User,
-        travelPackage: TravelPackage,
-        score: Int,
-        comment: String,
-    ): Review =
-        Review
-            .Builder()
-            .buyer(buyer)
-            .travelPackage(travelPackage)
-            .score(score)
-            .comment(comment)
-            .build()
-
-    private fun loadPurchases(packages: List<TravelPackage>) {
+    private fun loadPurchases(packages: Map<String, TravelPackage>) {
         if (purchaseRepository.count() > 0) {
             return
         }
-        val buyer = user("buyer")
-        val buyer2 = user("buyer2")
         val now = LocalDateTime.now()
-        listOf(
-            purchase(buyer, packages[0], now.minusDays(20)),
-            purchase(buyer2, packages[3], now.minusDays(10)),
-            purchase(buyer, packages[2], now.minusDays(5)),
-        ).forEach { purchaseRepository.save(it) }
+        SeedData.PURCHASES.forEachIndexed { index, seed ->
+            // Spread the hour so purchases made the same day are not stamped identically.
+            val purchasedAt = now.minusDays(seed.daysAgo).minusHours((index % HOURS_IN_DAY).toLong())
+            purchaseRepository.save(purchase(user(seed.buyer), packages.getValue(seed.travelPackage), purchasedAt))
+        }
     }
 
     private fun purchase(
@@ -277,4 +234,8 @@ class DataBootstrap(
     private fun agency(name: String): Agency = requireNotNull(agencyRepository.findByName(name)) { "Missing bootstrap agency: $name." }
 
     private fun user(username: String): User = userService.findByUsername(username)
+
+    companion object {
+        private const val HOURS_IN_DAY = 24
+    }
 }

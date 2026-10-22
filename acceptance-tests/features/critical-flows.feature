@@ -80,3 +80,19 @@ Feature: Flujos críticos de Compra Tu Viaje
     And publicó una reseña del paquete nuevo
     When intenta publicar otra reseña del mismo paquete
     Then la reseña es rechazada con status 400
+
+  Scenario: Un administrador carga vuelos y publica un paquete que un comprador encuentra
+    Given inició sesión el administrador inicial
+    And el administrador cargó vuelos de ida y vuelta entre "BUE" y "PAR"
+    When el administrador publica un paquete nuevo para la agencia "Despegar" en "PAR" con precio 2100
+    Then la publicación responde con status 201
+    And el paquete queda asociado a la agencia "Despegar"
+    Given inició sesión un comprador nuevo
+    When busca el paquete nuevo con todos los filtros
+    Then la búsqueda responde con status 200
+    And el paquete nuevo aparece en los resultados
+
+  Scenario: Una agencia no puede cargar vuelos
+    Given inició sesión la agencia inicial
+    When la agencia intenta cargar un vuelo entre "BUE" y "PAR"
+    Then la carga del vuelo es rechazada con status 403

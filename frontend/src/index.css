@@ -1,5 +1,6 @@
 @import './styles/fonts.css';
 @import './styles/tokens.css';
+@import './styles/motion.css';
 
 * {
   box-sizing: border-box;
@@ -11,13 +12,17 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -26,8 +31,9 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   margin: 0;
   color: var(--color-ink);
 }
@@ -41,7 +47,21 @@ button {
 }
 
 a {
-  color: var(--color-ink);
+  color: var(--color-brand);
+}
+
+::selection {
+  background: var(--color-secondary);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+p[class*='eyebrow']:not(.hero__eyebrow) {
+  color: var(--color-brand);
+  font-weight: 700;
 }
 
 .page-center {

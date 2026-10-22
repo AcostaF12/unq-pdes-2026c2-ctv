@@ -1,15 +1,12 @@
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: var(--color-surface);
-  border: var(--border-width-lg) solid var(--color-ink);
-  box-shadow: var(--shadow-hard);
-  padding: var(--space-5);
   text-align: left;
+  animation: fade-up 520ms var(--ease-out) backwards;
 }
 
 .login-card__title {
-  font-size: 32px;
+  font-size: 30px;
   margin-bottom: var(--space-4);
 }
 
@@ -20,21 +17,22 @@
 }
 
 .login-card__error {
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-error);
   background: var(--color-error-bg);
   border: var(--border-width) solid var(--color-error);
   padding: var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .login-card__footer {
   margin-top: var(--space-4);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
+  color: var(--color-muted);
   text-align: center;
 }
 
 .login-card__footer a {
-  color: var(--color-primary);
+  color: var(--color-brand);
+  font-weight: 700;
 }

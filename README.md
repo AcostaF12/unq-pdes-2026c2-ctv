@@ -9,7 +9,7 @@ Trabajo práctico de Prácticas de Desarrollo de Software, Universidad Nacional 
 Necesitás Docker Desktop instalado y abierto. Desde la raíz del repositorio:
 
 ```bash
-docker compose up --build -d
+docker compose up --build -d --wait
 ```
 
 La primera ejecución tarda porque descarga imágenes y compila los servicios. Cuando termine de arrancar, abrí [Compra tu Viaje](http://localhost:8090).
@@ -31,6 +31,40 @@ docker compose down
 
 Este comando conserva los volúmenes de Docker. Sin embargo, el backend reinicia sus datos de ejemplo al arrancar con el perfil `dev`. No uses este entorno para guardar datos que quieras conservar.
 
+### Usar las imágenes de Docker Hub
+
+Para arrancar sin compilar, una vez publicadas las imágenes:
+
+```bash
+docker compose -f docker-compose.hub.yml up -d --wait
+```
+
+Se usan `acostaf12/ctv-backend`, `acostaf12/ctv-flights-service` y `acostaf12/ctv-frontend`. Podés cambiar el namespace con `DOCKERHUB_NAMESPACE` y la etiqueta con `CTV_IMAGE_TAG`, que por defecto es `latest`. Los puertos y usuarios son los mismos.
+
+### Desarrollo con hot reload
+
+Levantá las bases en Docker y ejecutá cada módulo en una terminal distinta. Necesitás Java 25 y Node.js 24:
+
+```bash
+docker compose up -d backend-postgres flights-postgres
+```
+
+```bash
+cd flights-service && ./gradlew bootRun
+```
+
+```bash
+cd backend && ./gradlew bootRun
+```
+
+```bash
+cd frontend && npm ci && npm run dev
+```
+
+El frontend de desarrollo abre en http://localhost:5173. Las bases usan los puertos `5433` y `5434`. Si están ocupados, el compose acepta `BACKEND_DB_PORT` y `FLIGHTS_DB_PORT`; ejecutá el servicio correspondiente con `DB_PORT` apuntando al puerto elegido.
+
+Sin el monitoreo levantado pueden aparecer avisos de conexión a Logstash y Zipkin. `TRACING_SAMPLING_PROBABILITY=0` desactiva el envío de trazas.
+
 ## Direcciones y usuarios de prueba
 
 | Servicio | Dirección local |
@@ -48,10 +82,13 @@ La aplicación carga estas cuentas de ejemplo:
 | Rol | Usuario | Contraseña |
 | --- | --- | --- |
 | Comprador | `buyer` | `buyer123` |
+| Comprador | `buyer2` | `buyer123` |
 | Agencia | `agency` | `agency123` |
-| Administrador | `vferreyra` | `vferreyra` |
+| Administrador | `vferreyra`, `facosta`, `adisanto` | igual al usuario |
 
 Para entrar a Grafana, usá `admin` como usuario y contraseña. Estas credenciales son para pruebas, no para producción.
+
+Para presentar la aplicación: [guion de demo](docs/demo.md) y [funciones del administrador](docs/admin.md).
 
 ## Ejecutar los tests
 
@@ -86,7 +123,7 @@ npm run build
 Cucumber prueba las reglas de negocio a través de las APIs. Cypress prueba recorridos desde el navegador. Ambos usan servicios reales en entornos Docker separados del entorno de desarrollo.
 
 - [Cómo ejecutar Cucumber](acceptance-tests/README.md).
-- [Cómo levantar el entorno e2e y ejecutar Cypress](frontend/README.md#entorno-para-pruebas-e2e).
+- [Cómo levantar el entorno e2e y ejecutar Cypress](frontend/README.md#pruebas-e2e).
 
 ## Estructura y tecnologías
 
@@ -110,6 +147,8 @@ Consultá las ejecuciones en [GitHub Actions](https://github.com/AcostaF12/unq-p
 
 - [Backend](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-backend).
 - [Servicio de vuelos](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-flights-service).
+
+En cada push a `main`, después de los controles de cada módulo, sus imágenes se publican en Docker Hub y GitHub Container Registry con `latest` y el SHA del commit. Docker Hub requiere los secretos `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN`; la variable opcional `DOCKERHUB_NAMESPACE` cambia el namespace. Si faltan las credenciales, la publicación falla.
 
 Abrir un PR no despliega la aplicación. El deploy de la demo se inicia manualmente desde GitHub Actions:
 

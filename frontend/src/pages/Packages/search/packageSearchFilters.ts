@@ -6,6 +6,9 @@ export interface PackageSearchFormValues {
   destination: string
   minPrice: string
   maxPrice: string
+  agencyId: string
+  hotel: string
+  minRating: string
 }
 
 export type PackageSearchField = keyof PackageSearchFormValues
@@ -15,8 +18,19 @@ export interface PackageSearchFilterResult {
   error?: string
 }
 
+export const ADVANCED_FIELDS: PackageSearchField[] = ['agencyId', 'hotel', 'minRating']
+
 export function createSearchFormValues(origin = ''): PackageSearchFormValues {
-  return { name: '', origin, destination: '', minPrice: '', maxPrice: '' }
+  return {
+    name: '',
+    origin,
+    destination: '',
+    minPrice: '',
+    maxPrice: '',
+    agencyId: '',
+    hotel: '',
+    minRating: '',
+  }
 }
 
 export function buildPackageSearchFilters(values: PackageSearchFormValues): PackageSearchFilterResult {
@@ -31,25 +45,49 @@ export function buildPackageSearchFilters(values: PackageSearchFormValues): Pack
   if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
     return { filters: {}, error: 'El precio mínimo no puede superar al precio máximo.' }
   }
+  const agencyId = parseOptionalNumber(values.agencyId)
+  const minRating = parseOptionalNumber(values.minRating)
 
   return {
     filters: {
       ...optionalText('name', values.name),
       ...optionalText('origin', values.origin),
       ...optionalText('destination', values.destination),
+      ...optionalText('hotel', values.hotel),
       ...(minPrice != null ? { minPrice } : {}),
       ...(maxPrice != null ? { maxPrice } : {}),
+      ...(agencyId != null ? { agencyId } : {}),
+      ...(minRating != null ? { minRating } : {}),
     },
   }
 }
 
 export function hasPackageSearchFilters(filters: PackageSearchParams): boolean {
-  return Object.keys(filters).length > 0
+  return countPackageSearchFilters(filters) > 0
 }
 
-function optionalText<Key extends 'name' | 'origin' | 'destination'>(key: Key, value: string): Pick<PackageSearchParams, Key> | Record<string, never> {
+export function countPackageSearchFilters(filters: PackageSearchParams): number {
+  return Object.keys(filters).length
+}
+
+export function hasAdvancedValues(values: PackageSearchFormValues): boolean {
+  return ADVANCED_FIELDS.some((field) => values[field].trim() !== '')
+}
+
+function optionalText<Key extends 'name' | 'origin' | 'destination' | 'hotel'>(
+  key: Key,
+  value: string,
+): Pick<PackageSearchParams, Key> | Record<string, never> {
   const trimmedValue = value.trim()
   return trimmedValue ? ({ [key]: trimmedValue } as Pick<PackageSearchParams, Key>) : {}
+}
+
+function parseOptionalNumber(value: string): number | undefined {
+  if (value.trim() === '') {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
 function parseOptionalPrice(value: string, label: 'mínimo' | 'máximo'): number | undefined | string {
