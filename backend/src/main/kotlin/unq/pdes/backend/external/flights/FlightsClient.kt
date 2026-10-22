@@ -23,6 +23,30 @@ class FlightsClient(
 
     @Retry(name = "flightsService")
     @CircuitBreaker(name = "flightsService")
+    fun seedCatalog(): List<ExternalFlightDto> =
+        execute("The demo flight catalog is unavailable. Enable the seed in flights-service.") {
+            restClient
+                .get()
+                .uri("$flightsServiceUrl/internal/demo/flights")
+                .retrieve()
+                .body<List<ExternalFlightDto>>()
+        } ?: emptyList()
+
+    @Retry(name = "flightsService")
+    @CircuitBreaker(name = "flightsService")
+    fun reserveDemoSeats(reservations: List<ExternalDemoReservationDto>) {
+        execute("Could not reserve demo seats.") {
+            restClient
+                .post()
+                .uri("$flightsServiceUrl/internal/demo/reservations")
+                .body(mapOf("reservations" to reservations))
+                .retrieve()
+                .toBodilessEntity()
+        }
+    }
+
+    @Retry(name = "flightsService")
+    @CircuitBreaker(name = "flightsService")
     fun findById(id: Long): ExternalFlightDto =
         execute("There is no Flight with id: $id.") {
             restClient

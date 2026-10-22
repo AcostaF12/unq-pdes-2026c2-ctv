@@ -9,17 +9,17 @@ import unq.pdes.backend.config.bootstrap.SeedFlightIds
 
 class SeedDataTest {
     @Test
-    fun `flight ids follow the convention shared with flights-service`() {
-        assertEquals(1L, SeedFlightIds.outbound("PAR", 0))
-        assertEquals(2L, SeedFlightIds.inbound("PAR", 0))
-        assertEquals(7L, SeedFlightIds.outbound("LON", 0))
-        assertEquals(54L, SeedFlightIds.inbound("DXB", 2))
+    fun `flight keys follow the contract shared with flights-service`() {
+        assertEquals("ctv-demo-v1:PAR:0:0", SeedFlightIds.key("PAR", 0, 0))
+        assertEquals("ctv-demo-v1:PAR:0:1", SeedFlightIds.key("PAR", 0, 1))
+        assertEquals("ctv-demo-v1:LON:0:0", SeedFlightIds.key("LON", 0, 0))
+        assertEquals("ctv-demo-v1:DXB:2:1", SeedFlightIds.key("DXB", 2, 1))
     }
 
     @Test
     fun `flight ids reject unknown destinations and variants`() {
-        assertThrows(IllegalArgumentException::class.java) { SeedFlightIds.outbound("XXX", 0) }
-        assertThrows(IllegalArgumentException::class.java) { SeedFlightIds.outbound("PAR", 3) }
+        assertThrows(IllegalArgumentException::class.java) { SeedFlightIds.key("XXX", 0, 0) }
+        assertThrows(IllegalArgumentException::class.java) { SeedFlightIds.key("PAR", 3, 0) }
     }
 
     @Test

@@ -10,7 +10,6 @@ import unq.pdes.backend.controller.dtos.models.AdminFavoriteDto
 import unq.pdes.backend.controller.dtos.models.AdminReviewDto
 import unq.pdes.backend.controller.dtos.models.PageDto
 import unq.pdes.backend.controller.dtos.models.PurchaseDto
-import unq.pdes.backend.controller.dtos.models.UserDto
 import unq.pdes.backend.service.AdminQueryService
 
 @Tag(name = "Administrative queries", description = "Solo ADMIN. Lectura paginada: page desde 0 y size entre 1 y 100.")
@@ -19,13 +18,6 @@ import unq.pdes.backend.service.AdminQueryService
 class AdminQueryController(
     private val service: AdminQueryService,
 ) {
-    @Operation(summary = "Consultar usuarios", description = "Incluye roles y agencias vinculadas. No expone credenciales.")
-    @GetMapping("/users")
-    fun users(
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int,
-    ): PageDto<UserDto> = PageDto.from(service.users(page, size)) { UserDto.fromModel(it) }
-
     @Operation(summary = "Consultar favoritos de todos los compradores")
     @GetMapping("/favorites")
     fun favorites(

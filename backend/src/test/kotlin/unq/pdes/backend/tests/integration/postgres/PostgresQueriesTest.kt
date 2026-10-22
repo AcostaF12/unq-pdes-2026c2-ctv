@@ -2,6 +2,7 @@ package unq.pdes.backend.tests.integration.postgres
 
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -19,9 +20,13 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
+import unq.pdes.backend.model.user.AgencyUser
+import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.search.TravelPackageSearchCriteria
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.TravelPackageService
+import unq.pdes.backend.service.UserAdministrationService
+import unq.pdes.backend.service.UserService
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -54,6 +59,12 @@ class PostgresQueriesTest {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    private lateinit var administration: UserAdministrationService
+
+    @Autowired
+    private lateinit var users: UserService
 
     @MockitoBean
     private lateinit var flightsClient: FlightsClient
@@ -154,6 +165,30 @@ class PostgresQueriesTest {
         assertEquals(1, count(from = today.minusDays(1), to = today.plusDays(1)))
         assertEquals(0, count(from = today.plusDays(1)))
         assertEquals(0, count(to = today.minusDays(1)))
+    }
+
+    @Test
+    fun `07 - account role transitions respect postgres constraints and preserve purchase history`() {
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val trip = factory.packageNamed("Historical trip")
+        val purchase = purchaseService.purchase("buyer", trip.id!!)
+        administration.update("admin", buyer.id!!, "Ana", "Pérez", Role.AGENCY, true, trip.agency.id)
+        assertTrue(users.findByUsername("buyer") is AgencyUser)
+        administration.update("admin", buyer.id!!, "Ana", "Pérez", Role.ADMIN, false, null)
+        val updated = users.findByUsername("buyer")
+        assertEquals(Role.ADMIN, updated.role)
+        assertEquals(false, updated.enabled)
+        assertEquals(buyer.id, updated.id)
+        assertEquals(purchase.id, purchaseService.findForViewer("admin", purchase.id!!).id)
+        val sales = purchaseService.findForAdmin("admin", 0, 20, null, null, null, null)
+        assertEquals(1, sales.totalElements)
+        assertEquals(
+            "Bruno",
+            sales.content
+                .first()
+                .buyerSnapshot.firstName,
+        )
     }
 
     private fun criteria(

@@ -7,7 +7,13 @@ import { listAgencies } from '../../api/agencies'
 import { listCities } from '../../api/cities'
 import { listFlights } from '../../api/flights'
 import { listHotels } from '../../api/hotels'
-import { createPackage, deletePackage, searchPackages, updatePackage } from '../../api/packages'
+import {
+  createPackage,
+  deletePackage,
+  searchAdminPackages,
+  updatePackage,
+  setPackageActive,
+} from '../../api/packages'
 import { allFlights, apiError, buenosAiresHotel, parisHotel, parisPackage } from '../../test/fixtures'
 import { fillParisPackage } from '../../test/packageFormHelpers'
 import { createTestQueryClient } from '../../test/queryClient'
@@ -18,13 +24,14 @@ vi.mock('../../api/cities', () => ({ listCities: vi.fn() }))
 vi.mock('../../api/flights', () => ({ listFlights: vi.fn() }))
 vi.mock('../../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../../api/packages', () => ({
-  searchPackages: vi.fn(),
+  searchAdminPackages: vi.fn(),
   createPackage: vi.fn(),
   updatePackage: vi.fn(),
   deletePackage: vi.fn(),
+  setPackageActive: vi.fn(),
 }))
 
-const mockedSearchPackages = vi.mocked(searchPackages)
+const mockedSearchPackages = vi.mocked(searchAdminPackages)
 const mockedCreatePackage = vi.mocked(createPackage)
 const mockedUpdatePackage = vi.mocked(updatePackage)
 const mockedDeletePackage = vi.mocked(deletePackage)
@@ -44,6 +51,31 @@ function renderAdminPackages() {
 }
 
 describe('AdminPackages page', () => {
+  it('archives a package without deleting its history', async () => {
+    const user = userEvent.setup()
+    vi.mocked(setPackageActive).mockResolvedValue({ ...parisPackage, active: false })
+    renderAdminPackages()
+    await user.click(await screen.findByRole('button', { name: 'Archivar Escapada a París' }))
+    await waitFor(() => expect(setPackageActive).toHaveBeenCalledWith(parisPackage.id, false))
+    expect(await screen.findByRole('status')).toHaveTextContent('Paquete archivado')
+    expect(deletePackage).not.toHaveBeenCalled()
+  })
+
+  it('filters archived packages on the server', async () => {
+    const user = userEvent.setup()
+    renderAdminPackages()
+    await screen.findByTestId('package-item')
+    await user.selectOptions(screen.getByLabelText('Estado del paquete'), 'archived')
+    await waitFor(() =>
+      expect(searchAdminPackages).toHaveBeenCalledWith({
+        page: 0,
+        size: 10,
+        sort: 'name,asc',
+        active: false,
+      }),
+    )
+  })
+
   beforeEach(() => {
     vi.resetAllMocks()
     mockedSearchPackages.mockResolvedValue(pageOf([parisPackage]))
@@ -130,7 +162,9 @@ describe('AdminPackages page', () => {
     await fillParisPackage(user, 'Escapada a París', '1800')
     await user.click(screen.getByRole('button', { name: 'Crear paquete' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Ya existe un paquete con ese nombre en la agencia')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ya existe un paquete con ese nombre en la agencia',
+    )
     expect(screen.getByTestId('package-form')).toBeInTheDocument()
   })
 
@@ -214,7 +248,9 @@ describe('AdminPackages page', () => {
     await user.click(screen.getByRole('button', { name: 'Confirmar eliminación' }))
 
     const confirmation = await screen.findByTestId('confirm-delete')
-    expect(await within(confirmation).findByRole('alert')).toHaveTextContent('El paquete tiene compras asociadas')
+    expect(await within(confirmation).findByRole('alert')).toHaveTextContent(
+      'El paquete tiene compras asociadas',
+    )
   })
 
   it('pages through the catalog', async () => {

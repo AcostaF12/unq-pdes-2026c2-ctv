@@ -63,7 +63,7 @@ class PurchaseService(
         val viewer = userService.findByUsername(username)
         val isBuyer = purchase.buyer.id == viewer.id
         val isSellingAgency = (viewer as? AgencyUser)?.agency?.id == purchase.agency.id
-        if (!isBuyer && !isSellingAgency) {
+        if (!isBuyer && !isSellingAgency && viewer.role != Role.ADMIN) {
             throw AccessDeniedException("You cannot access this purchase.")
         }
         return purchase
@@ -85,6 +85,30 @@ class PurchaseService(
         require(from == null || to == null || !from.isAfter(to)) { "The start date must not be after the end date." }
         return purchaseRepository.searchAgencyHistory(
             agencyId = agencyUser.agency.id!!,
+            buyerUsername = buyerUsername?.trim()?.takeIf(String::isNotEmpty),
+            packageName = packageName?.trim()?.takeIf(String::isNotEmpty),
+            fromInclusive = from?.atStartOfDay(),
+            toExclusive = to?.plusDays(1)?.atStartOfDay(),
+            pageable = pageRequest(page, size),
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun findForAdmin(
+        username: String,
+        page: Int,
+        size: Int,
+        buyerUsername: String?,
+        packageName: String?,
+        from: LocalDate?,
+        to: LocalDate?,
+    ): Page<Purchase> {
+        if (userService.findByUsername(username).role != Role.ADMIN) {
+            throw AccessDeniedException("Only admins can list all sales.")
+        }
+        require(from == null || to == null || !from.isAfter(to)) { "The start date must not be after the end date." }
+        return purchaseRepository.searchAgencyHistory(
+            agencyId = null,
             buyerUsername = buyerUsername?.trim()?.takeIf(String::isNotEmpty),
             packageName = packageName?.trim()?.takeIf(String::isNotEmpty),
             fromInclusive = from?.atStartOfDay(),
@@ -128,8 +152,9 @@ class PurchaseService(
         if (buyer.role != Role.BUYER) {
             throw AccessDeniedException("Only buyers can purchase packages.")
         }
-        val travelPackage = travelPackageService.findById(packageId)
+        val travelPackage = travelPackageService.findForUpdate(packageId)
         require(travelPackage.agency.active) { "This agency is inactive. The package is not available for purchase." }
+        require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
         val passengerName = "${buyer.firstName} ${buyer.lastName}"
 
         val outboundSale = flightsClient.sell(travelPackage.outboundFlightId, passengerName)

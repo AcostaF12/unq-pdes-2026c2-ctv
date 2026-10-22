@@ -132,12 +132,13 @@ class PurchaseHistoryFiltersTest {
     }
 
     @Test
-    fun `11 - findForViewer should deny other buyers other agencies and admins`() {
+    fun `11 - findForViewer should deny other buyers and agencies but allow admins`() {
         val purchase = purchaseRepository.findAll().first { it.buyerSnapshot.username == buyerName }
         factory.agencyUserNamed("rival", "Almundo")
         factory.adminNamed("admin")
 
-        listOf("other", "rival", "admin").forEach { username ->
+        assertEquals(purchase.id, purchaseService.findForViewer("admin", purchase.id!!).id)
+        listOf("other", "rival").forEach { username ->
             val exception =
                 assertThrows(AccessDeniedException::class.java) { purchaseService.findForViewer(username, purchase.id!!) }
             assertEquals("You cannot access this purchase.", exception.message)

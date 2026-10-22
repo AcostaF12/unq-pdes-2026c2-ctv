@@ -56,8 +56,8 @@ export function PurchaseDetail() {
   const { id } = useParams()
   const purchaseId = Number(id)
   const invalidId = !Number.isInteger(purchaseId)
-  const { isBuyer } = useAuth()
-  const backPath = isBuyer ? '/purchases' : '/agency/sales'
+  const { isBuyer, isAdmin } = useAuth()
+  const backPath = isAdmin ? '/admin/sales' : isBuyer ? '/purchases' : '/agency/sales'
   const backLabel = isBuyer ? '← Mis compras' : '← Ventas'
 
   const purchaseQuery = useQuery({

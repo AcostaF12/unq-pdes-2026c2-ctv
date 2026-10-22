@@ -20,7 +20,7 @@ class AgencyMigrationTest {
             connection.createStatement().use { sql ->
                 sql.executeUpdate("INSERT INTO agencies(name) VALUES ('Before migration')")
                 val flyway = Flyway.configure().dataSource(url, "sa", "").load()
-                assertEquals(1, flyway.migrate().migrationsExecuted)
+                assertEquals(3, flyway.migrate().migrationsExecuted)
                 sql.executeQuery("SELECT name, active FROM agencies").use { rows ->
                     assertTrue(rows.next())
                     assertEquals("Before migration", rows.getString("name"))

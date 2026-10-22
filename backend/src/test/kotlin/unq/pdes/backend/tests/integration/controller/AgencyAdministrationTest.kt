@@ -119,7 +119,11 @@ class AgencyAdministrationTest {
                     .content(body),
             ).andExpect(status().isBadRequest)
         assertEquals(0, agencies.count())
-        for (invalid in listOf(body.replace("Nueva Agencia", " "), body.replace("secret123", "123"))) {
+        for (invalid in listOf(
+            body.replace("Nueva Agencia", " "),
+            body.replace("secret123", "123"),
+            body.replace("secret123", "é".repeat(37)),
+        )) {
             mvc
                 .perform(
                     post("/agencies")
@@ -189,7 +193,7 @@ class AgencyAdministrationTest {
             .perform(get("/purchases/me").with(user("buyer").roles("BUYER")))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content[0].id").value(purchase.id))
-        mvc.perform(get("/packages/agency").header("Authorization", "Bearer $token")).andExpect(status().isForbidden)
+        mvc.perform(get("/packages/agency").header("Authorization", "Bearer $token")).andExpect(status().isUnauthorized)
         mvc
             .perform(
                 post("/auth/login")
