@@ -1,8 +1,12 @@
-# unq-pdes-2026c2-ctv
+# Compra Tu Viaje
 
-Aplicación web para gestión y compra de paquetes turísticos.
+Aplicación web para buscar y comprar paquetes turísticos. Un paquete junta un hotel, un vuelo de ida y uno de vuelta, y lo publica una agencia.
 
-Proyecto de la materia Prácticas de Desarrollo de Software – UNQ, 2do semestre 2026.
+Hay tres roles. El comprador busca, guarda favoritos, compra y reseña. La agencia arma sus paquetes y mira sus ventas. El administrador carga hoteles, vuelos y paquetes de cualquier agencia.
+
+Los vuelos no viven en la base de la aplicación. Los administra `flights-service`, un servicio aparte. Al comprar, el backend reserva el asiento de ida y el de vuelta; si el segundo falla, cancela el primero.
+
+Proyecto de Prácticas de Desarrollo de Software, UNQ, segundo semestre de 2026.
 
 ### Backend
 
@@ -28,86 +32,36 @@ Proyecto de la materia Prácticas de Desarrollo de Software – UNQ, 2do semestr
 
 [![Frontend CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/frontend.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/frontend.yml)
 
----
+## Índice
 
-## 📝 Release Notes - Entrega 1
+- [Cómo levantarlo](#cómo-levantarlo)
+- [Cómo está armado](#cómo-está-armado)
+- [Qué hay en esta entrega](#qué-hay-en-esta-entrega)
+- [Calidad, imágenes y deploy](#calidad-imágenes-y-deploy)
+- [Dónde seguir leyendo](#dónde-seguir-leyendo)
 
-En progreso...
+La lectura para la cátedra, con los diagramas, está en [docs/catedra.html](docs/catedra.html). Este archivo es la portada: alcanza para clonar, levantar y saber qué mirar. Las notas del equipo están en [docs/Entrega-2.html](docs/Entrega-2.html).
 
-## 📝 Release Notes - Entrega 2
+## Cómo levantarlo
 
-Resumen de lo que contiene el repositorio en esta entrega.
-
-**Aplicación**
-- **Backend** (Spring Boot + Kotlin): registro, login con token y perfil de usuario; hoteles (alta, edición y baja solo para administradores) y ciudades; paquetes turísticos con búsqueda avanzada (filtros combinados, paginación y orden resueltos en el backend); favoritos; compras con historial que conserva una copia inmutable de lo pagado; reseñas (solo con compra previa y una por comprador); ventas por agencia. Contrato documentado con Swagger/OpenAPI.
-- **flights-service** (Spring Boot + Kotlin): servicio interno de vuelos con su propia base de datos. Al comprar, el backend reserva los asientos de ida y de vuelta y, si falla la segunda reserva, cancela la primera. Las llamadas están protegidas con Resilience4j (reintentos, timeout y circuit breaker).
-- **Frontend** (React + TypeScript + Vite): login y registro, catálogo con filtros y detalle de paquete, favoritos, compras, panel de agencia (paquetes y ventas), gestión de hoteles para administradores y perfil. Cada rol ve solo la navegación que puede usar.
-- Datos de ejemplo y usuarios de prueba cargados por `DataBootstrap`; el schema lo administra Flyway.
-
-**Calidad**
-- Tests unitarios y de integración (JUnit 5 + JaCoCo en los servicios Kotlin, Vitest en el frontend) y ktlint en ambos servicios Kotlin.
-- Análisis de Sonar con Quality Gate bloqueante en backend y flights-service.
-- 11 escenarios de aceptación con Cucumber contra las APIs reales y pruebas end-to-end con Cypress sobre un entorno Docker aislado.
-- `actionlint` y `scripts/check-ci.rb` validan los workflows y las reglas del CI.
-
-**CI/CD y operación**
-- Un workflow de GitHub Actions por módulo (lint, tests y build en cada PR) más el de aceptación/e2e y el de validación de workflows.
-- En cada push a `main`, y solo después de que pasan los controles, se publican las imágenes de `backend`, `flights-service` y `frontend` en GitHub Container Registry y en Docker Hub (ver [Imágenes en Docker Hub](#-imágenes-en-docker-hub)).
-- Deploy manual a una VM de Azure para las demos (ver [Deploy Cloud](#️-deploy-cloud-azure)).
-- Docker Compose para levantar todo el stack, con bases, Prometheus, Grafana, Zipkin y ELK (Elasticsearch, Logstash y Kibana).
-
-Más detalle: [guion de demo](docs/demo.md) y [sección de administración](docs/admin.md).
-
-## 📝 Release Notes - Entrega 3
-
-En progreso...
-
-### 🚀 Estructura
-```
-├── backend/           # Spring Boot - CTV (Kotlin)
-├── flights-service/   # Spring Boot - API Vuelos (Kotlin) — interno
-├── frontend/          # React + TypeScript + Vite
-├── monitoring/        # Configuración de Prometheus, Grafana y Logstash
-└── docker-compose.yml
-```
-
----
-
-## 🛠️ Tech Stack
-
-**Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
-**Frontend:** React 19 + TypeScript 6 + Vite 8  
-**BD:** PostgreSQL 16 (2 instancias)  
-**Testing:** JUnit 5 (H2 en memoria) + JaCoCo (cobertura) · Vitest (frontend)  
-**API Docs:** Swagger/OpenAPI (springdoc) — solo backend  
-**Observabilidad:** Spring Boot Actuator + Prometheus (métricas) + Grafana (dashboards) + Zipkin (trazas) + ELK / Elasticsearch + Logstash + Kibana (logs)  
-**CI/CD:** GitHub Actions  
-**Containerización:** Docker + Docker Compose
-
----
-
-## 🚀 Cómo Correr
-
-### Todo con Docker
-
-Levanta las 2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK con un solo comando:
+Hace falta Docker. La primera vez tarda varios minutos: compila los dos servicios Kotlin y baja las imágenes de Elasticsearch, Logstash y Kibana.
 
 ```bash
 docker compose up --build
 ```
 
-La primera vez tarda varios minutos (compila los dos servicios Kotlin y baja las imágenes de ELK). Cuando el backend queda `healthy` ya se puede entrar al frontend.
+Cuando el backend queda `healthy`, el frontend responde en http://localhost:8090.
 
 ```bash
 docker compose ps            # estado y health de cada servicio
 docker compose logs -f backend
 docker compose down          # apaga y conserva los volúmenes
-docker compose down -v       # apaga y borra los datos (arranque limpio)
+docker compose down -v       # apaga y borra los datos
 ```
 
-### Desarrollo con hot reload
+### Desarrollo con recarga
 
-Solo las bases en Docker y el resto en la máquina. Los puertos por defecto del profile `dev` ya apuntan a ellas (`5433` backend, `5434` flights).
+Solo las bases en Docker. El resto corre en la máquina, con los puertos del profile `dev` (`5433` para el backend, `5434` para vuelos). Cada comando va en su terminal.
 
 ```bash
 docker compose up -d backend-postgres flights-postgres
@@ -117,106 +71,130 @@ cd backend && ./gradlew bootRun           # :8080
 cd frontend && npm ci && npm run dev      # :5173
 ```
 
-Cada comando va en su propia terminal. Sin Zipkin ni Logstash levantados, los servicios Kotlin loguean avisos de reconexión a Logstash y de spans descartados que no afectan el funcionamiento. `TRACING_SAMPLING_PROBABILITY=0` silencia los de Zipkin.
+Sin Zipkin ni Logstash, los servicios Kotlin avisan que no pueden conectar. No afecta el funcionamiento. `TRACING_SAMPLING_PROBABILITY=0` silencia los avisos de Zipkin.
 
-Si un puerto del host está ocupado (por ejemplo `5434`), el compose acepta `BACKEND_DB_PORT` y `FLIGHTS_DB_PORT`; en ese caso levantar el servicio con `DB_PORT` apuntando al puerto elegido.
+Si `5433` o `5434` están ocupados, el compose acepta `BACKEND_DB_PORT` y `FLIGHTS_DB_PORT`. En ese caso el servicio se levanta con `DB_PORT` apuntando al puerto elegido.
 
-El schema lo administra Flyway. En `dev`, el backend borra y vuelve a cargar los datos de ejemplo en cada arranque.
+Flyway administra el esquema. En `dev`, el backend borra y vuelve a cargar los datos de ejemplo en cada arranque. En `prod` no borra: solo agrega lo que falte y valida el esquema (`ddl-auto=validate`).
 
-### Servicios expuestos
+### Servicios
 
 | Servicio | URL |
 |----------|-----|
 | Frontend (Docker) | http://localhost:8090 |
 | Frontend (`npm run dev`) | http://localhost:5173 |
 | Backend | http://localhost:8080 |
-| Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
+| Swagger | http://localhost:8080/swagger-ui/index.html |
 | Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 (usuario `admin` / pass `admin`) |
+| Grafana | http://localhost:3001 (`admin` / `admin`) |
 | Zipkin | http://localhost:9411 |
-| Kibana (logs) | http://localhost:5601 |
+| Kibana | http://localhost:5601 |
 
-Para presentar la aplicación, ver el [guion de demo](docs/demo.md).
+`flights-service` escucha en el puerto `8081` dentro de la red de Compose y cuando se corre con `bootRun`. El compose principal no lo publica al host: solo lo usa el backend.
 
-La sección de administración (login `vferreyra` / `vferreyra`) está descripta en [docs/admin.md](docs/admin.md).
+La primera vez que se abre Kibana no hay vista de datos. En Stack Management, Data Views, crear una con patrón `ctv-logs-*` y campo de tiempo `@timestamp`.
 
 ### Usuarios de prueba
 
-Los carga `DataBootstrap` en `dev` y `prod`.
+Los carga `DataBootstrap` en `dev` y en `prod`. La contraseña de cada administrador es igual al nombre de usuario.
 
 | Rol | Usuario | Contraseña |
 |-----|---------|------------|
-| Comprador | `buyer` | `buyer123` |
-| Comprador | `buyer2` | `buyer123` |
+| Comprador | `buyer`, `buyer2` | `buyer123` |
 | Agencia (Despegar) | `agency` | `agency123` |
 | Admin | `facosta`, `vferreyra`, `adisanto` | igual al usuario |
 
----
+El registro público siempre crea un comprador. Agencias y administradores salen del seed.
 
-## 🐳 Imágenes en Docker Hub
+## Cómo está armado
 
-En cada push a `main` (una vez que pasan los controles de cada módulo, incluido el Quality Gate de Sonar) el CI publica tres imágenes, con las etiquetas `latest` y el SHA del commit:
+```
+├── backend/            # API principal. Kotlin, Spring Boot. Puerto 8080
+├── flights-service/    # Vuelos, con su propia base. Puerto 8081
+├── frontend/           # React, TypeScript y Vite. En Docker, nginx en el 8090
+├── acceptance-tests/   # Escenarios Cucumber contra las APIs reales
+├── monitoring/         # Prometheus, Grafana y Logstash
+└── docker-compose.yml
+```
+
+El navegador baja la SPA y habla con el backend por REST, con un JWT. El backend tiene su PostgreSQL 16 y es el único que llama a `flights-service`, que tiene otra base. No hay clave foránea entre las dos: el paquete guarda el id del vuelo.
+
+Las llamadas a vuelos pasan por Resilience4j: hasta 3 reintentos y circuit breaker. El timeout de 3 segundos está en la config y todavía no está anotado en el cliente. El estado del circuito está en http://localhost:8080/actuator/health.
+
+El detalle de las capas y la secuencia de compra, para la cátedra, está en [docs/catedra.html](docs/catedra.html). El diagrama de entidades está en [docs/mer.puml](docs/mer.puml).
+
+**Backend y vuelos:** Spring Boot 4.1.0, Kotlin 2.3.21, Java 25, Gradle 9.5.1.  
+**Frontend:** React 19, TypeScript 6, Vite 8.  
+**Contrato de la API:** Swagger, solo en el backend. En Authorize se pega el token de `POST /auth/login`, sin la palabra Bearer.
+
+## Qué hay en esta entrega
+
+La entrega 1 dejó la base: autenticación, hoteles, ciudades, el servicio de vuelos y el primer despliegue.
+
+En la entrega 2 el producto se puede usar de punta a punta y se puede mostrar cómo se construye.
+
+Un comprador filtra el catálogo (destino, precio, orden y paginación resueltos en el backend), abre el detalle, marca favoritos y compra. El historial guarda una copia de lo que pagó: si después cambia el precio o el nombre del paquete, la compra no se mueve. Solo puede reseñar un paquete que compró, y una sola vez.
+
+Una agencia publica sus paquetes eligiendo los vuelos de una lista, no escribiendo ids, y consulta sus ventas. Un administrador, además de los hoteles, carga vuelos y arma paquetes para cualquier agencia. Quien no tiene el rol ve "Sin permiso" en la interfaz; la API responde 403.
+
+La compra cruza dos sistemas. Si no hay lugar en el vuelo de vuelta, el backend cancela la reserva de ida y no deja una compra a medias. Si `flights-service` no responde, el circuit breaker corta rápido y el usuario recibe 503.
+
+Cada pull request corre lint, tests y build. Backend y vuelos pasan por el Quality Gate de Sonar. Hay escenarios Cucumber contra las APIs y recorridos Cypress sobre un Docker aparte. En `main`, después de esos controles, se publican las imágenes. El deploy a la VM de Azure es manual y solo corre si los mismos controles pasan.
+
+El recorrido para mostrarlo está en [docs/demo.md](docs/demo.md). Lo que puede hacer un administrador, en [docs/admin.md](docs/admin.md).
+
+## Calidad, imágenes y deploy
+
+Desde la carpeta de cada módulo:
+
+```bash
+# backend o flights-service
+./gradlew test
+./gradlew jacocoTestReport   # build/reports/jacoco/test/html
+
+# frontend
+npm run lint
+npm test
+npm run build                # incluye el chequeo de tipos
+```
+
+Cucumber y Cypress tienen su propio entorno para no pisar los datos de desarrollo. Los comandos están en [acceptance-tests/README.md](acceptance-tests/README.md) y en [frontend/README.md](frontend/README.md#pruebas-e2e).
+
+En cada push a `main`, si pasan los controles del módulo (incluido el Quality Gate de Sonar en backend y vuelos), el CI publica tres imágenes con las etiquetas `latest` y el SHA del commit: en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) y en Docker Hub.
 
 | Imagen | Contenido |
 |--------|-----------|
 | `<usuario>/ctv-backend` | API principal |
 | `<usuario>/ctv-flights-service` | servicio de vuelos |
-| `<usuario>/ctv-frontend` | frontend servido con nginx (apunta a `http://localhost:8080`) |
+| `<usuario>/ctv-frontend` | frontend con nginx. La URL de la API queda fija en el build (`http://localhost:8080` en la imagen de Hub) |
 
-Para levantar todo el stack desde esas imágenes, sin compilar nada:
+Para levantar el stack desde Docker Hub, sin compilar:
 
 ```bash
 docker compose -f docker-compose.hub.yml up -d --wait
 ```
 
-Los puertos y usuarios son los mismos que en la sección anterior. Variables opcionales: `DOCKERHUB_NAMESPACE` (por defecto `acostaf12`; cambiarlo si las imágenes viven en otro usuario u organización) y `CTV_IMAGE_TAG` (por defecto `latest`; también se puede usar un SHA).
+`DOCKERHUB_NAMESPACE` (por defecto `acostaf12`) y `CTV_IMAGE_TAG` (por defecto `latest`; también sirve un SHA) son opcionales. Publicar exige los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN`. Si faltan, el job de `main` falla con un mensaje explícito. Los pull requests no publican.
 
-Para publicar hay que cargar en el repositorio los secrets `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN` (un access token de Docker Hub con permiso de escritura). Opcionalmente, la variable `DOCKERHUB_NAMESPACE` reemplaza al usuario como namespace. Si faltan, el job de publicación en `main` falla con un mensaje explícito; los PR no publican nada.
+La VM de Azure queda apagada salvo en las demos. Las imágenes las toma de GHCR: en la VM no se compila.
 
-Las imágenes de GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) siguen publicándose porque las usa el deploy de Azure.
+- Prender y desplegar `main`: Actions, `Deploy Demo (Azure VM)`, Run workflow, `action: deploy`.
+- Apagar al terminar: el mismo workflow, `action: stop`.
 
----
+Región `northcentralus`. IP pública `64.236.199.81` mientras el recurso exista. Con la VM prendida: frontend en el puerto `8090`, backend en `8080`, Grafana en `3001`, Zipkin en `9411`, Kibana en `5601`.
 
-## ☁️ Deploy Cloud (Azure)
+## Dónde seguir leyendo
 
-La app corre en una VM de Azure que permanece **apagada** la mayor parte del tiempo y solo se prende para las demos. Las imágenes de `backend`, `flights-service` y `frontend` se publican automáticamente a GitHub Container Registry en cada push a `main` (ver workflows en `.github/workflows/`), y la VM las consume ya construidas (no compila nada).
+| Documento | Para qué |
+|-----------|----------|
+| [docs/catedra.html](docs/catedra.html) | Lectura para la cátedra: arquitectura, compra y cómo se entrega |
+| [docs/Entrega-2.html](docs/Entrega-2.html) | Notas del equipo: decisiones, circuit breaker, cada workflow y qué mejoraríamos |
+| [docs/demo.md](docs/demo.md) | Guion corto para recorrer la aplicación |
+| [docs/admin.md](docs/admin.md) | Pantallas y permisos del administrador |
+| [docs/entrega-2-verificacion.md](docs/entrega-2-verificacion.md) | Nota de una corrida local. No describe las pantallas actuales |
+| [docs/mer.puml](docs/mer.puml) | Modelo de datos de las dos bases |
+| [frontend/README.md](frontend/README.md) | Scripts, variables y Cypress |
+| [acceptance-tests/README.md](acceptance-tests/README.md) | Cómo correr Cucumber |
+| Swagger | http://localhost:8080/swagger-ui/index.html con el backend levantado |
 
-**Prender + deployar la última versión de `main`:**
-Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: deploy`
-
-**Apagar al terminar la demo:**
-Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: stop`
-
-VM: `northcentralus`, IP pública `64.236.199.81` (fija mientras no se borre el recurso — no cambia entre `stop`/`deploy`).
-
-| Servicio | URL (con la VM prendida) |
-|----------|-----|
-| Frontend | http://64.236.199.81:8090 |
-| Backend | http://64.236.199.81:8080 |
-| Swagger (Backend) | http://64.236.199.81:8080/swagger-ui/index.html |
-| Grafana | http://64.236.199.81:3001 |
-| Zipkin | http://64.236.199.81:9411 |
-| Kibana | http://64.236.199.81:5601 |
-
-La VM usa el profile `prod` de Spring. El schema lo administra Flyway (`ddl-auto=validate`) y `DataBootstrap` carga los datos de ejemplo que falten.
-
-## 🧪 Testing
-
-Backend y flights-service (desde su carpeta):
-
-```bash
-./gradlew test              # tests
-./gradlew jacocoTestReport  # reporte de cobertura (build/reports/jacoco/test/html)
-```
-
-Frontend (desde `frontend/`):
-
-```bash
-npm run lint
-npm test
-npm run build               # incluye el chequeo de tipos
-```
-
-Estos mismos pasos son los que corre el CI de cada módulo.
-
-Pruebas end-to-end con Cypress contra un entorno Docker aparte (puertos `18080` y `18090`): ver [`frontend/README.md`](frontend/README.md#pruebas-e2e).
+[docs/frontend/diseno-fase-1.md](docs/frontend/diseno-fase-1.md) y [docs/frontend/backlog.md](docs/frontend/backlog.md) describen la primera etapa del frontend, cuando el home era el catálogo de hoteles. No reflejan la aplicación actual.

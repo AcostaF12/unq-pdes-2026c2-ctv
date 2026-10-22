@@ -39,6 +39,7 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     * username : varchar <<UK>> <<NOT NULL>>
     * password : varchar <<NOT NULL>>
     * role : varchar <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
+    * enabled : boolean <<NOT NULL>>  -- DEFAULT TRUE; checked on every authenticated request
     * first_name : varchar <<NOT NULL>>
     * last_name : varchar <<NOT NULL>>
       agency_id : bigint <<FK>>  -- only when role = AGENCY (AgencyUser)
@@ -92,9 +93,35 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     --
     * buyer_id : bigint <<FK>> <<NOT NULL>>
     * package_id : bigint <<FK>> <<NOT NULL>>
-    * agency_id : bigint <<FK>> <<NOT NULL>>  -- denormalized at purchase time
-    * purchase_price : numeric <<NOT NULL>>  -- price at purchase time
+    * agency_id : bigint <<FK>> <<NOT NULL>>
+    * purchase_price : numeric <<NOT NULL>>
     * purchased_at : timestamp <<NOT NULL>>
+    --
+    ' Copia al comprar (migración V2). El historial no sigue al paquete vivo.
+    * buyer_snapshot_id : bigint <<NOT NULL>>
+    * buyer_snapshot_username : varchar <<NOT NULL>>
+    * buyer_snapshot_role : varchar <<NOT NULL>>
+    * buyer_snapshot_first_name : varchar <<NOT NULL>>
+    * buyer_snapshot_last_name : varchar <<NOT NULL>>
+    --
+    * package_snapshot_id : bigint <<NOT NULL>>
+    * package_snapshot_name : varchar <<NOT NULL>>
+    * package_snapshot_price : numeric <<NOT NULL>>
+    * agency_snapshot_id : bigint <<NOT NULL>>
+    * agency_snapshot_name : varchar <<NOT NULL>>
+    --
+    * hotel_snapshot_id : bigint <<NOT NULL>>
+    * hotel_snapshot_name : varchar <<NOT NULL>>
+    * hotel_snapshot_city_code : char(3) <<NOT NULL>>
+    * hotel_snapshot_city_name : varchar <<NOT NULL>>
+    * hotel_snapshot_photo_url : varchar <<NOT NULL>>
+    --
+    * origin_snapshot_code : char(3) <<NOT NULL>>
+    * origin_snapshot_name : varchar <<NOT NULL>>
+    * destination_snapshot_code : char(3) <<NOT NULL>>
+    * destination_snapshot_name : varchar <<NOT NULL>>
+    * outbound_flight_snapshot_id : bigint <<NOT NULL>>  -- logical ref
+    * return_flight_snapshot_id : bigint <<NOT NULL>>    -- logical ref
   }
 }
 

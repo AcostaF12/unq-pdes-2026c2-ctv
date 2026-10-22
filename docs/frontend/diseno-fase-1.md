@@ -1,5 +1,7 @@
 # Diseño frontend — Fase 1
 
+> Documento histórico de la fase 1. El home ya no es `/hotels`: el catálogo de paquetes vive en `/trips` y la administración en `/admin`. El estado actual está en el [README](../../README.md) y en [docs/Entrega-2.html](../Entrega-2.html).
+
 Fuente de verdad para el frontend de **Compra Tu Viaje** mientras el backend solo expone auth, perfil, ciudades y hoteles.
 
 ## Alcance

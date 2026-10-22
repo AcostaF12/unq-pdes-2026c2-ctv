@@ -1,5 +1,7 @@
 # Backlog frontend — Fase 1
 
+> Documento histórico de la fase 1. Varios ítems (entrar a `/hotels`, no haber paquetes) ya no describen la aplicación. El estado actual está en el [README](../../README.md) y en [docs/Entrega-2.html](../Entrega-2.html).
+
 Criterio general: no agregar dependencias, no cambiar contratos del backend, no mockear paquetes/compras/favoritos/reviews.
 
 ## Slice A — Sesión + shell

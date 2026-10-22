@@ -1,6 +1,10 @@
 package unq.pdes.backend.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
@@ -23,6 +27,7 @@ import unq.pdes.backend.controller.dtos.models.TravelPackageDetailDto
 import unq.pdes.backend.controller.dtos.models.TravelPackageDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageRequestDto
 import unq.pdes.backend.controller.dtos.requests.TravelPackageSearchRequestDto
+import unq.pdes.backend.controller.dtos.responses.ErrorDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.service.ReviewService
 import unq.pdes.backend.service.TravelPackageService
@@ -38,9 +43,18 @@ class TravelPackageController(
     @Operation(
         summary = "Buscar paquetes",
         description =
-            "Filtra por nombre, origen, destino, rango de precio inclusivo, agencia ('agencyId'), hotel " +
-                "('hotel') y puntaje promedio mínimo ('minRating', 0 a 10). Admite paginación " +
-                "('page', 'size') y orden ('sort=name,asc', 'price,desc', 'destination.name,asc' o 'rating,desc').",
+            "Cualquier usuario autenticado. Filtra por nombre, origen y destino (código IATA), rango de precio " +
+                "inclusivo, agencia ('agencyId'), hotel ('hotel') y puntaje promedio mínimo ('minRating', 0 a 10). " +
+                "Paginación con 'page' y 'size'. Orden: 'sort=name,asc', 'price,desc', 'destination.name,asc' o " +
+                "'rating,desc'. Otro campo de orden responde 400.",
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Página de paquetes."),
+        ApiResponse(
+            responseCode = "400",
+            description = "El orden no es uno de los permitidos.",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
     )
     @GetMapping
     fun search(

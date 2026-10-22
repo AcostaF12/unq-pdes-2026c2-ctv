@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compra Tu Viaje · Cómo está hecho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Papel blanco, tinta azul marino y un solo amarillo de señalética: amarillo significa "acá falta algo". */
+:root {
+  --paper: #FFFFFF;
+  --wash: #F2F5F9;
+  --ink: #0B1F3A;
+  --ink-2: #4A5A70;
+  --line: #D9E0E9;
+  --link: #1B4FD6;
+  --signal: #FFC20E;
+  --signal-wash: #FFF5D1;
+  --ok: #14774A;
+  --ok-wash: #E1F3EA;
+  --risk: #C22B1F;
+  --risk-wash: #FBE6E3;
+  --board: #0B1F3A;
+  --board-ink: #E8EEF6;
+  --board-mute: #9FB1C8;
+  --board-line: #25405F;
+  --board-ok: #4CC38A;
+  --board-warn: #FFC20E;
+  --board-risk: #FF7A6B;
+  /* nombres que usan los diagramas SVG */
+  --surface: var(--paper); --surface-2: var(--wash); --muted: var(--ink-2);
+  --accent: var(--link); --accent-soft: #E3EBFC; --ok-soft: var(--ok-wash);
+  --warn: #9A5A00; --warn-soft: var(--signal-wash);
+  --font-ui: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Literata", Georgia, "Times New Roman", serif;
+  --font-code: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0A1626; --wash: #12233A; --ink: #E8EEF6; --ink-2: #A3B3C7; --line: #243A56;
+    --link: #8DB4FF; --signal-wash: #3A2F08; --ok: #4CC38A; --ok-wash: #10301F;
+    --risk: #FF8A7D; --risk-wash: #3A1916; --board: #081322; --board-line: #1E3452;
+    --accent-soft: #14305A; --warn: #FFC20E;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: 24px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-text); font-size: 17px; line-height: 1.7; -webkit-text-size-adjust: 100%; }
+a { color: var(--link); text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible, input:focus-visible + label { outline: 2px solid var(--link); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0; }
+h1, h2, h3 { font-family: var(--font-ui); margin: 0; text-wrap: balance; }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.08; }
+h3 { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; }
+code { font-family: var(--font-code); font-size: 0.82em; background: var(--wash); padding: 0.12em 0.36em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { font-family: var(--font-code); font-size: 0.8rem; line-height: 1.55; background: var(--wash); padding: 14px 16px; border-radius: 8px; overflow-x: auto; margin: 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+ul, ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+b, strong { font-weight: 600; }
+.ui { font-family: var(--font-ui); }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.88rem; line-height: 1.55; }
+
+/* ---------- Portada ---------- */
+.top { max-width: 1280px; margin: 0 auto; padding: 64px 24px 24px; }
+.top h1 { font-size: clamp(3rem, 9vw, 6rem); font-weight: 800; letter-spacing: -0.045em; line-height: 0.92; }
+.top .course { font-family: var(--font-ui); color: var(--ink-2); margin-top: 14px; font-size: 1rem; }
+.top .standfirst { max-width: 62ch; margin-top: 28px; font-size: 1.2rem; line-height: 1.6; }
+.top .read { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 2px 20px; }
+
+.alert { margin-top: 28px; max-width: 74ch; background: var(--signal-wash); border-left: 5px solid var(--signal); padding: 14px 18px; border-radius: 0 8px 8px 0; font-size: 0.98rem; line-height: 1.6; }
+.alert b { font-family: var(--font-ui); }
+
+/* ---------- Tablero de la planilla ---------- */
+.board { max-width: 1280px; margin: 28px auto 0; padding: 0 24px; }
+.board-in { background: var(--board); color: var(--board-ink); border-radius: 14px; padding: 28px 32px 22px; }
+.board-head { display: flex; flex-wrap: wrap; gap: 6px 28px; align-items: baseline; justify-content: space-between; }
+.board-head h2 { font-size: 1.5rem; color: var(--board-ink); }
+.board-head p { font-family: var(--font-ui); font-size: 0.95rem; color: var(--board-mute); }
+.board-head p b { color: var(--board-ink); font-weight: 600; }
+.board-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; margin-top: 18px; }
+.board-col h3 { font-size: 0.95rem; font-weight: 600; color: var(--board-mute); padding-bottom: 8px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 16px; padding: 10px 0 11px; border-top: 1px solid var(--board-line); color: var(--board-ink); text-decoration: none; font-family: var(--font-ui); }
+.row .nm { font-weight: 600; font-size: 1.02rem; line-height: 1.3; }
+.row:hover .nm, .row:focus-visible .nm { text-decoration: underline; text-underline-offset: 3px; }
+.row .ev { grid-column: 1 / -1; font-size: 0.84rem; line-height: 1.4; color: var(--board-mute); }
+.bs { display: inline-flex; align-items: center; gap: 7px; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+.bs::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.bs.ok { color: var(--board-ok); }
+.bs.warn { color: var(--board-warn); }
+.bs.risk { color: var(--board-risk); }
+
+/* ---------- Estructura ---------- */
+.shell { max-width: 1280px; margin: 0 auto; padding: 56px 24px 120px; display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 64px; }
+.rail { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; display: flex; flex-direction: column; gap: 1px; font-family: var(--font-ui); font-size: 0.9rem; line-height: 1.3; padding-right: 4px; }
+.rail .grp { font-weight: 700; font-size: 0.82rem; color: var(--ink); padding: 18px 0 6px 12px; }
+.rail .grp:first-child { padding-top: 0; }
+.rail a { display: flex; justify-content: space-between; gap: 10px; text-decoration: none; color: var(--ink-2); padding: 6px 4px 6px 12px; border-left: 2px solid var(--line); }
+.rail a:hover { color: var(--ink); border-left-color: var(--ink-2); }
+.rail a.on { color: var(--ink); font-weight: 600; border-left-color: var(--signal); }
+.rail .rt { font-size: 0.76rem; color: var(--ink-2); white-space: nowrap; font-weight: 400; }
+
+main { min-width: 0; max-width: 860px; }
+.part { margin: 112px 0 0; padding-top: 28px; border-top: 3px solid var(--ink); }
+.part:first-child { margin-top: 0; }
+.part h2 { font-size: clamp(2.1rem, 4.6vw, 3.2rem); letter-spacing: -0.035em; }
+.part p { margin-top: 10px; color: var(--ink-2); max-width: 58ch; }
+section { margin-top: 72px; display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.part + section { margin-top: 44px; }
+.lede { font-size: 1.12rem; line-height: 1.65; max-width: 62ch; }
+.prose { max-width: 66ch; display: flex; flex-direction: column; gap: 14px; }
+
+/* Dos columnas de texto separadas por línea, sin cajas */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 28px 40px; }
+.pair > div { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 28px 32px; }
+.trio > div { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Tres avisos, cada uno con una función */
+.say { margin: 4px 0; padding: 4px 0 4px 22px; border-left: 3px solid var(--ink); max-width: 62ch; }
+.say .lab { display: block; font-family: var(--font-ui); font-weight: 600; font-size: 0.86rem; color: var(--ink-2); margin-bottom: 4px; }
+.say p { font-size: 1.14rem; line-height: 1.6; font-style: italic; }
+.say p + p { margin-top: 8px; }
+.improve { background: var(--signal-wash); border-left: 5px solid var(--signal); border-radius: 0 8px 8px 0; padding: 14px 20px 16px; }
+.improve .lab { display: block; font-family: var(--font-ui); font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; }
+.improve ul { gap: 5px; font-size: 0.97rem; line-height: 1.55; }
+.improve p { font-size: 0.97rem; line-height: 1.55; }
+.improve p + p, .improve p + ul { margin-top: 8px; }
+.fact { border-left: 1px solid var(--ink-2); padding: 2px 0 2px 18px; color: var(--ink-2); font-size: 0.94rem; line-height: 1.6; max-width: 66ch; }
+.fact .lab { font-family: var(--font-ui); font-weight: 600; color: var(--ink); }
+
+/* Estados */
+.st { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; padding: 1px 10px 2px; border-radius: 99px; white-space: nowrap; line-height: 1.5; vertical-align: baseline; }
+.st.ok { background: var(--ok-wash); color: var(--ok); }
+.st.warn { background: var(--signal); color: #0B1F3A; }
+.st.risk { background: var(--risk-wash); color: var(--risk); }
+.st.plain { background: var(--wash); color: var(--ink-2); }
+
+/* Tablas */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--font-ui); font-size: 0.93rem; line-height: 1.5; min-width: 520px; }
+th { text-align: left; font-weight: 600; color: var(--ink-2); font-size: 0.86rem; padding: 8px 14px 8px 0; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+td { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td:last-child, th:last-child { padding-right: 0; }
+td.num { font-variant-numeric: tabular-nums; }
+
+/* Datos clave */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 0 32px; margin: 0; font-family: var(--font-ui); }
+.stats div { border-top: 1px solid var(--line); padding: 10px 0 12px; }
+.stats dt { font-size: 0.86rem; color: var(--ink-2); }
+.stats dd { margin: 0; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.stats dd small { display: block; font-size: 0.8rem; font-weight: 400; letter-spacing: 0; color: var(--ink-2); line-height: 1.4; }
+
+/* Diagramas */
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fig { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; padding: 14px; color: var(--ink); background: var(--paper); }
+.fig svg { display: block; width: 100%; height: auto; min-width: 640px; }
+figcaption { font-size: 0.9rem; line-height: 1.55; color: var(--ink-2); max-width: 70ch; }
+svg text { font-family: var(--font-ui); fill: currentColor; font-size: 13px; }
+svg .t-sm { font-size: 11.5px; fill: var(--muted); }
+svg .t-b { font-weight: 700; }
+svg .t-mono { font-family: var(--font-code); font-size: 11px; }
+svg .bx { fill: var(--surface-2); stroke: currentColor; stroke-width: 1.3; }
+svg .bx-acc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.6; }
+svg .bx-warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.6; }
+svg .bx-ok { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.6; }
+svg .grp { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .ln { fill: none; stroke: currentColor; stroke-width: 1.5; }
+svg .ln-dash { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-dasharray: 5 4; }
+svg .ln-warn { fill: none; stroke: var(--warn); stroke-width: 1.7; }
+svg .ln-warn-dash { fill: none; stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg .life { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 5; }
+svg .t-warn { fill: var(--warn); font-weight: 700; }
+svg .t-acc { fill: var(--accent); font-weight: 700; }
+.merimg { display: block; min-width: 900px; width: 100%; height: auto; background: #fff; border-radius: 4px; }
+
+/* Preguntas */
+.qgroup { display: flex; flex-direction: column; margin-top: 8px; }
+.qgroup h3 { padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+details { border-bottom: 1px solid var(--line); font-family: var(--font-text); }
+summary { cursor: pointer; padding: 14px 4px 14px 30px; font-family: var(--font-ui); font-weight: 600; font-size: 1.02rem; line-height: 1.4; list-style: none; position: relative; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; position: absolute; left: 6px; top: 12px; font-family: var(--font-code); font-weight: 400; font-size: 1.1rem; color: var(--link); }
+details[open] summary::before { content: "\2013"; }
+details .ans { padding: 0 4px 16px 30px; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; font-size: 0.98rem; line-height: 1.65; }
+
+/* Plan de mejora */
+.progress { font-family: var(--font-ui); display: flex; align-items: center; gap: 14px; }
+.progress .bar { flex: 1; max-width: 280px; height: 6px; background: var(--wash); border-radius: 99px; overflow: hidden; }
+.progress .bar i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .25s; }
+.plan-group { display: flex; flex-direction: column; }
+.plan-group > h3 { padding-bottom: 8px; border-bottom: 2px solid var(--ink); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.plan-group > h3 span { font-weight: 400; font-size: 0.92rem; color: var(--ink-2); font-family: var(--font-text); }
+.todo { list-style: none; padding: 0; gap: 0; }
+.todo li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.todo input { margin: 5px 0 0; width: 20px; height: 20px; accent-color: var(--ok); }
+.todo label { cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.todo label strong { font-family: var(--font-ui); font-weight: 700; font-size: 1.02rem; line-height: 1.35; }
+.todo label span { font-size: 0.94rem; line-height: 1.6; color: var(--ink-2); max-width: 66ch; }
+.todo label span code { color: var(--ink); }
+.todo input:checked + label { opacity: 0.5; }
+.todo input:checked + label strong { text-decoration: line-through; }
+.todo li:target { background: var(--signal-wash); }
+
+/* Guion de demo: sí es una secuencia */
+.steps { list-style: none; padding: 0; gap: 0; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 4px 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.steps li::before { content: counter(s); font-family: var(--font-ui); font-weight: 800; font-size: 2rem; line-height: 1; letter-spacing: -0.03em; }
+.steps .hd { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; font-family: var(--font-ui); }
+.steps .hd b { font-size: 1.08rem; font-weight: 700; }
+.steps .time { color: var(--ink-2); font-size: 0.86rem; }
+.steps p { font-size: 0.97rem; line-height: 1.65; max-width: 66ch; margin-top: 4px; }
+
+@media (max-width: 960px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 0; }
+  .rail { position: sticky; top: 0; z-index: 5; flex-direction: row; overflow-x: auto; overflow-y: hidden; max-height: none; background: var(--paper); padding: 10px 0; gap: 6px; border-bottom: 1px solid var(--line); margin: 0 -24px; padding-left: 24px; padding-right: 24px; }
+  .rail .grp, .rail .rt { display: none; }
+  .rail a { white-space: nowrap; border-left: 0; border-bottom: 2px solid var(--line); padding: 4px 6px; }
+  .rail a.on { border-bottom-color: var(--signal); }
+  .board-cols { grid-template-columns: minmax(0, 1fr); }
+  .board-in { padding: 22px 20px 14px; }
+  .top { padding-top: 40px; }
+  .part { margin-top: 80px; }
+}
+@media print {
+  :root { --paper: #fff; --ink: #000; --board: #fff; --board-ink: #000; --board-mute: #444; --board-line: #bbb; --board-ok: #14774A; --board-warn: #8a5a00; --board-risk: #C22B1F; }
+  .rail, .progress .bar { display: none; }
+  .shell { display: block; padding-top: 24px; }
+  .board-in { border: 1px solid #000; }
+  section, details, figure, .improve, .say, .todo li, .steps li { break-inside: avoid; }
+  body { font-size: 11pt; }
+  details .ans { display: flex !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Compra Tu Viaje</h1>
+  <p class="course">Guía interna del equipo · no es el texto para la cátedra</p>
+  <p class="standfirst">La leemos nosotros para entender qué armamos, cómo se conectan las piezas, qué decidimos y qué todavía se puede mejorar. Quien llega de afuera arranca por el README. Acá está el mapa para el equipo.</p>
+  <p class="read muted small ui"><span>Lectura completa: unos 35 min</span><span>Revisada el 22/10/2026</span><span>Portada: <a href="../README.md">README</a></span></p>
+</header>
+
+<div class="shell">
+<nav class="rail" aria-label="Índice">
+  <span class="grp">Qué hicimos</span>
+  <a href="#resumen">El sistema</a>
+  <a href="#enunciado">Problema y roles</a>
+  <span class="grp">Arquitectura</span>
+  <a href="#stack">Stack</a>
+  <a href="#arquitectura">Cómo está armado</a>
+  <a href="#mer">Modelo de datos</a>
+  <a href="#decisiones">Decisiones</a>
+  <span class="grp">Cómo se usa</span>
+  <a href="#comun">Comprador y agencia</a>
+  <a href="#admin">Administrador</a>
+  <a href="#compra">La compra</a>
+  <a href="#vuelos">Servicio de vuelos</a>
+  <a href="#breaker">Circuit breaker</a>
+  <span class="grp">Cómo lo desarrollamos</span>
+  <a href="#docker">Docker</a>
+  <a href="#git">Git</a>
+  <a href="#ci">Integración continua</a>
+  <a href="#workflows">Cada workflow</a>
+  <a href="#sonar">Sonar</a>
+  <a href="#delivery">Imágenes y deploy</a>
+  <span class="grp">Pruebas y lectura</span>
+  <a href="#pruebas">Tests</a>
+  <a href="#demo">Cómo mostrarlo</a>
+  <a href="#preguntas">Preguntas</a>
+  <a href="#limites">Límites</a>
+  <a href="#mejorar">Qué mejorar</a>
+  <a href="#repo">Mapa del repo</a>
+  <a href="#glosario">Glosario</a>
+</nav>
+
+<main>
+
+<div class="part">
+  <h2>Qué hicimos</h2>
+  <p>El producto, para quién es y qué entra en esta entrega.</p>
+</div>
+
+<section id="resumen">
+  <h2>El sistema, en un minuto</h2>
+  <div class="prose">
+    <p>Compra Tu Viaje es una aplicación para buscar y comprar paquetes turísticos. Un paquete combina un hotel, un vuelo de ida y un vuelo de vuelta, con un precio, y lo publica una agencia.</p>
+    <p>El comprador busca, guarda favoritos, compra y reseña. La agencia publica sus paquetes y ve sus ventas. El administrador carga hoteles, vuelos y paquetes de cualquier agencia.</p>
+    <p>Los vuelos no están en la base de la aplicación. Los administra <code>flights-service</code>, con su propia base. El backend lo consulta por HTTP para listar vuelos y para vender o cancelar asientos. El frontend es una SPA en React que habla solo con el backend.</p>
+  </div>
+  <div class="say">
+    <span class="lab">La idea de la entrega</span>
+    <p>La primera entrega dejó la base: autenticación, hoteles, ciudades, el servicio de vuelos y un primer despliegue. En esta, el producto se recorre de punta a punta y se puede explicar cómo se construye, se prueba y se entrega.</p>
+  </div>
+  <dl class="stats">
+    <div><dt>Backend</dt><dd>412<small>anotaciones de test: 159 unitarias, 249 de integración, 4 de arranque</small></dd></div>
+    <div><dt>flights-service</dt><dd>59<small>31 unitarias, 26 de integración, 2 de arranque</small></dd></div>
+    <div><dt>Frontend</dt><dd>181<small>casos de Vitest en <code>frontend/src</code></small></dd></div>
+    <div><dt>Aceptación e interfaz</dt><dd>13 y 13<small>escenarios Cucumber y tests Cypress</small></dd></div>
+  </dl>
+  <p class="fact"><span class="lab">De dónde salen los números.</span> El 22/10/2026 contamos las anotaciones <code>@Test</code> y <code>@ParameterizedTest</code> al inicio de línea en los dos servicios Kotlin, y los <code>it(</code> y <code>test(</code> al inicio de línea en el frontend. Cucumber: 13 escenarios en <code>critical-flows.feature</code>. Cypress declara 12 casos; el de permisos de administración corre para comprador y para agencia, así que la suite ejecuta 13. No es el resultado de una corrida verde: es el tamaño de la suite en el código.</p>
+</section>
+
+<section id="enunciado">
+  <h2>El problema y los tres roles</h2>
+  <div class="prose">
+    <p>Hacía falta una aplicación web en la que una agencia publique un viaje cerrado y un comprador lo encuentre y lo pague, sin que los vuelos formen parte del mismo sistema. Separar vuelos obliga a resolver dos bases, llamadas que pueden fallar y una compra que no puede quedar a medias.</p>
+  </div>
+  <div class="trio">
+    <div>
+      <h3>Comprador</h3>
+      <p>Se registra, filtra el catálogo, abre el detalle, marca favoritos, compra, consulta el historial y reseña lo que compró. El registro público siempre crea este rol.</p>
+    </div>
+    <div>
+      <h3>Agencia</h3>
+      <p>Publica y borra sus propios paquetes. La API también le deja editar los suyos. Elige los vuelos de una lista. Ve las ventas de su agencia y las filtra por comprador, paquete y fechas.</p>
+    </div>
+    <div>
+      <h3>Administrador</h3>
+      <p>Gestiona hoteles, vuelos y paquetes de cualquier agencia. No compra. Las cuentas y las agencias salen del seed.</p>
+    </div>
+  </div>
+  <p class="fact">El enunciado de la cátedra no está copiado en el repositorio. Esta sección sale del modelo, de las rutas y de lo que la aplicación deja hacer. Si el texto oficial dice otra cosa en un detalle, manda ese texto.</p>
+</section>
+
+<div class="part">
+  <h2>Arquitectura</h2>
+  <p>Qué usamos, cómo se conectan las piezas y cómo quedó el modelo.</p>
+</div>
+
+<section id="stack">
+  <h2>Tecnologías y por qué</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Capa</th><th>Qué usamos</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr><td>Backend y vuelos</td><td>Kotlin 2.3, Spring Boot 4.1, Java 25, Gradle 9.5</td><td>Dos APIs REST, cada una con su base</td></tr>
+      <tr><td>Seguridad</td><td>Spring Security, JWT (jjwt), BCrypt</td><td>Login sin sesión en el servidor. El rol viaja en el token</td></tr>
+      <tr><td>Datos</td><td>PostgreSQL 16 y Flyway en el backend. H2 en la mayoría de los tests</td><td>El esquema del backend está versionado. Producción valida, no altera tablas</td></tr>
+      <tr><td>Resiliencia</td><td>Resilience4j: Retry, TimeLimiter y CircuitBreaker</td><td>El backend no se cuelga si vuelos tarda o no responde</td></tr>
+      <tr><td>Contrato</td><td>springdoc OpenAPI</td><td>Swagger del backend, en <code>/swagger-ui/index.html</code></td></tr>
+      <tr><td>Observabilidad</td><td>Actuator, Prometheus, Grafana, Zipkin, ELK</td><td>Salud, métricas, trazas de una compra y logs por servicio</td></tr>
+      <tr><td>Frontend</td><td>React 19, TypeScript 6, Vite 8, React Router 7</td><td>SPA. Las páginas pesadas se cargan con <code>lazy</code></td></tr>
+      <tr><td>Datos en el cliente</td><td>TanStack Query, axios, react-hook-form, zod</td><td>Caché de la API, token en cada pedido y formularios validados antes de salir</td></tr>
+      <tr><td>Pruebas</td><td>JUnit 5, Mockito, ArchUnit, Vitest, Cucumber, Cypress</td><td>De una clase a un recorrido en el navegador</td></tr>
+      <tr><td>Entrega</td><td>Docker, Compose, GitHub Actions, GHCR, Docker Hub, una VM en Azure</td><td>La imagen que se despliega es la que pasó los controles</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="arquitectura">
+  <h2>Cómo está armado el sistema</h2>
+  <figure>
+    <div class="fig">
+<svg viewBox="0 0 920 400" role="img" aria-label="Arquitectura: el navegador descarga la SPA desde nginx y llama por REST con JWT al backend; el backend usa su PostgreSQL y consume flights-service, que tiene su propia base; ambos envían métricas, trazas y logs al stack de observabilidad.">
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<rect class="bx" x="10" y="20" width="150" height="56" rx="4"/>
+<text class="t-b" x="85" y="44" text-anchor="middle">Frontend</text>
+<text class="t-sm" x="85" y="62" text-anchor="middle">nginx + React · :8090</text>
+<rect class="bx" x="10" y="150" width="110" height="60" rx="4"/>
+<text class="t-b" x="65" y="185" text-anchor="middle">Navegador</text>
+<line class="ln" x1="65" y1="150" x2="65" y2="78" marker-end="url(#a1)"/>
+<text class="t-sm" x="76" y="118">1 · descarga la SPA</text>
+<rect class="bx-acc" x="400" y="150" width="170" height="60" rx="4"/>
+<text class="t-b" x="485" y="177" text-anchor="middle">Backend</text>
+<text class="t-sm" x="485" y="195" text-anchor="middle">Spring Boot · :8080</text>
+<line class="ln" x1="120" y1="180" x2="398" y2="180" marker-end="url(#a1)"/>
+<text class="t-sm" x="259" y="170" text-anchor="middle">2 · REST + JWT (axios)</text>
+<rect class="bx" x="720" y="150" width="180" height="60" rx="4"/>
+<text class="t-b" x="810" y="177" text-anchor="middle">flights-service</text>
+<text class="t-sm" x="810" y="195" text-anchor="middle">Spring Boot · :8081</text>
+<line class="ln" x1="570" y1="180" x2="718" y2="180" marker-end="url(#a1)"/>
+<text class="t-sm" x="645" y="166" text-anchor="middle">REST · Retry</text>
+<text class="t-sm" x="645" y="200" text-anchor="middle">Circuit Breaker</text>
+<rect class="bx" x="400" y="20" width="170" height="50" rx="4"/>
+<text class="t-b" x="485" y="42" text-anchor="middle">PostgreSQL 16</text>
+<text class="t-sm" x="485" y="59" text-anchor="middle">backend_dev</text>
+<line class="ln" x1="485" y1="148" x2="485" y2="72" marker-end="url(#a1)"/>
+<text class="t-sm" x="495" y="116">JPA + Flyway</text>
+<rect class="bx" x="720" y="20" width="180" height="50" rx="4"/>
+<text class="t-b" x="810" y="42" text-anchor="middle">PostgreSQL 16</text>
+<text class="t-sm" x="810" y="59" text-anchor="middle">flights_dev</text>
+<line class="ln" x1="810" y1="148" x2="810" y2="72" marker-end="url(#a1)"/>
+<text class="t-sm" x="820" y="116">JPA</text>
+<rect class="grp" x="250" y="270" width="650" height="116" rx="6"/>
+<text class="t-sm" x="264" y="290">Observabilidad en el mismo Compose</text>
+<rect class="bx" x="265" y="304" width="190" height="62" rx="4"/>
+<text class="t-b" x="360" y="330" text-anchor="middle">Prometheus → Grafana</text>
+<text class="t-sm" x="360" y="350" text-anchor="middle">métricas · :9090 / :3001</text>
+<rect class="bx" x="475" y="304" width="140" height="62" rx="4"/>
+<text class="t-b" x="545" y="330" text-anchor="middle">Zipkin</text>
+<text class="t-sm" x="545" y="350" text-anchor="middle">trazas · :9411</text>
+<rect class="bx" x="635" y="304" width="250" height="62" rx="4"/>
+<text class="t-b" x="760" y="330" text-anchor="middle">Logstash → Elastic → Kibana</text>
+<text class="t-sm" x="760" y="350" text-anchor="middle">logs JSON · :5601</text>
+<line class="ln-dash" x1="485" y1="212" x2="485" y2="268" marker-end="url(#a1)"/>
+<text class="t-sm" x="495" y="246">métricas · trazas · logs</text>
+<line class="ln-dash" x1="810" y1="212" x2="810" y2="268" marker-end="url(#a1)"/>
+<text class="t-sm" x="820" y="246">idem</text>
+</svg>
+    </div>
+    <figcaption>El navegador baja los archivos estáticos y después habla directo con el backend. Solo el backend conoce a flights-service. Cada servicio tiene su base. Las referencias a vuelos son ids, sin clave foránea entre bases. En el compose principal, el puerto 8081 no se publica al host.</figcaption>
+  </figure>
+  <div class="pair">
+    <div>
+      <h3>Backend, por capas</h3>
+      <ul>
+        <li><code>controller</code>: endpoints, DTOs y <code>ExceptionControllerAdvice</code>. Traduce excepciones a 400, 401, 403, 404, 503 y 500.</li>
+        <li><code>service</code>: reglas y transacciones.</li>
+        <li><code>persistence/jpa</code>: repositorios Spring Data.</li>
+        <li><code>model</code>: entidades con <code>Builder</code>.</li>
+        <li><code>external/flights</code>: <code>FlightsClient</code>, con retry, timeout y circuit breaker.</li>
+        <li><code>search</code>: filtros, paginación, orden y la métrica de cada búsqueda.</li>
+        <li><code>config</code>: seguridad, CORS, OpenAPI y el seed.</li>
+      </ul>
+      <p class="small muted">ArchUnit falla el build si una clase no está en el paquete que le corresponde. Swagger sale de <code>OpenApiConfig.kt</code>.</p>
+    </div>
+    <div>
+      <h3>Frontend, por responsabilidad</h3>
+      <ul>
+        <li><code>api/</code>: un módulo por recurso, sobre un cliente axios. Manda el token y, ante un 401, limpia la sesión.</li>
+        <li><code>auth/</code>: sesión en localStorage, rehidratada con <code>GET /users/me</code>, y guardas por rol.</li>
+        <li><code>query/</code>: TanStack Query. Las claves de caché están en <code>query/keys.ts</code>.</li>
+        <li><code>pages/</code>: una carpeta por pantalla.</li>
+        <li><code>router/</code>: rutas públicas, de comprador, de agencia y el árbol <code>/admin</code>.</li>
+        <li>Formularios con react-hook-form y un esquema zod por pantalla.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="say">
+    <span class="lab">Dónde está la seguridad</span>
+    <p>El backend decide quién puede llamar a cada ruta. El frontend esconde lo que el rol no usa. Si alguien llama a la API igual, recibe 403. Las dos capas no se reemplazan.</p>
+  </div>
+</section>
+
+<section id="mer">
+  <h2>Modelo de datos</h2>
+  <figure>
+    <div class="fig"><img class="merimg" alt="Modelo entidad-relación: base del backend y base del servicio de vuelos" src="image.png"></div>
+    <figcaption>Diagrama generado desde <a href="mer.puml"><code>docs/mer.puml</code></a>. A la derecha, la base de vuelos. El paquete la referencia solo por id de ida y de vuelta. La fuente actualizada es el <code>.puml</code>: si la imagen se ve más vieja, manda el archivo.</figcaption>
+  </figure>
+  <div class="pair">
+    <div>
+      <h3>Decisiones del modelo</h3>
+      <ul>
+        <li><b>Un usuario, un discriminador.</b> <code>user</code> distingue <code>User</code> (comprador o administrador) de <code>AgencyUser</code> (pertenece a una agencia).</li>
+        <li><b>Ciudad con código IATA.</b> La clave de <code>city</code> es el código de tres letras. El paquete tiene origen y destino.</li>
+        <li><b>Únicos que cuidan reglas.</b> Un nombre de paquete por agencia. Un favorito y una reseña por comprador y paquete.</li>
+        <li><b>Vuelos por id lógico.</b> No hay clave foránea hacia la otra base. Al crear el paquete, el regreso tiene que salir de donde llegó la ida y llegar adonde salió.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>La compra no sigue al catálogo</h3>
+      <p><code>purchases</code> guarda el precio pagado y una copia del comprador, el paquete, la agencia, el hotel, las ciudades y los ids de vuelo. La migración <code>V2</code> agrega esas columnas y completa las compras que ya existían.</p>
+      <p>Si la agencia cambia el precio o el nombre después, el historial queda como estaba al pagar. Hay un escenario de Cucumber que cambia el precio y comprueba que la compra no se mueve.</p>
+    </div>
+  </div>
+</section>
+
+<section id="decisiones">
+  <h2>Decisiones que tomamos</h2>
+  <p class="lede">Cada una tiene un costo. Si alguien pregunta "por qué no lo hicimos de otra forma", la respuesta está en esta tabla.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Decisión</th><th>Qué nos permitió</th><th>Qué nos costó</th></tr></thead>
+    <tbody>
+      <tr><td>Vuelos es un servicio externo, con su base</td><td>El backend no conoce el esquema de vuelos. Se hablan por HTTP y el paquete guarda solo el id.</td><td>La compra no puede ser una sola transacción. Hay que compensar y tolerar que el otro servicio no responda.</td></tr>
+      <tr><td>Compensación, no commit en las dos bases</td><td>El deshace está en <code>PurchaseService.purchase</code> y se puede leer de una vez.</td><td>Si la cancelación también falla, puede quedar un asiento vendido sin compra.</td></tr>
+      <tr><td>Snapshot en la compra</td><td>El historial no se mueve si la agencia cambia el precio o el nombre.</td><td>Más columnas en <code>purchases</code> (migración V2) y dos fuentes de verdad: el paquete vivo y la copia.</td></tr>
+      <tr><td>La búsqueda se resuelve en el backend</td><td>Filtros, página y orden son los mismos para cualquier cliente. La URL del frontend solo refleja la consulta.</td><td>Cada filtro nuevo es una condición en la <code>Specification</code>, no un filtro en el navegador.</td></tr>
+      <tr><td>JWT sin sesión y CSRF apagado</td><td>El servidor no guarda sesiones. El token va en un header que el navegador no manda solo.</td><td>El secreto tiene que vivir en <code>JWT_SECRET</code>. El valor del properties es solo para desarrollo.</td></tr>
+      <tr><td>El rol lo decide el backend</td><td>Esconder un botón no es seguridad. <code>SecurityConfig</code> responde 403.</td><td>Hay que mantener las dos capas: la guarda de la interfaz y la regla de la API.</td></tr>
+      <tr><td>Flyway solo en el backend</td><td>Producción valida el esquema y no lo reescribe.</td><td>Vuelos, en <code>prod</code>, usa <code>create-drop</code>. Un reinicio pierde los vuelos cargados.</td></tr>
+      <tr><td><code>create</code> de vuelos no tiene retry</td><td>Reintentar un POST después de un corte ambiguo podría crear el vuelo dos veces.</td><td>Un alta que falla por red no se reintenta sola. Hay que volver a mandarla.</td></tr>
+      <tr><td>Publicar solo en push a <code>main</code></td><td>Un pull request nunca deja una imagen nueva.</td><td>Hasta que <code>dev</code> no entra a <code>main</code>, <code>latest</code> no incluye ese cambio.</td></tr>
+      <tr><td>Dos builds del frontend</td><td>La imagen de GHCR apunta a la VM (<code>VITE_API_BASE_URL</code> con <code>VM_HOST</code>). La de Docker Hub no pasa esa variable y cae en <code>localhost:8080</code>, que es lo que usa <code>docker-compose.hub.yml</code>.</td><td>No son el mismo bundle. Cambiar la URL de la API obliga a reconstruir.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="part">
+  <h2>Cómo se usa</h2>
+  <p>Qué puede hacer cada rol, en la pantalla y en la API.</p>
+</div>
+
+<section id="comun">
+  <h2>Comprador y agencia</h2>
+  <p class="lede">Es el recorrido principal. La agencia comparte el catálogo con el comprador y tiene su propio panel.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Quién</th><th>Qué hace</th><th>API</th><th>Pantalla</th></tr></thead>
+    <tbody>
+      <tr><td><span class="st plain">público</span></td><td>Registrarse (siempre comprador) y entrar</td><td><code>POST /auth/register</code>, <code>POST /auth/login</code></td><td><code>/register</code>, <code>/login</code></td></tr>
+      <tr><td><span class="st plain">logueado</span></td><td>Buscar paquetes, ver detalle, hoteles, ciudades y perfil</td><td><code>GET /packages</code>, <code>/packages/{id}</code>, <code>/hotels</code>, <code>/users/me</code></td><td><code>/trips</code>, <code>/trips/:id</code>, <code>/profile</code></td></tr>
+      <tr><td><span class="st ok">comprador</span></td><td>Comprar</td><td><code>POST /purchases</code></td><td>Detalle del paquete</td></tr>
+      <tr><td><span class="st ok">comprador</span></td><td>Historial filtrado y detalle de una compra</td><td><code>GET /purchases/me</code>, <code>GET /purchases/{id}</code></td><td><code>/purchases</code>, <code>/purchases/:id</code></td></tr>
+      <tr><td><span class="st ok">comprador</span></td><td>Favoritos</td><td><code>POST /favorites</code>, <code>DELETE /favorites/{packageId}</code></td><td><code>/favorites</code></td></tr>
+      <tr><td><span class="st ok">comprador</span></td><td>Reseñar lo comprado, una vez, puntaje de 0 a 10</td><td><code>POST /reviews</code></td><td>Detalle del paquete</td></tr>
+      <tr><td><span class="st warn">agencia</span></td><td>Crear, editar y borrar sus paquetes</td><td><code>POST/PUT/DELETE /packages</code>, <code>GET /packages/agency</code></td><td><code>/agency</code></td></tr>
+      <tr><td><span class="st warn">agencia</span></td><td>Ventas de su agencia</td><td><code>GET /purchases/agency</code></td><td><code>/agency/sales</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="pair">
+    <div>
+      <h3>Buscador</h3>
+      <ul>
+        <li>Filtros: nombre (contiene, sin distinguir mayúsculas), origen, destino y rango de precio.</li>
+        <li>El backend arma una <code>Specification</code> de JPA: cada filtro presente suma una condición. Paginación y orden se resuelven en la base.</li>
+        <li>Cada búsqueda registra duración y cantidad de resultados. Esa métrica llega a Prometheus.</li>
+        <li>En el frontend los filtros viven en la URL: se pueden compartir y sobreviven a recargar.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Reglas que conviene tener a mano</h3>
+      <ul>
+        <li>Solo un comprador compra. Agencia o administrador reciben 403.</li>
+        <li>Solo se reseña lo comprado, una vez por paquete. Si no, 400.</li>
+        <li>Un paquete no se borra si tiene compras, favoritos o reseñas. La API responde 400 con el motivo.</li>
+        <li>El nombre del paquete es único dentro de la agencia.</li>
+        <li>El historial muestra la copia congelada al comprar, no el paquete vivo.</li>
+      </ul>
+    </div>
+  </div>
+  <p>Usuarios del seed: <code>buyer</code> y <code>buyer2</code> con contraseña <code>buyer123</code>. Agencia Despegar: <code>agency</code> / <code>agency123</code>.</p>
+</section>
+
+<section id="admin">
+  <h2>Administrador</h2>
+  <p class="lede">Entra a <code>/admin</code>. La navegación de esa sección solo aparece para el rol administrador. Hoteles se gestionan en <code>/hotels</code>, también restringido al alta, la edición y la baja.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Área</th><th>Pantalla</th><th>API</th></tr></thead>
+    <tbody>
+      <tr><td>Inicio del panel</td><td><code>/admin</code></td><td>Tarjetas hacia paquetes, vuelos y hoteles. No tiene un endpoint propio</td></tr>
+      <tr><td>Paquetes de cualquier agencia</td><td><code>/admin/packages</code></td><td><code>POST/PUT/DELETE /packages</code> (agencia o admin)</td></tr>
+      <tr><td>Vuelos</td><td><code>/admin/flights</code></td><td><code>POST /flights</code> exige ADMIN y delega en flights-service</td></tr>
+      <tr><td>Hoteles</td><td><code>/hotels</code>, <code>/hotels/new</code>, <code>/hotels/:id/edit</code></td><td><code>POST/PUT/DELETE /hotels</code> exigen ADMIN. El listado es para cualquier logueado</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="pair">
+    <div>
+      <h3>Qué se hace en cada pantalla</h3>
+      <ul>
+        <li><b>Paquetes.</b> Listado de todas las agencias, formulario con selector de agencia y de vuelos (<code>FlightPicker</code> consulta <code>GET /flights</code>).</li>
+        <li><b>Vuelos.</b> Alta con aerolínea, origen, destino, fecha, capacidad y disponibilidad. El backend rechaza origen igual a destino, capacidad no positiva y disponibilidad negativa.</li>
+        <li><b>Hoteles.</b> Nombre, ciudad (desde <code>GET /cities</code>) y URL de la foto. Borrar pide confirmación.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cómo se protege</h3>
+      <ul>
+        <li><code>SecurityConfig</code>: escritura de hoteles y <code>POST /flights</code> con <code>hasRole("ADMIN")</code>. Escribir paquetes pide agencia o administrador. No hay API <code>/admin</code>: el panel es solo interfaz.</li>
+        <li>En el frontend, <code>adminRoute</code> envuelve <code>/admin</code> y sus hijas con <code>RequireAdmin</code>. Un comprador o una agencia que abre esas rutas ve "Sin permiso".</li>
+      </ul>
+      <p>Para la demo: <code>vferreyra</code> / <code>vferreyra</code>. También son administradores <code>facosta</code> y <code>adisanto</code>, con la contraseña igual al usuario. El detalle de pantallas está en <a href="admin.md">docs/admin.md</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="compra">
+  <h2>Comprar sin dejar la compra a medias</h2>
+  <div class="prose">
+    <p>Una compra descuenta un asiento en la ida y otro en la vuelta. Esos vuelos viven en otro servicio y otra base. No hay una transacción que cubra los dos sistemas. Si algo falla después de haber vendido un asiento, el backend lo devuelve.</p>
+  </div>
+  <figure>
+    <div class="fig">
+<svg viewBox="0 0 920 580" role="img" aria-label="Secuencia de compra: el backend vende el vuelo de ida, intenta vender el de vuelta; si falla cancela la venta de ida y responde 400; si sale bien guarda la compra y responde 201.">
+<defs>
+<marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
+<marker id="a2w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--warn)"/></marker>
+</defs>
+<rect class="bx" x="45" y="10" width="130" height="36" rx="4"/><text class="t-b" x="110" y="33" text-anchor="middle">Comprador (UI)</text>
+<rect class="bx-acc" x="275" y="10" width="130" height="36" rx="4"/><text class="t-b" x="340" y="33" text-anchor="middle">Backend</text>
+<rect class="bx" x="525" y="10" width="130" height="36" rx="4"/><text class="t-b" x="590" y="33" text-anchor="middle">flights-service</text>
+<rect class="bx" x="745" y="10" width="130" height="36" rx="4"/><text class="t-b" x="810" y="33" text-anchor="middle">BD backend</text>
+<line class="life" x1="110" y1="46" x2="110" y2="560"/>
+<line class="life" x1="340" y1="46" x2="340" y2="560"/>
+<line class="life" x1="590" y1="46" x2="590" y2="560"/>
+<line class="life" x1="810" y1="46" x2="810" y2="560"/>
+
+<line class="ln" x1="110" y1="85" x2="338" y2="85" marker-end="url(#a2)"/>
+<text class="t-sm" x="224" y="78" text-anchor="middle">POST /purchases {packageId}</text>
+<line class="ln" x1="340" y1="125" x2="588" y2="125" marker-end="url(#a2)"/>
+<text class="t-sm" x="464" y="118" text-anchor="middle">sell(vuelo de ida, pasajero)</text>
+<line class="ln-dash" x1="588" y1="160" x2="342" y2="160" marker-end="url(#a2)"/>
+<text class="t-sm" x="464" y="153" text-anchor="middle">venta #10 · asientos −1</text>
+
+<rect class="grp" x="262" y="185" width="420" height="240" rx="4"/>
+<text class="t-warn" x="274" y="204" style="font-size:12px">si el vuelo de vuelta no tiene lugar</text>
+<line class="ln" x1="340" y1="238" x2="588" y2="238" marker-end="url(#a2)"/>
+<text class="t-sm" x="464" y="231" text-anchor="middle">sell(vuelo de vuelta)</text>
+<line class="ln-warn-dash" x1="588" y1="273" x2="342" y2="273" marker-end="url(#a2w)"/>
+<text class="t-sm" x="464" y="266" text-anchor="middle" style="fill:var(--warn)">400 sin disponibilidad</text>
+<line class="ln-warn" x1="340" y1="318" x2="588" y2="318" marker-end="url(#a2w)"/>
+<text class="t-sm" x="464" y="311" text-anchor="middle" style="fill:var(--warn)">cancelSale(#10)</text>
+<line class="ln-dash" x1="588" y1="353" x2="342" y2="353" marker-end="url(#a2)"/>
+<text class="t-sm" x="464" y="346" text-anchor="middle">asiento de ida +1</text>
+<line class="ln-warn" x1="338" y1="398" x2="112" y2="398" marker-end="url(#a2w)"/>
+<text class="t-sm" x="224" y="391" text-anchor="middle" style="fill:var(--warn)">400 · no se crea la compra</text>
+
+<text class="t-acc" x="274" y="452" style="font-size:12px">si todo sale bien</text>
+<line class="ln" x1="340" y1="478" x2="588" y2="478" marker-end="url(#a2)"/>
+<text class="t-sm" x="464" y="471" text-anchor="middle">sell(vuelo de vuelta) · OK</text>
+<line class="ln" x1="340" y1="513" x2="808" y2="513" marker-end="url(#a2)"/>
+<text class="t-sm" x="574" y="506" text-anchor="middle">save Purchase (precio + snapshots)</text>
+<line class="ln" x1="338" y1="548" x2="112" y2="548" marker-end="url(#a2)"/>
+<text class="t-sm" x="224" y="541" text-anchor="middle">201 Created</text>
+</svg>
+    </div>
+    <figcaption>Si no hay lugar en la vuelta, se cancela la venta de ida y no se crea la compra. Si falla el guardado, se cancelan las dos ventas. El código está en <code>PurchaseService.purchase</code>.</figcaption>
+  </figure>
+  <div class="pair">
+    <div>
+      <h3>Si flights-service no responde</h3>
+      <ul>
+        <li><b>Retry:</b> hasta 3 intentos, con 500 ms entre ellos, solo ante error de conexión. <code>create</code> no lo tiene.</li>
+        <li><b>Circuit breaker:</b> mira las últimas 10 llamadas. Si falla la mitad o más, se abre 10 segundos. El detalle, con lo que hoy no está cableado, está en <a href="#breaker">Circuit breaker</a>.</li>
+        <li>Vuelo inexistente o sin lugar no cuentan como falla y no se reintentan.</li>
+        <li>El usuario recibe 503. El estado del circuito está en <code>/actuator/health</code>.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Qué queda cubierto por tests</h3>
+      <ul>
+        <li>Cucumber: si la vuelta no tiene lugar, no queda compra y la ida recupera su disponibilidad.</li>
+        <li>Cucumber: una compra baja en uno los dos vuelos y conserva el precio de ese momento.</li>
+        <li><code>FlightsClientTest</code> cubre 404, 4xx, 5xx y caída de red.</li>
+        <li><code>PurchaseServiceTest</code> comprueba las dos ventas y el precio congelado.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="say">
+    <span class="lab">Por qué compensación y no una transacción distribuida</span>
+    <p>Son dos servicios y dos bases. Acoplarlos con un commit en las dos habría atado el backend al esquema de vuelos. La compensación es local y se puede leer en un solo método. Tiene límites, y están en <a href="#limites">Límites</a>.</p>
+  </div>
+</section>
+
+<section id="vuelos">
+  <h2>Qué es el servicio de vuelos</h2>
+  <p class="lede">Para el backend, vuelos es un sistema de afuera. No es un módulo interno con la base compartida.</p>
+  <div class="prose">
+    <p><code>flights-service</code> es otra aplicación Spring Boot, con su PostgreSQL (<code>flights_dev</code>) y su puerto 8081. El compose principal no publica ese puerto al host: solo lo ve el backend, por la red <code>flights-net</code>. La base de vuelos está en esa red y no en <code>backend-net</code>, así que el backend no puede abrirla aunque quiera.</p>
+    <p>El paquete guarda <code>outbound_flight_id</code> y <code>return_flight_id</code>. No hay clave foránea entre bases. Si el vuelo no existe, el backend se entera cuando llama. Que el regreso salga de donde llegó la ida lo valida el backend al crear el paquete, no la base.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>El backend llama</th><th>Para qué</th><th>Protección</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /flights/{id}</code></td><td>Traer un vuelo al armar o mostrar un paquete</td><td>Retry y circuit breaker</td></tr>
+      <tr><td><code>GET /flights</code></td><td>El selector de la agencia y del administrador</td><td>Retry y circuit breaker</td></tr>
+      <tr><td><code>POST /flights/{id}/sales</code></td><td>Vender un asiento en la compra</td><td>Retry y circuit breaker</td></tr>
+      <tr><td><code>DELETE /flights/sales/{id}</code></td><td>Devolver el asiento si la compra no se puede cerrar</td><td>Retry y circuit breaker</td></tr>
+      <tr><td><code>POST /flights</code></td><td>El administrador carga un vuelo</td><td>Solo circuit breaker. Sin retry, para no duplicar el alta</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="fact">Todo eso pasa por <code>FlightsClient</code>. La URL sale de <code>FLIGHTS_SERVICE_URL</code> (en local, <code>http://localhost:8081</code>). Un 404 se traduce a "no existe". Un 4xx de negocio, como no haber lugar, es un error de la operación. Un 5xx o un corte de red es una caída del servicio.</p>
+</section>
+
+<section id="breaker">
+  <h2>Circuit breaker entre backend y vuelos</h2>
+  <p class="lede">Es el corte que evita que el backend se quede esperando a un servicio que ya está mal. Está en las anotaciones de <code>FlightsClient</code> y en <code>application.properties</code>, instancia <code>flightsService</code>.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Estado</th><th>Qué hace el backend</th></tr></thead>
+    <tbody>
+      <tr><td>Cerrado</td><td>La llamada sale. Se anotan las últimas 10. Si la mitad o más fallan, pasa a abierto.</td></tr>
+      <tr><td>Abierto</td><td>Durante 10 segundos no llama a vuelos. Responde enseguida. El usuario ve 503.</td></tr>
+      <tr><td>Semiabierto</td><td>Deja pasar 3 llamadas de prueba. Si salen bien, cierra. Si fallan, vuelve a abrir 10 segundos.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="pair">
+    <div>
+      <h3>Qué cuenta como falla</h3>
+      <ul>
+        <li>No hay conexión (<code>ResourceAccessException</code>). El cliente la convierte en <code>FlightsServiceUnavailableException</code> y el retry la vuelve a intentar, hasta 3 veces, con 500 ms de espera.</li>
+        <li>Un 5xx también se convierte en servicio no disponible y suma para abrir el circuito. No está en la lista de retry, así que no se reintenta.</li>
+        <li>Un 404 y un 4xx de negocio se ignoran. No abren el circuito y no se reintentan: son "ese vuelo no existe" o "no hay lugar", no "el servicio se cayó".</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Dónde se ve</h3>
+      <ul>
+        <li><code>register-health-indicator=true</code> y <code>management.health.circuitbreakers.enabled=true</code>. El estado aparece en <code>/actuator/health</code>.</li>
+        <li>Para verlo: <code>docker compose stop flights-service</code>, intentar comprar varias veces y mirar el health. Después, <code>docker compose start flights-service</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="improve">
+    <span class="lab">Lo que la config promete y el código no hace</span>
+    <p><code>resilience4j.timelimiter.instances.flightsService.timeout-duration=3s</code> está en el properties. Ningún método tiene <code>@TimeLimiter</code>, y <code>RestClient.builder()</code> no fija connect ni read timeout. Hoy una llamada colgada puede tardar lo que tarde el cliente HTTP. El corte de 3 segundos no está activo.</p>
+    <p>Para activarlo hay que anotar los métodos o poner el timeout en el <code>RestClient</code>. Conviene hacerlo junto con una decisión sobre <code>create</code>: un timeout a mitad de un POST es justo el caso en el que reintentar duplicaría el vuelo. Por eso el alta no tiene retry.</p>
+  </div>
+</section>
+
+<div class="part">
+  <h2>Cómo lo desarrollamos</h2>
+  <p>Contenedores, ramas, integración continua y el camino hasta una VM.</p>
+</div>
+
+<section id="docker">
+  <h2>Docker y Compose</h2>
+  <div class="pair">
+    <div>
+      <h3>Imágenes en dos etapas</h3>
+      <ul>
+        <li><b>Backend y vuelos.</b> Una etapa compila el jar con <code>eclipse-temurin:25-jdk</code>. Otra lo corre en <code>25-jre</code>. La imagen final instala <code>curl</code> para el healthcheck.</li>
+        <li><b>Frontend.</b> <code>node:24-alpine</code> corre Vite. <code>nginx:alpine</code> sirve <code>dist</code>. La URL del backend entra como <code>VITE_API_BASE_URL</code> en el build, porque el bundle es estático.</li>
+        <li>Primero se copian los archivos de dependencias y después el código, para aprovechar la caché de capas.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Un compose, varias redes</h3>
+      <ul>
+        <li><code>docker compose up --build</code> levanta frontend, backend, vuelos, dos PostgreSQL, Prometheus, Grafana, Zipkin y ELK.</li>
+        <li>El backend espera a que su base y vuelos estén <code>healthy</code>. Vuelos espera a su base.</li>
+        <li>La base del backend está solo en <code>backend-net</code>. La de vuelos, solo en <code>flights-net</code>. El backend llega a la API de vuelos, no a su Postgres.</li>
+        <li>Host, credenciales, URL de vuelos, <code>JWT_SECRET</code> y CORS salen de variables de entorno.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Archivo</th><th>Para qué</th></tr></thead>
+    <tbody>
+      <tr><td><code>docker-compose.yml</code></td><td>Desarrollo. Compila en local y usa el profile <code>dev</code>.</td></tr>
+      <tr><td><code>docker-compose.prod.yml</code></td><td>Se superpone al anterior. Toma imágenes de GHCR y el profile <code>prod</code>. Lo usa la VM.</td></tr>
+      <tr><td><code>docker-compose.hub.yml</code></td><td>Levanta el stack desde Docker Hub, sin compilar.</td></tr>
+      <tr><td><code>docker-compose.e2e.yml</code></td><td>Cypress, proyecto Docker <code>ctv-e2e</code>, puertos <code>18080</code>, <code>18081</code> y <code>18090</code>.</td></tr>
+      <tr><td><code>acceptance-tests/docker-compose.yml</code></td><td>Cucumber, con bases temporales que se borran al apagar.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="fact">En <code>dev</code> el backend vuelve a cargar el seed en cada arranque. En <code>prod</code> solo agrega lo que falta y Flyway valida el esquema (<code>ddl-auto=validate</code>). Flyway corre antes que JPA. <code>flights-service</code> no usa Flyway: en <code>dev</code> el esquema es <code>update</code> y en <code>prod</code> el default es <code>create-drop</code>.</p>
+</section>
+
+<section id="git">
+  <h2>Cómo entra un cambio</h2>
+  <div class="prose">
+    <p>Una rama <code>feature/*</code> por cambio, pull request hacia <code>dev</code>, y de <code>dev</code> a <code>main</code> cuando esa versión es la que se publica. Los mensajes siguen Conventional Commits: <code>feat</code>, <code>fix</code>, <code>test</code>, <code>ci</code>, <code>docs</code>.</p>
+    <p>No se empuja directo a <code>main</code>. La primera revisión de un pull request es la integración continua: tests, estilo y, en backend y vuelos, el Quality Gate. Una aprobación humana obligatoria depende de la protección de ramas en GitHub; el workflow solo no la impone.</p>
+  </div>
+</section>
+
+<section id="ci">
+  <h2>Integración continua</h2>
+  <div class="prose">
+    <p>Cada pull request o push a <code>dev</code> y <code>main</code> dispara seis workflows. Backend, vuelos y frontend tienen filtro por carpeta: un cambio solo de <code>frontend/</code> no corre Gradle. Aceptación, e2e y la validación de workflows corren igual.</p>
+  </div>
+  <figure>
+    <div class="fig">
+<svg viewBox="0 0 920 420" role="img" aria-label="Un PR o push dispara seis controles en paralelo; si todos pasan, el deploy manual publica tres imágenes en GHCR, prende la VM de Azure, levanta la aplicación y verifica la salud del backend.">
+<defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<rect class="bx-acc" x="10" y="150" width="140" height="70" rx="4"/>
+<text class="t-b" x="80" y="180" text-anchor="middle">PR o push</text>
+<text class="t-sm" x="80" y="200" text-anchor="middle">a dev o main</text>
+<line class="ln" x1="150" y1="185" x2="180" y2="185"/>
+<line class="ln" x1="180" y1="44" x2="180" y2="344"/>
+<g>
+<line class="ln" x1="180" y1="44" x2="208" y2="44" marker-end="url(#a3)"/>
+<line class="ln" x1="180" y1="104" x2="208" y2="104" marker-end="url(#a3)"/>
+<line class="ln" x1="180" y1="164" x2="208" y2="164" marker-end="url(#a3)"/>
+<line class="ln" x1="180" y1="224" x2="208" y2="224" marker-end="url(#a3)"/>
+<line class="ln" x1="180" y1="284" x2="208" y2="284" marker-end="url(#a3)"/>
+<line class="ln" x1="180" y1="344" x2="208" y2="344" marker-end="url(#a3)"/>
+</g>
+<rect class="bx" x="210" y="20" width="260" height="48" rx="4"/><text class="t-b" x="224" y="41">Backend CI</text><text class="t-sm" x="224" y="58">build · ktlint · 412 tests · Sonar + Quality Gate</text>
+<rect class="bx" x="210" y="80" width="260" height="48" rx="4"/><text class="t-b" x="224" y="101">Flights Service CI</text><text class="t-sm" x="224" y="118">build · ktlint · 59 tests · Sonar + Quality Gate</text>
+<rect class="bx" x="210" y="140" width="260" height="48" rx="4"/><text class="t-b" x="224" y="161">Frontend CI</text><text class="t-sm" x="224" y="178">eslint · vitest · build de Vite</text>
+<rect class="bx" x="210" y="200" width="260" height="48" rx="4"/><text class="t-b" x="224" y="221">Acceptance (Cucumber)</text><text class="t-sm" x="224" y="238">13 escenarios contra servicios reales en Docker</text>
+<rect class="bx" x="210" y="260" width="260" height="48" rx="4"/><text class="t-b" x="224" y="281">E2E (Cypress)</text><text class="t-sm" x="224" y="298">13 tests con Electron contra la app en Docker</text>
+<rect class="bx" x="210" y="320" width="260" height="48" rx="4"/><text class="t-b" x="224" y="341">Workflow Validation</text><text class="t-sm" x="224" y="358">actionlint + scripts/check-ci.rb</text>
+<line class="ln" x1="470" y1="44" x2="492" y2="44"/><line class="ln" x1="470" y1="104" x2="492" y2="104"/><line class="ln" x1="470" y1="164" x2="492" y2="164"/><line class="ln" x1="470" y1="224" x2="492" y2="224"/><line class="ln" x1="470" y1="284" x2="492" y2="284"/><line class="ln" x1="470" y1="344" x2="492" y2="344"/>
+<line class="ln" x1="492" y1="44" x2="492" y2="344"/>
+<line class="ln" x1="492" y1="185" x2="514" y2="185" marker-end="url(#a3)"/>
+<rect class="bx-ok" x="516" y="150" width="130" height="70" rx="4"/>
+<text class="t-b" x="581" y="180" text-anchor="middle">Checks del PR</text>
+<text class="t-sm" x="581" y="200" text-anchor="middle">no publica nada</text>
+<line class="ln" x1="646" y1="185" x2="730" y2="185" marker-end="url(#a3)"/>
+<text class="t-sm" x="688" y="170" text-anchor="middle">todos verdes</text>
+<text class="t-sm" x="688" y="204" text-anchor="middle">+ deploy manual</text>
+<rect class="bx-acc" x="732" y="120" width="178" height="130" rx="4"/>
+<text class="t-b" x="821" y="146" text-anchor="middle">Publish</text>
+<text class="t-sm" x="821" y="168" text-anchor="middle">construye 3 imágenes</text>
+<text class="t-sm" x="821" y="186" text-anchor="middle">backend · vuelos · frontend</text>
+<text class="t-sm" x="821" y="204" text-anchor="middle">y las sube a GHCR</text>
+<text class="t-mono" x="821" y="228" text-anchor="middle">tag = SHA del commit</text>
+<line class="ln" x1="821" y1="250" x2="821" y2="276" marker-end="url(#a3)"/>
+<rect class="bx" x="732" y="278" width="178" height="62" rx="4"/>
+<text class="t-b" x="821" y="302" text-anchor="middle">Azure VM</text>
+<text class="t-sm" x="821" y="322" text-anchor="middle">start · SSH · compose pull + up</text>
+<line class="ln" x1="821" y1="340" x2="821" y2="360" marker-end="url(#a3)"/>
+<rect class="bx" x="732" y="362" width="178" height="40" rx="4"/>
+<text class="t-sm" x="821" y="387" text-anchor="middle" style="fill:currentColor">health check del backend</text>
+</svg>
+    </div>
+    <figcaption>Los controles corren en paralelo. Un pull request no publica imágenes. El deploy manual reutiliza los mismos workflows y solo publica y despliega si todos pasan. Los 412 y 59 del diagrama son el conteo de anotaciones, no una corrida.</figcaption>
+  </figure>
+  <div class="pair">
+    <div>
+      <h3>Decisiones</h3>
+      <ul>
+        <li><b>Workflows reutilizables.</b> El deploy llama a backend, vuelos y frontend con <code>checks-only: true</code>. No hay una lista paralela de controles.</li>
+        <li><b>ktlint dentro de <code>check</code>.</b> Si el formato está mal, el build falla. La CI no lo corrige sola.</li>
+        <li><b>Entornos aislados.</b> Cucumber y Cypress usan otro proyecto de Compose, esperan salud y apagan los contenedores aunque el job falle.</li>
+        <li>Si un e2e falla, el job muestra las últimas líneas de log de la aplicación.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>La CI se revisa a sí misma</h3>
+      <p><code>actionlint</code> mira sintaxis y expresiones. <code>scripts/check-ci.rb</code> revisa reglas nuestras: publicar exige que el build haya pasado, Sonar no se saltea salvo en forks, <code>stop</code> de la VM no depende de los tests, y el cleanup de Docker existe siempre.</p>
+      <p class="small muted">En local: <code>ruby scripts/check-ci.rb</code> desde la raíz. No reemplaza una corrida en Actions.</p>
+    </div>
+  </div>
+</section>
+
+<section id="workflows">
+  <h2>Qué hace cada workflow</h2>
+  <p class="lede">Hay seis archivos en <code>.github/workflows</code>. Los tres de módulo se pueden llamar desde el deploy. Aceptación y la validación de workflows también. El de Azure solo se dispara a mano.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Workflow</th><th>Cuándo corre</th><th>Qué ejecuta</th><th>Qué no hace</th></tr></thead>
+    <tbody>
+      <tr><td>Backend CI</td><td>PR o push a <code>dev</code> o <code>main</code> si cambia <code>backend/**</code> o el propio workflow</td><td><code>./gradlew build</code>. Incluye ktlint, porque <code>check</code> depende de <code>ktlintCheck</code>, y los tests. Después Sonar con Quality Gate, salvo en un PR de un fork.</td><td>No corre si el PR solo toca frontend, vuelos o <code>docker-compose.yml</code>. No publica en un PR.</td></tr>
+      <tr><td>Flights Service CI</td><td>Igual, con filtro <code>flights-service/**</code></td><td>El mismo esquema: build, ktlint, tests y Quality Gate.</td><td>No mira el backend. Un cambio de contrato hay que probarlo en los dos lados.</td></tr>
+      <tr><td>Frontend CI</td><td>Filtro <code>frontend/**</code></td><td>Node 24, <code>npm ci</code>, lint, tests y build. El build incluye el chequeo de tipos.</td><td>No hay Sonar ni un piso de cobertura.</td></tr>
+      <tr><td>Acceptance and E2E CI</td><td>Todo PR y push a <code>dev</code> o <code>main</code>, sin filtro de carpeta. También lo llama el deploy.</td><td>Dos jobs en paralelo, tope 20 minutos. Cucumber levanta el proyecto <code>ctv-acceptance-ci</code> y corre el perfil <code>ci</code>. Cypress levanta <code>docker-compose.e2e.yml</code> y corre en Electron. Si fallan, muestran las últimas 200 líneas de log. Siempre hacen <code>down</code>.</td><td>No publica imágenes. Corre aunque el cambio sea solo de documentación.</td></tr>
+      <tr><td>Workflow Validation CI</td><td>Todo PR y push, y también el deploy</td><td><code>actionlint</code> sobre los YAML y <code>ruby scripts/check-ci.rb</code>. Tope 10 minutos.</td><td>No compila la aplicación. Revisa reglas nuestras: publicar solo si el build pasó, Sonar no se saltea salvo en forks, <code>stop</code> no depende de los tests, y el cleanup existe.</td></tr>
+      <tr><td>Deploy Demo (Azure VM)</td><td>Manual. Actions, acción <code>deploy</code> o <code>stop</code></td><td><code>deploy</code> llama a los cinco anteriores. Backend, vuelos y frontend van con <code>checks-only: true</code>, así no publican ellos. Si todo pasa, un job propio sube las tres imágenes a GHCR con el SHA, prende la VM, hace pull y levanta sin compilar. <code>stop</code> solo apaga la VM.</td><td>No publica en Docker Hub. No se dispara solo. El grupo <code>azure-demo</code> no cancela un deploy que ya empezó.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="pair">
+    <div>
+      <h3>Cuándo sí se publica una imagen</h3>
+      <p>En el push a <code>main</code>, el job <code>publish</code> de cada módulo corre solo si <code>build</code> pasó y <code>checks-only</code> no es true. Backend y vuelos suben la misma imagen a GHCR y a Docker Hub, con <code>latest</code> y el SHA.</p>
+      <p>El frontend hace dos builds. GHCR lleva <code>VITE_API_BASE_URL</code> apuntando a la VM. Docker Hub no pasa esa variable y el bundle cae en <code>localhost:8080</code>, que es lo que usa <code>docker-compose.hub.yml</code>. No son el mismo archivo estático.</p>
+      <p>Si faltan <code>DOCKERHUB_USERNAME</code> o <code>DOCKERHUB_TOKEN</code>, ese job de <code>main</code> falla. Un PR no llega a publicar.</p>
+    </div>
+    <div>
+      <h3>Por qué el deploy repite los checks</h3>
+      <p>El workflow de Azure no tiene una lista propia de tests. Llama a los mismos YAML. Lo que se despliega es lo que esos workflows acaban de aceptar, identificado por el SHA. Si uno falla, no hay imagen nueva ni SSH a la VM.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sonar">
+  <h2>Sonar y Quality Gate</h2>
+  <div class="pair">
+    <div>
+      <h3>Qué analiza</h3>
+      <ul>
+        <li>Dos proyectos en SonarCloud: backend y flights-service. El frontend no entra.</li>
+        <li>La cobertura es el XML de JaCoCo, generado después de los tests. El paso <code>sonar</code> depende de <code>test</code> y de <code>jacocoTestReport</code>.</li>
+        <li>Quedan fuera de la cobertura las clases <code>*Application*</code> y el paquete <code>config</code>.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cómo se exige</h3>
+      <pre><code>./gradlew sonar \
+  -Dsonar.qualitygate.wait=true \
+  -Dsonar.qualitygate.timeout=300</code></pre>
+      <ul>
+        <li>El job espera el veredicto hasta 300 segundos. Si el gate no pasa, el job falla.</li>
+        <li>Sin <code>SONAR_TOKEN</code> en una corrida interna, también falla.</li>
+        <li>Un pull request de un fork no recibe secretos: Sonar se omite, tests y lint siguen.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="fact">El Quality Gate corre en los pull requests que tocan <code>backend/</code> o <code>flights-service/</code>. Que GitHub impida el merge si el check está rojo es configuración de protección de ramas, además del workflow. No fijamos un piso de cobertura del 80 %: el control es el gate. Los números vigentes están en los badges del README.</p>
+</section>
+
+<section id="delivery">
+  <h2>De un commit a una imagen y a una VM</h2>
+  <div class="pair">
+    <div>
+      <h3>Cuándo se publica</h3>
+      <ul>
+        <li><b>Push a <code>main</code>.</b> Si el build del módulo pasó, se publican <code>latest</code> y el SHA en GHCR y en Docker Hub. Un pull request no publica.</li>
+        <li><b>Deploy manual.</b> Actions, <code>Deploy Demo (Azure VM)</code>, acción <code>deploy</code>. Corre los controles, publica las tres imágenes en GHCR con el SHA elegido, prende la VM, hace <code>compose pull</code> y levanta con <code>--no-build</code>. Cierra con el health del backend. No publica en Docker Hub.</li>
+        <li>La acción <code>stop</code> apaga la VM y no espera tests.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Por qué la VM no compila</h3>
+      <ul>
+        <li>Baja la imagen ya probada, identificada por el SHA. Si la descarga falla, no levanta la aplicación.</li>
+        <li>Un grupo de concurrencia evita dos deploys a la vez.</li>
+        <li>Docker Hub pide <code>DOCKERHUB_USERNAME</code> y <code>DOCKERHUB_TOKEN</code>. Si faltan, el job de <code>main</code> falla con un mensaje claro. El namespace opcional es <code>DOCKERHUB_NAMESPACE</code> (por defecto <code>acostaf12</code>).</li>
+        <li>Azure usa solo GHCR, con el token del workflow.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="fact"><span class="lab">La demo en la nube.</span> La VM está en <code>northcentralus</code> y solo responde encendida. La IP pública documentada es <code>64.236.199.81</code> mientras no se borre el recurso. Frontend en el <code>8090</code>, backend en el <code>8080</code>, Grafana en el <code>3001</code>, Zipkin en el <code>9411</code>, Kibana en el <code>5601</code>. Al terminar, correr <code>stop</code>.</p>
+</section>
+
+<div class="part">
+  <h2>Pruebas y lectura</h2>
+  <p>Qué cubre cada nivel, cómo mostrarlo y qué límites conviene decir antes de que pregunten.</p>
+</div>
+
+<section id="pruebas">
+  <h2>Unitarios, integración, aceptación e interfaz</h2>
+  <figure>
+    <div class="fig">
+<svg viewBox="0 0 920 330" role="img" aria-label="Pirámide de pruebas: abajo 343 tests unitarios, luego 263 de integración, 13 escenarios de aceptación con Cucumber y 13 tests e2e con Cypress arriba.">
+<rect class="bx-warn" x="195" y="10" width="200" height="64" rx="4"/>
+<text class="t-b" x="295" y="38" text-anchor="middle">e2e · Cypress</text><text class="t-sm" x="295" y="57" text-anchor="middle">13 tests</text>
+<rect class="bx-acc" x="150" y="82" width="290" height="64" rx="4"/>
+<text class="t-b" x="295" y="110" text-anchor="middle">Aceptación · Cucumber</text><text class="t-sm" x="295" y="129" text-anchor="middle">13 escenarios</text>
+<rect class="bx-ok" x="100" y="154" width="390" height="64" rx="4"/>
+<text class="t-b" x="295" y="182" text-anchor="middle">Integración</text><text class="t-sm" x="295" y="201" text-anchor="middle">backend 249 · vuelos 26</text>
+<rect class="bx" x="50" y="226" width="490" height="64" rx="4"/>
+<text class="t-b" x="295" y="254" text-anchor="middle">Unitarios</text><text class="t-sm" x="295" y="273" text-anchor="middle">backend 159 · vuelos 31 · frontend 181</text>
+<text class="t-acc" x="570" y="30">Navegador real (Electron)</text><text class="t-sm" x="570" y="48">La app completa en Docker, como un usuario.</text>
+<text class="t-acc" x="570" y="102">Servicios reales por API</text><text class="t-sm" x="570" y="120">Backend, vuelos y Postgres temporal. Sin interfaz.</text>
+<text class="t-acc" x="570" y="174">@SpringBootTest + MockMvc + H2</text><text class="t-sm" x="570" y="192">Contexto de Spring real, vuelos mockeado.</text>
+<text class="t-acc" x="570" y="246">JUnit, Mockito, ArchUnit, Vitest</text><text class="t-sm" x="570" y="264">Una clase o un componente a la vez.</text>
+</svg>
+    </div>
+    <figcaption>Abajo, pruebas rápidas de una pieza. Arriba, menos pruebas y más parecidas al uso real. Los totales son el conteo del 22/10, no una corrida.</figcaption>
+  </figure>
+  <div class="pair">
+    <div>
+      <h3>Unitarios</h3>
+      <ul>
+        <li>Modelos, DTOs y el cliente de vuelos con <code>MockRestServiceServer</code>, sin levantar un servidor.</li>
+        <li>Criterios del buscador, paginación y métricas.</li>
+        <li>ArchUnit: nombres y capas.</li>
+        <li>Frontend: Vitest y Testing Library, con la API mockeada. Incluye el panel de administración y <code>FlightPicker</code>.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Integración</h3>
+      <ul>
+        <li><code>@SpringBootTest</code>, MockMvc y H2, con la seguridad activa.</li>
+        <li>El cliente de vuelos se reemplaza con un mock. El resto del contexto es real.</li>
+        <li><code>PurchaseHistoryMigrationTest</code> cubre el Flyway V2.</li>
+        <li><code>PostgresQueriesTest</code> usa Testcontainers. Si no hay Docker, se omite.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="pair">
+    <div>
+      <h3>Cucumber, 13 escenarios</h3>
+      <p>Reglas de negocio por HTTP, con backend, vuelos y Postgres temporales. Sin navegador.</p>
+      <ul>
+        <li>Login, publicación por la agencia y 403 si publica un comprador.</li>
+        <li>Búsqueda por origen y destino, y con todos los filtros.</li>
+        <li>Compra, descuento de asientos, precio congelado y compensación si no hay lugar en la vuelta.</li>
+        <li>Reseña sin compra y reseña duplicada, ambas rechazadas.</li>
+        <li>Un administrador carga vuelos y publica un paquete que el comprador encuentra. Una agencia no puede cargar vuelos.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cypress, 13 tests</h3>
+      <p>La aplicación completa en Docker, en Electron cuando corre la CI. No guarda video ni capturas.</p>
+      <ul>
+        <li>Login, búsqueda y detalle. Contraseña incorrecta y reintento.</li>
+        <li>Un comprador no entra al alta de hoteles ni a esa API. El administrador crea, edita y borra un hotel.</li>
+        <li>Compra desde el detalle. El historial sobrevive a recargar.</li>
+        <li>Administración: vuelos, paquetes, selector de la agencia, y el error al borrar un paquete que ya se compró. Comprador y agencia no entran a <code>/admin</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div>
+    <h3 class="ui" style="margin-bottom:10px">Cómo correrlos</h3>
+    <pre><code># backend o vuelos, con Java 25
+cd backend &amp;&amp; ./gradlew test jacocoTestReport
+
+# frontend, con Node 24
+cd frontend &amp;&amp; npm ci &amp;&amp; npm test &amp;&amp; npm run lint
+
+# Cucumber. Alcanza con Docker
+cd acceptance-tests &amp;&amp; docker compose run --rm --build acceptance-tests
+
+# Cypress. Primero el entorno aislado
+docker compose -f docker-compose.e2e.yml up --build -d --wait
+cd frontend &amp;&amp; npm run e2e:run -- --browser electron</code></pre>
+  </div>
+</section>
+
+<section id="demo">
+  <h2>Cómo mostrarlo</h2>
+  <p class="lede">Unos 13 minutos, de la pantalla a GitHub. El guion corto para el equipo, con las mismas URLs, está en <a href="demo.md">docs/demo.md</a>. Conviene ensayarlo una vez con <code>docker compose up --build -d --wait</code> desde cero.</p>
+  <ol class="steps">
+    <li><div><div class="hd"><b>Entorno</b><span class="time">1 min</span></div><p><code>docker compose ps</code> con los servicios sanos. Pestañas: aplicación en el <code>8090</code>, Swagger, Grafana (<code>admin</code> / <code>admin</code>), Zipkin y Kibana. Para volver al seed: <code>docker compose down -v</code> y levantar de nuevo.</p></div></li>
+    <li><div><div class="hd"><b>Comprador</b><span class="time">3 min</span></div><p><code>buyer</code> / <code>buyer123</code>. En <code>/trips</code>, filtrar y ver que la URL cambia. Detalle, favorito y compra de un paquete que no diga que ya está comprado. En <code>/purchases</code>, el precio abonado y los filtros del historial.</p></div></li>
+    <li><div><div class="hd"><b>Agencia</b><span class="time">2 min</span></div><p><code>agency</code> / <code>agency123</code>. En <code>/agency</code>, crear un paquete eligiendo vuelos de la lista. Ventas en <code>/agency/sales</code>. Un comprador que abre <code>/agency</code> ve "Sin permiso".</p></div></li>
+    <li><div><div class="hd"><b>Administrador</b><span class="time">3 min</span></div><p><code>vferreyra</code> / <code>vferreyra</code>. Hotel en <code>/hotels</code>. En <code>/admin</code>: un vuelo, un paquete para Despegar, una agencia o un usuario, y las ventas. Después, el mismo comprador en <code>/admin</code> y el mensaje de permiso.</p></div></li>
+    <li><div><div class="hd"><b>Resiliencia y observabilidad</b><span class="time">2 min</span></div><p><code>docker compose stop flights-service</code>, intentar comprar y mostrar el 503 y el circuito en <code>/actuator/health</code>. Volver a levantar el servicio. Grafana, dashboard <i>CTV - Overview</i>. En Zipkin, una traza del servicio <code>backend</code>. Kibana pide la data view <code>ctv-logs-*</code> la primera vez.</p></div></li>
+    <li><div><div class="hd"><b>GitHub</b><span class="time">2 min</span></div><p>Una corrida de Actions en verde, el Quality Gate en el job de Sonar, y las imágenes en Packages. Si la VM está prendida, la misma build en <code>http://64.236.199.81:8090</code>.</p></div></li>
+  </ol>
+  <p class="fact"><span class="lab">Si algo no levanta.</span> Tener abiertos el README, este documento, el MER, una corrida verde de Actions y los dashboards de Sonar. La VM suele estar apagada: no depender de ella para el recorrido local.</p>
+</section>
+
+<section id="preguntas">
+  <h2>Preguntas que suelen aparecer</h2>
+  <p class="lede">Las respuestas salen del código. Donde hay un límite, la respuesta lo dice.</p>
+
+  <div class="qgroup">
+    <h3>Arquitectura</h3>
+    <details><summary>¿Por qué dos servicios?</summary><div class="ans"><p>En el dominio, los vuelos son un sistema externo. Separarlos deja una base propia, fallas de red y una compra que cruza dos sistemas. Se hablan por HTTP. El paquete guarda el id del vuelo, no una clave foránea.</p></div></details>
+    <details><summary>¿La compra es atómica?</summary><div class="ans"><p>No hay transacción distribuida. Es una compensación: si falla la vuelta, se cancela la ida; si falla el guardado, se cancelan las dos ventas. Si la cancelación también falla, el código la ignora y puede quedar un asiento reservado sin compra.</p></div></details>
+    <details><summary>¿Qué pasa si flights-service está caído?</summary><div class="ans"><p>Hasta 3 reintentos con 500 ms, solo si no hay conexión. Si la mitad de las últimas 10 llamadas falla, el circuito se abre 10 segundos y el usuario recibe 503. Los errores de negocio no se reintentan ni abren el circuito. El timeout de 3 segundos está en el properties y no está anotado en el cliente: hoy no corta la llamada. El detalle está en <a href="#breaker">Circuit breaker</a>.</p></div></details>
+    <details><summary>¿Por qué el historial guarda una copia?</summary><div class="ans"><p>Para que no cambie si la agencia edita el paquete. La compra guarda precio, nombres, hotel, ciudades e ids de vuelo. Lo agrega la migración V2. Cucumber cambia el precio y comprueba que el historial queda igual.</p></div></details>
+    <details><summary>¿Por qué Flyway?</summary><div class="ans"><p>El esquema queda versionado y producción valida en lugar de modificar tablas (<code>ddl-auto=validate</code>). Flyway tiene que correr antes que JPA. Vuelos no lo usa.</p></div></details>
+    <details><summary>¿Cómo busca paquetes?</summary><div class="ans"><p>El controller arma criterios (nombre, origen, destino, precio). Una <code>Specification</code> suma una condición por filtro. Se pagina y ordena en la base, y cada búsqueda mide duración y cantidad de resultados.</p></div></details>
+    <details><summary>¿Cómo elige vuelos la agencia?</summary><div class="ans"><p><code>FlightPicker</code> llama a <code>GET /flights</code> filtrando origen, destino y fecha. El backend, al crear el paquete, igual valida que el regreso continúe el tramo de ida.</p></div></details>
+  </div>
+
+  <div class="qgroup">
+    <h3>Seguridad</h3>
+    <details><summary>¿Cómo es el login?</summary><div class="ans"><p>Usuario y contraseña. La contraseña se guarda con BCrypt. El backend devuelve un JWT que vence a las 24 horas. El frontend lo manda en <code>Authorization: Bearer</code>. Un filtro lo valida en cada pedido.</p></div></details>
+    <details><summary>¿Por qué CSRF está desactivado?</summary><div class="ans"><p>La API no usa cookie de sesión. El token va en un encabezado que el navegador no agrega solo. CSRF protege sesiones por cookie.</p></div></details>
+    <details><summary>¿Dónde se controla el rol?</summary><div class="ans"><p>En <code>SecurityConfig</code>, por método y ruta. Algunos servicios vuelven a mirar el rol y responden 403, por ejemplo al comprar. Las guardas del frontend son de interfaz.</p></div></details>
+    <details><summary>¿Dónde está el secreto del JWT?</summary><div class="ans"><p>En la variable <code>JWT_SECRET</code>. El valor de <code>application.properties</code> es para desarrollo. En un entorno real hay que definirla.</p></div></details>
+    <details><summary>¿Cómo se crea un administrador?</summary><div class="ans"><p>El registro público crea compradores. Administradores, agencias y el usuario de agencia salen de <code>DataBootstrap</code>. No hay pantalla para crear cuentas.</p></div></details>
+  </div>
+
+  <div class="qgroup">
+    <h3>Frontend, pruebas y entrega</h3>
+    <details><summary>¿Por qué TanStack Query?</summary><div class="ans"><p>Concentra carga, error, caché e invalidación. Al comprar o marcar un favorito se invalida la clave y la lista se actualiza. Las claves están en <code>query/keys.ts</code>.</p></div></details>
+    <details><summary>¿Qué prueba cada nivel?</summary><div class="ans"><p>Unitarios: una pieza, rápido. Integración: Spring, seguridad y base, con vuelos mockeado. Cucumber: reglas por API con servicios reales. Cypress: lo que hace una persona en el navegador. Cada nivel ve fallas que el anterior no ve, y tarda más.</p></div></details>
+    <details><summary>¿Dónde se publican las imágenes?</summary><div class="ans"><p>En push a <code>main</code>, en GHCR y en Docker Hub, con <code>latest</code> y el SHA. El deploy manual publica solo en GHCR, con el SHA elegido, y solo si los controles pasan. Nunca en un pull request.</p></div></details>
+    <details><summary>¿Qué pasa si falla un test en el deploy?</summary><div class="ans"><p>Publicar depende de los controles. Si uno falla, no hay imagen nueva ni deploy. <code>stop</code> sigue disponible para apagar la VM.</p></div></details>
+  </div>
+</section>
+
+<section id="limites">
+  <h2>Límites que conocemos</h2>
+  <p class="lede">Son decisiones con costo. Conviene nombrarlas, y tener a mano la mejora.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Límite</th><th>Consecuencia</th><th>Mejora</th></tr></thead>
+    <tbody>
+      <tr><td>La venta de un asiento no usa bloqueo ni versión</td><td>Dos compras simultáneas del último asiento pueden sobrevender.</td><td>Bloqueo al leer el vuelo, o un <code>UPDATE</code> que solo descuente si <code>availability &gt; 0</code> y revise las filas afectadas.</td></tr>
+      <tr><td>La compensación no se reintenta</td><td>Si cancelar también falla, queda un asiento reservado sin compra.</td><td>Reintentar la cancelación, o guardar las pendientes para un proceso posterior.</td></tr>
+      <tr><td>Sonar solo en backend y vuelos</td><td>El frontend no tiene Quality Gate.</td><td>Un proyecto de Sonar con la cobertura de Vitest.</td></tr>
+      <tr><td>Vuelos no tiene Flyway</td><td>En <code>prod</code> el esquema default es <code>create-drop</code>. Un reinicio no conserva vuelos.</td><td>Migraciones, como en el backend.</td></tr>
+      <tr><td>El Quality Gate no es un branch protection por sí solo</td><td>El job se pone rojo, y GitHub igual puede permitir el merge si la rama no exige ese check.</td><td>Marcar los checks como obligatorios en <code>dev</code> y <code>main</code>. Antes, distinguir los jobs: los tres módulos llaman <code>build</code> al suyo y GitHub no los separa bien como checks obligatorios.</td></tr>
+      <tr><td>El timeout de 3 segundos no está cableado</td><td>La propiedad de Resilience4j existe. Sin <code>@TimeLimiter</code> ni timeout en el <code>RestClient</code>, una llamada colgada no se corta a los 3 segundos.</td><td>Anotarlo o configurarlo en el cliente, y decidir qué pasa con un POST de alta que se corta a mitad.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="mejorar">
+  <h2>Qué mejoraríamos nosotros</h2>
+  <p class="lede">No es una lista para la defensa. Es lo que haríamos si seguimos el proyecto, en el orden en que duele.</p>
+  <div class="pair">
+    <div>
+      <h3>Arquitectura y compra</h3>
+      <ul>
+        <li>Activar el timeout de las llamadas a vuelos. Hoy está escrito y no corre.</li>
+        <li>Vender el asiento con un <code>UPDATE</code> que solo descuente si queda disponibilidad, para que dos compras del último asiento no pasen las dos.</li>
+        <li>Si cancelar la venta también falla, guardarla y reintentarla. Hoy ese error se traga.</li>
+        <li>Pasar vuelos a Flyway, como el backend, para que un reinicio en <code>prod</code> no borre lo cargado.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>CI</h3>
+      <ul>
+        <li>Ponerle a cada job un nombre distinto (<code>backend-build</code>, <code>flights-build</code>, <code>frontend-build</code>) y exigirlos en la protección de ramas, junto con el Quality Gate.</li>
+        <li>Un cambio de <code>docker-compose.yml</code> no dispara Backend CI ni Flights CI. Sí dispara e2e, que es lo más caro. El compose debería entrar en los filtros de los módulos que afecta, y un PR solo de docs no debería levantar Cypress.</li>
+        <li>Sumar Sonar al frontend, o al menos publicar la cobertura de Vitest. Hoy el gate no mira esa carpeta.</li>
+        <li>Tope de tiempo en los jobs de Gradle. Cucumber y Cypress ya tienen 20 minutos. Backend y frontend, no.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="repo">
+  <h2>Mapa del repositorio</h2>
+  <p class="lede">Dónde abrir el código cuando piden ver una prueba.</p>
+  <pre><code>.
+├─ backend/                 API. Puerto 8080
+│  └─ src/main/kotlin/unq/pdes/backend/
+│     ├─ controller/        endpoints, DTOs, manejo de errores
+│     ├─ service/           reglas y transacciones
+│     ├─ persistence/jpa/   repositorios
+│     ├─ model/             entidades y snapshots de la compra
+│     ├─ external/flights/  cliente con retry, timeout y circuit breaker
+│     ├─ search/            filtros del catálogo y del historial
+│     └─ config/            seguridad, CORS, OpenAPI, seed
+├─ flights-service/         vuelos y su base. Puerto 8081
+├─ frontend/                SPA. En Docker, nginx en el 8090
+│  ├─ src/                  api, auth, query, pages, router
+│  └─ cypress/e2e/          tests de interfaz
+├─ acceptance-tests/        Cucumber
+├─ monitoring/              Prometheus, Grafana y Logstash
+├─ scripts/check-ci.rb      reglas de los workflows
+├─ .github/workflows/       seis workflows, incluido el deploy
+└─ docs/                    esta guía, demo, admin y el MER</code></pre>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Si preguntan por</th><th>Abrir</th></tr></thead>
+    <tbody>
+      <tr><td>Quién puede llamar a cada ruta</td><td><code>backend/…/config/SecurityConfig.kt</code></td></tr>
+      <tr><td>La compra y la compensación</td><td><code>PurchaseService.purchase</code></td></tr>
+      <tr><td>Retry, timeout y circuit breaker</td><td><code>FlightsClient.kt</code> y <code>application.properties</code></td></tr>
+      <tr><td>El buscador</td><td><code>TravelPackageSearchSpecification.kt</code></td></tr>
+      <tr><td>Columnas de snapshot</td><td><code>V2__purchase_history_snapshots_and_indexes.sql</code></td></tr>
+      <tr><td>La guarda de administración</td><td><code>frontend/src/router/adminRoutes.tsx</code></td></tr>
+      <tr><td>Escenarios de aceptación</td><td><code>acceptance-tests/features/critical-flows.feature</code></td></tr>
+      <tr><td>Tests de interfaz</td><td><code>frontend/cypress/e2e/</code></td></tr>
+      <tr><td>Qué valida la CI sobre sí misma</td><td><code>scripts/check-ci.rb</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="glosario">
+  <h2>Glosario</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Término</th><th>Qué significa acá</th></tr></thead>
+    <tbody>
+      <tr><td>Compensación</td><td>Si un paso de la compra falla, se deshacen a mano los asientos ya vendidos. No hay una transacción común a las dos bases.</td></tr>
+      <tr><td>Snapshot</td><td>Copia de precio, nombres, hotel y ciudades guardada al comprar. El historial no sigue los cambios posteriores del paquete.</td></tr>
+      <tr><td>Retry</td><td>Reintentar la llamada a vuelos si falló la conexión. Hasta 3 veces, con 500 ms de espera.</td></tr>
+      <tr><td>Timeout</td><td>La propiedad dice 3 segundos. Sin <code>@TimeLimiter</code> ni timeout en el <code>RestClient</code>, esa llamada no se corta.</td></tr>
+      <tr><td>Circuit breaker</td><td>Si vuelos falla seguido, el backend deja de llamarlo un rato y responde 503 enseguida.</td></tr>
+      <tr><td>Specification</td><td>Consulta de JPA armada sumando una condición por cada filtro presente.</td></tr>
+      <tr><td>IATA</td><td>Código de tres letras. Es la clave de <code>city</code>.</td></tr>
+      <tr><td>JWT</td><td>Token firmado que entrega el login. El servidor no guarda la sesión.</td></tr>
+      <tr><td>Flyway</td><td>Esquema versionado con SQL numerado (<code>V1</code>, <code>V2</code>). Lo usa el backend.</td></tr>
+      <tr><td>Quality Gate</td><td>Veredicto de Sonar. El job espera y falla si no pasa.</td></tr>
+      <tr><td>GHCR</td><td>Registro de imágenes de GitHub. De ahí toma las imágenes la VM.</td></tr>
+      <tr><td>SPA</td><td>El navegador descarga el frontend una vez y después solo pide datos a la API.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var links = {};
+  document.querySelectorAll('.rail a').forEach(function (a) {
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) === '#') links[href.slice(1)] = a;
+  });
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        Object.keys(links).forEach(function (k) { links[k].classList.remove('on'); });
+        var a = links[en.target.id];
+        if (a) a.classList.add('on');
+      });
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { io.observe(s); });
+  }
+  window.addEventListener('beforeprint', function () {
+    document.querySelectorAll('details').forEach(function (d) { d.open = true; });
+  });
+})();
+</script>
+</body>
+</html>
