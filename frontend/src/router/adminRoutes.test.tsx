@@ -6,6 +6,9 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { listFlights } from '../api/flights'
 import { listHotels } from '../api/hotels'
 import { searchPackages } from '../api/packages'
+import { listAgencies } from '../api/agencies'
+import { listManagedUsers } from '../api/adminUsers'
+import { getAdminSales } from '../api/purchases'
 import { getCurrentUser } from '../api/auth'
 import { persistSession } from '../api/session'
 import { AuthProvider } from '../auth/AuthContext'
@@ -17,6 +20,8 @@ vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }
 vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../api/agencies', () => ({ listAgencies: vi.fn() }))
 vi.mock('../api/cities', () => ({ listCities: vi.fn() }))
+vi.mock('../api/adminUsers', () => ({ listManagedUsers: vi.fn(), createManagedUser: vi.fn(), updateManagedUser: vi.fn() }))
+vi.mock('../api/purchases', () => ({ getAdminSales: vi.fn() }))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
   createPackage: vi.fn(),
@@ -53,9 +58,12 @@ describe('admin routes', () => {
     })
     vi.mocked(listFlights).mockResolvedValue([])
     vi.mocked(listHotels).mockResolvedValue([])
+    vi.mocked(listAgencies).mockResolvedValue([])
+    vi.mocked(listManagedUsers).mockResolvedValue({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 })
+    vi.mocked(getAdminSales).mockResolvedValue({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, first: true, last: true })
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights'])('lets an admin open %s', async (path) => {
+  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/users', '/admin/agencies', '/admin/sales'])('lets an admin open %s', async (path) => {
     renderAt(path, 'ADMIN')
 
     await screen.findByRole('heading', { level: 1 })
@@ -66,6 +74,13 @@ describe('admin routes', () => {
     ['/admin', 'BUYER'],
     ['/admin/packages', 'AGENCY'],
     ['/admin/flights', 'BUYER'],
+    ['/admin/users', 'BUYER'],
+    ['/admin/users', 'AGENCY'],
+    ['/admin/agencies', 'BUYER'],
+    ['/admin/agencies', 'AGENCY'],
+    ['/admin/sales', 'BUYER'],
+    ['/admin/sales', 'AGENCY'],
+    ['/admin/sales/1', 'AGENCY'],
   ])('blocks %s for the %s role', async (path, role) => {
     renderAt(path, role)
 
@@ -73,5 +88,7 @@ describe('admin routes', () => {
     expect(screen.queryByTestId('admin-hub')).not.toBeInTheDocument()
     expect(searchPackages).not.toHaveBeenCalled()
     expect(listFlights).not.toHaveBeenCalled()
+    expect(listManagedUsers).not.toHaveBeenCalled()
+    expect(getAdminSales).not.toHaveBeenCalled()
   })
 })

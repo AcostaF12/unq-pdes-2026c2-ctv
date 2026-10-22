@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AuthProvider, useAuth } from './AuthContext'
 import { persistSession, getStoredUser } from '../api/session'
@@ -24,14 +24,7 @@ function Probe() {
       <button type="button" onClick={logout}>
         Salir
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          user
-            ? updateUser({ ...user, firstName: 'Lara' })
-            : undefined
-        }
-      >
+      <button type="button" onClick={() => (user ? updateUser({ ...user, firstName: 'Lara' }) : undefined)}>
         Actualizar
       </button>
     </div>
@@ -39,6 +32,53 @@ function Probe() {
 }
 
 describe('AuthProvider', () => {
+  it('refreshes changed roles on focus and clears cached data from the previous agency', async () => {
+    const previous = {
+      id: 1,
+      username: 'seller',
+      firstName: 'Ana',
+      lastName: 'Pérez',
+      role: 'AGENCY',
+      agency: { id: 7, name: 'Sur' },
+    }
+    persistSession('token', previous)
+    mockedGetCurrentUser.mockResolvedValueOnce(previous)
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    )
+    await waitFor(() => expect(mockedGetCurrentUser).toHaveBeenCalledTimes(1))
+    await act(async () => {})
+    queryClient.setQueryData(queryKeys.packages.agency, ['private agency data'])
+    mockedGetCurrentUser.mockResolvedValueOnce({ ...previous, role: 'BUYER', agency: undefined })
+    fireEvent(window, new Event('focus'))
+    await waitFor(() => expect(getStoredUser()?.role).toBe('BUYER'))
+    expect(queryClient.getQueryData(queryKeys.packages.agency)).toBeUndefined()
+  })
+
+  it('does not restore a session when an in-flight refresh completes after logout', async () => {
+    const previous = { id: 1, username: 'buyer', firstName: 'Ana', lastName: 'Pérez', role: 'BUYER' }
+    persistSession('token', previous)
+    let resolve: (value: typeof previous) => void = () => {}
+    mockedGetCurrentUser.mockReturnValue(
+      new Promise((done) => {
+        resolve = done
+      }),
+    )
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salir' }))
+    await act(async () => {
+      resolve(previous)
+    })
+    expect(screen.getByText('anon')).toBeInTheDocument()
+    expect(getStoredUser()).toBeNull()
+  })
+
   it('is ready immediately when there is no session', () => {
     render(
       <AuthProvider>

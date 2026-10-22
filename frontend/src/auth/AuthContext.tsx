@@ -54,37 +54,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const token = getToken()
-    if (!token) {
-      return
+    let cancelled = false
+    let latestRequest = 0
+    const refreshSession = (initial = false) => {
+      const token = getToken()
+      if (!token) return
+      const requestId = ++latestRequest
+      void getCurrentUser()
+        .then((freshUser) => {
+          if (cancelled || getToken() !== token || requestId !== latestRequest) {
+            return
+          }
+          const previous = readInitialSession().user
+          if (previous?.role !== freshUser.role || previous?.agency?.id !== freshUser.agency?.id) {
+            queryClient.clear()
+          }
+          persistSession(token, freshUser)
+          setUser(freshUser)
+        })
+        .catch(() => {
+          if (cancelled || getToken() !== token || requestId !== latestRequest || !initial) {
+            return
+          }
+          clearSession()
+          queryClient.clear()
+          setUser(null)
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsReady(true)
+          }
+        })
     }
 
-    let cancelled = false
-
-    getCurrentUser()
-      .then((freshUser) => {
-        if (cancelled) {
-          return
-        }
-        persistSession(token, freshUser)
-        setUser(freshUser)
-      })
-      .catch(() => {
-        if (cancelled) {
-          return
-        }
-        clearSession()
-        queryClient.clear()
-        setUser(null)
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsReady(true)
-        }
-      })
+    const onFocus = () => refreshSession()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshSession()
+    }
+    refreshSession(true)
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
       cancelled = true
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
