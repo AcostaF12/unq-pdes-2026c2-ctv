@@ -1,5 +1,3 @@
-<!-- TODO: verificar las pantallas y rutas de este documento una vez mergeadas las funcionalidades de administración de paquetes y vuelos (rutas, textos y capturas). -->
-
 # Sección Administración
 
 Guía de lo que puede hacer el rol administrador en la aplicación.
@@ -26,10 +24,14 @@ La navegación muestra las opciones de administración solo al rol administrador
 
 ### Paquetes de cualquier agencia
 
+Ruta: `/admin/packages`. La entrada de la sección es `/admin`.
+
 - Cargar paquetes eligiendo la agencia a la que pertenecen.
 - Editar y eliminar paquetes de cualquier agencia.
 
 ### Vuelos
+
+Ruta: `/admin/flights`.
 
 - Cargar vuelos en `flights-service` para poder usarlos en los paquetes.
 - Las agencias y los administradores eligen los vuelos de ida y de vuelta de un paquete desde un selector, en lugar de escribir identificadores.

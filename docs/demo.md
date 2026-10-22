@@ -51,6 +51,6 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 
 ## 5. Calidad
 
-- **Tests.** 277 de backend y 97 de frontend, más pruebas end-to-end con Cypress.
+- **Tests.** Suites de backend, vuelos y frontend, 13 escenarios de aceptación con Cucumber y 10 tests end-to-end con Cypress. Consultar los logs de CI para los resultados de la versión presentada.
 - **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
 - **Ejecutar las pruebas.** Ver la sección *Testing* del README.
