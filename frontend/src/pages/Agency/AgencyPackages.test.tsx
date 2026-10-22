@@ -1,8 +1,9 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+import { listCities } from '../../api/cities'
 import { listFlights } from '../../api/flights'
 import { listHotels } from '../../api/hotels'
 import { createPackage, deletePackage, getAgencyPackages, updatePackage } from '../../api/packages'
@@ -12,6 +13,7 @@ import { createTestQueryClient } from '../../test/queryClient'
 import { AgencyPackages } from './AgencyPackages'
 
 vi.mock('../../api/flights', () => ({ listFlights: vi.fn() }))
+vi.mock('../../api/cities', () => ({ listCities: vi.fn() }))
 vi.mock('../../api/hotels', () => ({ listHotels: vi.fn() }))
 vi.mock('../../api/packages', () => ({
   getAgencyPackages: vi.fn(),
@@ -38,6 +40,7 @@ describe('AgencyPackages page', () => {
     vi.mocked(getAgencyPackages).mockResolvedValue([parisPackage])
     vi.mocked(listHotels).mockResolvedValue([parisHotel, buenosAiresHotel])
     vi.mocked(listFlights).mockResolvedValue(allFlights)
+    vi.mocked(listCities).mockResolvedValue([parisHotel.city, buenosAiresHotel.city])
   })
 
   it('no longer asks for raw flight ids', async () => {
@@ -73,6 +76,48 @@ describe('AgencyPackages page', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Nombre')).toHaveValue('')
     })
+  })
+
+  it.each(['create', 'edit'])('saves the selected flights after filtering by origin and dates on %s', async (mode) => {
+    const user = userEvent.setup()
+    mockedCreatePackage.mockResolvedValue(parisPackage)
+    vi.mocked(updatePackage).mockResolvedValue(parisPackage)
+    renderAgencyPackages()
+    if (mode === 'edit') {
+      await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
+      await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2'))
+    } else {
+      await user.type(await screen.findByLabelText('Nombre'), parisPackage.name)
+      await user.selectOptions(screen.getByLabelText('Hotel'), '1')
+      await user.type(screen.getByLabelText('Precio'), '1800')
+    }
+
+    await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
+    fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '2026-12-01' } })
+    fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-10' } })
+    await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
+      origin: 'BUE', destination: 'PAR', date: '2026-12-01',
+    }))
+    await waitFor(() => expect(screen.getByLabelText('Vuelo de ida').querySelector('option[value="1"]')).not.toBeNull())
+    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
+      origin: 'PAR', destination: 'BUE', date: '2026-12-10',
+    }))
+    await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta').querySelector('option[value="2"]')).not.toBeNull())
+    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    await user.click(screen.getByRole('button', { name: mode === 'edit' ? 'Guardar cambios' : 'Crear paquete' }))
+
+    const payload = {
+      name: parisPackage.name, hotelId: 1, outboundFlightId: 1, returnFlightId: 2, price: 1800,
+    }
+    if (mode === 'edit') {
+      await waitFor(() => expect(updatePackage).toHaveBeenCalledWith(10, payload))
+      expect(createPackage).not.toHaveBeenCalled()
+    } else {
+      await waitFor(() => expect(createPackage).toHaveBeenCalled())
+      expect(mockedCreatePackage.mock.calls[0][0]).toEqual(payload)
+      expect(updatePackage).not.toHaveBeenCalled()
+    }
   })
 
   it('shows the server message when the package is rejected', async () => {
