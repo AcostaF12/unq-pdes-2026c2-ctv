@@ -32,7 +32,7 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 ## 2. Agencia (`agency` / `agency123`)
 
 1. Ingresar como `agency` (Despegar).
-2. **Mis paquetes** (`/agency`): crear y eliminar paquetes de la agencia.
+2. **Mis paquetes** (`/agency`): crear, editar y eliminar paquetes de la agencia. Al editar, se cargan los valores actuales y se puede guardar o cancelar.
 3. **Ventas** (`/agency/sales`): compras realizadas sobre sus paquetes.
 4. Mostrar que un comprador que entra a `/agency` ve "Sin permiso".
 
