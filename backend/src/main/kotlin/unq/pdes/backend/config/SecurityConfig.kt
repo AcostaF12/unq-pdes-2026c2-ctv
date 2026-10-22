@@ -34,6 +34,7 @@ class SecurityConfig(
             it.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
             it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             it.requestMatchers("/auth/**", "/error").permitAll()
+            it.requestMatchers("/admin/**").hasRole("ADMIN")
 
             it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
