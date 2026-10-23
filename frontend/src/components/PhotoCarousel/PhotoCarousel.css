@@ -14,6 +14,36 @@
   object-fit: cover;
 }
 
+.photo-carousel__img--next {
+  animation: carousel-in-next var(--dur-base) var(--ease-out);
+}
+
+.photo-carousel__img--prev {
+  animation: carousel-in-prev var(--dur-base) var(--ease-out);
+}
+
+@keyframes carousel-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes carousel-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .photo-carousel::after {
   content: '';
   position: absolute;
@@ -102,19 +132,44 @@
 
 /* ---- Modern theme refinements ---- */
 .photo-carousel__nav {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 0;
   background: rgb(255 255 255 / 0.92);
   color: var(--color-ink);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
 
 .photo-carousel__nav:hover {
   background: #fff;
   color: var(--color-brand);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.photo-carousel__nav:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.photo-carousel__chevron {
+  display: block;
 }
 
 .photo-carousel__dot {
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-pill);
   border: 0;
+  transition:
+    width var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+.photo-carousel__dot--active {
+  width: 22px;
 }

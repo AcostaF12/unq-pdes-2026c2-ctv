@@ -16,9 +16,9 @@ interface RankingProps {
 
 function Ranking({ title, headings, rows }: RankingProps) {
   return (
-    <section>
+    <section className="admin-report">
       <h2>{title}</h2>
-      {rows.length === 0 ? <p>Sin datos para este reporte.</p> : (
+      {rows.length === 0 ? <p className="admin-report__empty">Sin datos para este reporte.</p> : (
         <div className="admin-query-scroll" role="region" aria-label={title} tabIndex={0}>
           <table className="admin-query-table">
             <caption>{title}</caption>
@@ -39,11 +39,16 @@ export function AdminReports() {
   const query = useQuery({ queryKey: ['admin', 'reports'], queryFn: getAdminReports })
   const data = query.data
   return (
-    <section className="page">
+    <section className="page admin-reports">
       <Link className="catalog__back" to="/admin">← Administración</Link>
-      <h1 className="page__title">Reportes Top 5</h1>
-      <p className="catalog__muted">Histórico completo, incluidas agencias inactivas. Se muestran hasta cinco resultados por reporte.</p>
-      <p className="catalog__muted">Los puntajes son el promedio de las reseñas de cada destino, de 0 a 10. Los destinos vendidos corresponden al viaje guardado en cada compra.</p>
+      <header className="admin-reports__intro">
+        <h1 className="page__title">Reportes Top 5</h1>
+        <p className="admin-reports__note">
+          Histórico completo, incluidas agencias inactivas. Cada reporte muestra hasta cinco filas.
+          El puntaje es el promedio de reseñas de cada destino, de 0 a 10. Los destinos vendidos son
+          los del viaje de cada compra.
+        </p>
+      </header>
       {query.isPending ? <ListSkeleton variant="rows" count={4} label="Cargando reportes" /> : query.isError ? (
         <EmptyState tone="error" title="No se pudieron cargar los reportes" message={getApiErrorMessage(query.error) ?? 'Intentá de nuevo.'}
           action={<Button onClick={() => void query.refetch()}>Reintentar</Button>} />

@@ -190,12 +190,14 @@ export function Profile() {
         </div>
       </header>
 
-      <Input
-        label="Buscar en tu cuenta"
-        value={sectionQuery}
-        onChange={(event) => setSectionQuery(event.target.value)}
-        placeholder="Perfil, preferencias, contraseña…"
-      />
+      <div className="account-search">
+        <Input
+          label="Buscar en tu cuenta"
+          value={sectionQuery}
+          onChange={(event) => setSectionQuery(event.target.value)}
+          placeholder="Perfil, preferencias, contraseña…"
+        />
+      </div>
 
       {visibleSections.length === 0 ? (
         <p className="account-empty">No hay secciones que coincidan con esa búsqueda.</p>

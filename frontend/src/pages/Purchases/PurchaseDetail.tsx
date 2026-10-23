@@ -109,7 +109,7 @@ export function PurchaseDetail() {
       </Link>
 
       <header className="purchase-detail__intro">
-        <p className="purchase-intro__eyebrow">Compra confirmada</p>
+        <p className="purchase-detail__kicker">Compra confirmada</p>
         <h1 className="page__title">{travelPackage.name}</h1>
         <p className="purchase-detail__sub">
           <span className="purchase-ticket__code">{confirmationCode(purchase.id)}</span>
@@ -157,7 +157,7 @@ export function PurchaseDetail() {
         <div className="pass__stub">
           <p className="purchase-ticket__price">
             <span className="purchase-ticket__price-label">Precio abonado</span>
-            USD {purchase.purchasePrice}
+            <span className="purchase-ticket__amount">USD {purchase.purchasePrice}</span>
           </p>
           <span className="pass__barcode" aria-hidden="true" />
           <span className="pass__stamp" aria-hidden="true">
@@ -194,17 +194,20 @@ export function PurchaseDetail() {
       </div>
 
       {isBuyer ? (
-        <section className="detail-card reveal" style={{ ['--i' as string]: 5 }}>
+        <section className="detail-card detail-card--review reveal" style={{ ['--i' as string]: 5 }}>
           <h2>Tu reseña</h2>
           {review ? (
             <>
               <p className="detail-card__strong">{review.score}/10</p>
-              {review.comment ? <p>{review.comment}</p> : null}
+              {review.comment ? <p className="detail-card__comment">{review.comment}</p> : null}
             </>
           ) : (
             <>
               <p className="catalog__muted">Todavía no calificaste este viaje.</p>
-              <Link className="purchase-ticket__link" to={`/trips/${travelPackage.id}`}>
+              <Link
+                className="purchase-ticket__link purchase-ticket__link--ghost"
+                to={`/trips/${travelPackage.id}`}
+              >
                 Dejar reseña →
               </Link>
             </>
@@ -216,7 +219,10 @@ export function PurchaseDetail() {
         <Button type="button" onClick={() => window.print()}>
           Imprimir comprobante
         </Button>
-        <Link className="empty-state__cta empty-state__cta--ghost" to={`/trips/${travelPackage.id}`}>
+        <Link
+          className="purchase-ticket__link purchase-ticket__link--ghost purchase-detail__package-link"
+          to={`/trips/${travelPackage.id}`}
+        >
           Ver el paquete
         </Link>
       </div>

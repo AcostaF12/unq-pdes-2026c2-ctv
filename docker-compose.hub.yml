@@ -1,11 +1,15 @@
-# Levanta todo el stack con las imágenes publicadas en Docker Hub, sin compilar nada:
+# Levanta el stack con las imágenes publicadas en Docker Hub, sin compilar nada:
 #
 #   docker compose -f docker-compose.hub.yml up -d --wait
 #
+# Monitoreo (Zipkin, Prometheus, Grafana, ELK) queda en el profile "monitoring":
+#
+#   docker compose -f docker-compose.hub.yml --profile monitoring up -d --wait
+#
 # El namespace de Docker Hub se puede cambiar con DOCKERHUB_NAMESPACE y la etiqueta
 # con CTV_IMAGE_TAG (por defecto "latest"; también existe una etiqueta por commit SHA).
-# El resto de los servicios (bases, Zipkin, Prometheus, Grafana, ELK) se heredan de
-# docker-compose.yml, así que los puertos y credenciales son los mismos.
+# El resto de los servicios (bases y monitoreo) se heredan de docker-compose.yml,
+# así que los puertos y credenciales son los mismos.
 name: ctv-hub
 
 services:

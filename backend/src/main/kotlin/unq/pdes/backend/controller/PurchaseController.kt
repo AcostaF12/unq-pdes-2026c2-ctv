@@ -24,7 +24,12 @@ import unq.pdes.backend.service.ReviewService
 import java.math.BigDecimal
 import java.time.LocalDate
 
-@Tag(name = "Purchase Services", description = "Compra de paquetes e historial.")
+@Tag(
+    name = "Purchase Services",
+    description =
+        "La compra y el historial. Comprar y ver lo propio es del comprador. " +
+            "Ver las ventas de su agencia es del rol agencia. El precio guardado no cambia si el paquete se edita después.",
+)
 @RestController
 @RequestMapping("/purchases")
 class PurchaseController(
@@ -35,9 +40,11 @@ class PurchaseController(
     @Operation(
         summary = "Mis compras",
         description =
-            "Lista las compras del usuario autenticado. Filtra por nombre del paquete, destino (código), " +
-                "rango de fechas y rango de precio abonado. Orden: 'sort=date,desc' (por defecto), " +
-                "'date,asc', 'price,asc' o 'price,desc'.",
+            "Historial del comprador, de a una página. La página 0 es la primera.\n\n" +
+                "El precio es el que se pagó, no el de hoy. " +
+                "Se puede filtrar por paquete, destino, fechas y precio, " +
+                "y ordenar con sort=date,desc, date,asc, price,asc o price,desc.\n\n" +
+                "**Quién:** comprador",
     )
     @GetMapping("/me")
     @Suppress("LongParameterList")
@@ -70,7 +77,14 @@ class PurchaseController(
             ),
         )
 
-    @Operation(summary = "Compras de la agencia", description = "Lista las ventas de la agencia autenticada.")
+    @Operation(
+        summary = "Compras de la agencia",
+        description =
+            "Ventas de la agencia del token, de a una página.\n\n" +
+                "Filtra por comprador, nombre del paquete y fechas. " +
+                "El historial de todas las agencias está en GET /admin/sales.\n\n" +
+                "**Quién:** agencia",
+    )
     @GetMapping("/agency")
     fun agency(
         @AuthenticationPrincipal principal: UserDetails,
@@ -87,7 +101,14 @@ class PurchaseController(
             ),
         )
 
-    @Operation(summary = "Verificar compra", description = "Indica si el usuario autenticado ya compró un paquete.")
+    @Operation(
+        summary = "Verificar compra",
+        description =
+            "Dice si este comprador ya compró el paquete.\n\n" +
+                "La pantalla lo usa para mostrar \"Ya comprado\".\n\n" +
+                "**Quién:** comprador\n" +
+                "**200** true o false",
+    )
     @GetMapping("/me/packages/{packageId}")
     fun hasPurchased(
         @AuthenticationPrincipal principal: UserDetails,
@@ -97,8 +118,11 @@ class PurchaseController(
     @Operation(
         summary = "Detalle de compra",
         description =
-            "Incluye los vuelos de ida y vuelta cuando están disponibles y, para el comprador, su reseña. " +
-                "Solo el comprador, la agencia vendedora o un administrador pueden consultarla.",
+            "Abre una compra con la copia de lo que se pagó y, si vuelos responde, la ida y la vuelta.\n\n" +
+                "Si mira el comprador, también trae su reseña.\n\n" +
+                "**Quién:** el comprador, la agencia que vendió o un admin\n" +
+                "**403** otro rol\n" +
+                "**404** no existe",
     )
     @GetMapping("/{id}")
     fun byId(
@@ -117,7 +141,18 @@ class PurchaseController(
         return ResponseEntity.ok(PurchaseDetailDto.from(purchase, outbound, returnFlight, review))
     }
 
-    @Operation(summary = "Comprar paquete", description = "Registra la compra y reserva asientos de ida y vuelta.")
+    @Operation(
+        summary = "Comprar paquete",
+        description =
+            "Única ruta pública que vende asientos.\n\n" +
+                "Vende la ida y después la vuelta. Si la vuelta falla, cancela la ida y no guarda la compra. " +
+                "El ticket conserva el precio de ese momento.\n\n" +
+                "**Quién:** comprador\n" +
+                "**201** compra creada\n" +
+                "**400** archivado, agencia inactiva o sin lugar\n" +
+                "**404** el paquete no existe\n" +
+                "**503** vuelos no responde",
+    )
     @PostMapping
     fun purchase(
         @AuthenticationPrincipal principal: UserDetails,

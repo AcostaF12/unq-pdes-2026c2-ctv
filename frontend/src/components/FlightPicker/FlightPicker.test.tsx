@@ -8,7 +8,7 @@ import { listFlights } from '../../api/flights'
 import { allFlights, apiError, laterOutboundToParis, outboundToParis, returnFromParis } from '../../test/fixtures'
 import { createTestQueryClient } from '../../test/queryClient'
 import { FlightPicker, type FlightSelection } from './FlightPicker'
-import { describeFlight, describeSeats, outboundOptions, returnOptions } from './flightOptions'
+import { describeFlight, describeSeats, flightChoiceLabel, outboundOptions, returnOptions } from './flightOptions'
 
 vi.mock('../../api/flights', () => ({
   listFlights: vi.fn(),
@@ -32,6 +32,7 @@ describe('flight option helpers', () => {
 
   it('describes flights with airline, date, time, route and seats left', () => {
     expect(describeFlight(returnFromParis)).toBe('Air Sur · 2026-12-10 08:30 · PAR → BUE · 1 lugar')
+    expect(flightChoiceLabel(returnFromParis)).toBe('Air Sur · 08:30 · 1 lugar')
     expect(describeSeats(0)).toBe('sin lugares')
     expect(describeSeats(5)).toBe('5 lugares')
   })
@@ -82,8 +83,8 @@ describe('FlightPicker', () => {
     await waitFor(() => {
       expect(optionLabels(outbound)).toEqual([
         'Elegí un vuelo de ida',
-        describeFlight(outboundToParis),
-        describeFlight(laterOutboundToParis),
+        flightChoiceLabel(outboundToParis),
+        flightChoiceLabel(laterOutboundToParis),
       ])
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ destination: 'PAR' })
@@ -93,27 +94,27 @@ describe('FlightPicker', () => {
 
     const inbound = screen.getByLabelText('Vuelo de vuelta')
     await waitFor(() => {
-      expect(optionLabels(inbound)).toEqual(['Elegí un vuelo de vuelta', describeFlight(returnFromParis)])
+      expect(optionLabels(inbound)).toEqual(['Elegí un vuelo de vuelta', flightChoiceLabel(returnFromParis)])
+      expect(inbound).toHaveValue(String(returnFromParis.id))
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ origin: 'PAR', destination: 'BUE' })
-
-    await user.selectOptions(inbound, String(returnFromParis.id))
-    expect(inbound).toHaveValue(String(returnFromParis.id))
   })
 
-  it('clears the return flight when the outbound flight changes', async () => {
+  it('keeps the return flight when the new outbound uses the same route', async () => {
     const user = userEvent.setup()
     renderPicker('PAR')
 
     const outbound = screen.getByLabelText('Vuelo de ida')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(outbound, String(outboundToParis.id))
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), String(returnFromParis.id))
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
+    await waitFor(() => {
+      expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
+    })
 
     await user.selectOptions(outbound, String(laterOutboundToParis.id))
 
-    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
   })
 
   it('tells the admin when there are no flights to the destination', async () => {

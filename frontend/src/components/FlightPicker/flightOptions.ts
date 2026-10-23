@@ -35,3 +35,7 @@ export function describeFlight(flight: Flight): string {
     describeSeats(flight.availability),
   ].join(' · ')
 }
+
+export function flightChoiceLabel(flight: Flight): string {
+  return [flight.airline, flight.departureTime.slice(0, 5), describeSeats(flight.availability)].join(' · ')
+}

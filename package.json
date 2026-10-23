@@ -1,0 +1,14 @@
+{
+  "name": "compra-tu-viaje",
+  "private": true,
+  "description": "Atajos para levantar y apagar Compra tu Viaje con Docker.",
+  "scripts": {
+    "start": "docker compose up --build -d --wait",
+    "start:monitoring": "docker compose --profile monitoring up --build -d --wait",
+    "up": "docker compose up --build -d --wait",
+    "up:monitoring": "docker compose --profile monitoring up --build -d --wait",
+    "down": "docker compose --profile monitoring down",
+    "ps": "docker compose ps",
+    "logs": "docker compose logs -f --tail=80"
+  }
+}

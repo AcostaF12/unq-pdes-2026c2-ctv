@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B667C">
+<title>Compra Tu Viaje · Defensa de la Entrega 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700;800&display=swap">
+<script>
+try{var t=localStorage.getItem('ctv-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}
+</script>
+<style>
+:root{
+  --bg:#EEF2F3;--surface:#fff;--surface-2:#F4F7F8;--ink:#142029;--muted:#5A6C76;
+  --line:#D5DEE2;--accent:#0B667C;--accent-soft:#E4F3F7;--ok:#1B7F4B;--ok-soft:#E5F5EC;
+  --warn:#8F4E00;--warn-soft:#FBF1E2;--risk:#A32620;--risk-soft:#FBEceb;--code-bg:#E7EEEF;
+  --display:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --shadow:0 1px 2px rgba(20,32,41,.04),0 12px 32px rgba(20,32,41,.04);
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0C1419;--surface:#152029;--surface-2:#1C2A34;--ink:#E6EEF2;--muted:#9AADB6;
+  --line:#2A3C48;--accent:#7ED3E8;--accent-soft:#123844;--ok:#7DDCB0;--ok-soft:#123226;
+  --warn:#F0B36A;--warn-soft:#3A2A12;--risk:#FF9B92;--risk-soft:#3D1C1A;--code-bg:#1C2A34;
+  --shadow:none;color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.65 var(--body)}
+body.nav-open{overflow:hidden}
+body.nav-open .topbar{visibility:hidden}
+::selection{background:var(--accent-soft);color:var(--ink)}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);line-height:1.18;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(2.05rem,4.4vw,3.05rem);font-weight:800}
+h2{font-size:clamp(1.45rem,2.5vw,1.9rem);font-weight:700}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:6px}
+code,kbd{font-family:var(--mono);font-size:.84em;background:var(--code-bg);padding:.12em .38em;border-radius:4px}
+pre{margin:0;overflow-x:auto}
+pre code{display:block;padding:10px 12px;white-space:pre-wrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--surface);color:var(--ink);padding:8px 12px;border-radius:8px;z-index:80}
+.skip:focus{left:12px}
+.readbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:40;background:transparent}
+.readbar i{display:block;height:100%;width:0;background:var(--accent)}
+.topbar{display:none}
+.frame{max-width:1280px;margin:0 auto;padding:28px 22px 80px;display:grid;grid-template-columns:288px minmax(0,1fr);gap:28px}
+.toc{position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 12px 12px;box-shadow:var(--shadow);overflow:hidden}
+.toc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px}
+.toc-head b{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.toc-hint{margin:0;padding:0 4px;color:var(--muted);font-size:.78rem;line-height:1.4}
+.toc-scroll{overflow:auto;min-height:0;flex:1;display:flex;flex-direction:column;gap:2px;padding-right:2px;scrollbar-width:thin}
+.toc-now{margin:0;padding-top:8px;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem}
+.toc-group{margin:12px 4px 4px;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.toc-static{display:flex;flex-direction:column;gap:2px}
+.toc-static a,.toc-sub a{color:var(--muted);text-decoration:none;border-radius:8px;display:flex;align-items:center;gap:8px}
+.toc-static a{padding:6px 8px}
+.toc-static a span,.tog span{font-family:var(--mono);font-size:.72rem;width:1.15rem;color:var(--accent);flex:none}
+button.theme,button.menu,button.toc-close{font:500 .78rem var(--body);background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+button.theme:hover,button.menu:hover,button.toc-close:hover{border-color:var(--accent)}
+button.tog{font:500 .9rem var(--body);width:100%;text-align:left;background:transparent;color:var(--ink);border:0;border-radius:8px;padding:7px 8px;cursor:pointer;display:flex;align-items:center;gap:8px}
+button.tog::after{content:"+";margin-left:auto;font-family:var(--mono);color:var(--muted);font-weight:500}
+.toc-block.is-open>button.tog::after{content:"–"}
+button.tog:hover,.toc-block.is-current>button.tog{background:var(--surface-2)}
+.toc-sub{display:none;flex-direction:column;gap:1px;margin:0 0 6px 16px;padding:0 0 2px 8px;border-left:1px solid var(--line)}
+.toc-block.is-open>.toc-sub{display:flex}
+.toc-sub a{padding:5px 8px;font-size:.84rem;line-height:1.35}
+.toc-static a:hover,.toc-sub a:hover{color:var(--ink);background:var(--surface-2)}
+.toc-sub a.is-here,.toc-static a.is-here{color:var(--ink);background:var(--accent-soft);font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+.scrim{position:fixed;inset:0;background:rgba(8,14,18,.48);z-index:25}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.hero,section{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.hero{display:flex;flex-direction:column;gap:16px;padding:28px 26px 22px;scroll-margin-top:20px}
+section{display:flex;flex-direction:column;gap:16px;scroll-margin-top:20px;padding:26px 26px 18px}
+section[data-part="dominio"],section[data-part="arquitectura"],section[data-part="publicacion"],section[data-part="defensa"]{border-top:3px solid var(--accent)}
+section[data-part="logica"],section[data-part="esquemas"]{border-top:3px solid var(--ok)}
+section[data-part="infra"],section[data-part="api"]{border-top:3px solid var(--warn)}
+.sec-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:end}
+.num{font-family:var(--display);font-weight:800;font-size:2.35rem;letter-spacing:-.05em;line-height:.8;color:var(--accent)}
+.sec-head{display:flex;flex-direction:column;gap:8px;min-width:0}
+.kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lead{font-size:1.08rem;max-width:68ch}
+.glance{display:flex;flex-direction:column;gap:10px;background:var(--accent-soft);border-radius:12px;padding:14px 16px}
+.glance p{max-width:74ch}
+.glance > p > span,.localcap,.chain-label{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.glance ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px}
+.glance li{background:var(--surface);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.glance li b{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:3px}
+.chain{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.chain li{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.chain b{font-family:var(--display);font-weight:700}
+.chain span{color:var(--muted);font-size:.86rem}
+.chain i{font-style:normal;font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.localbar{display:flex;flex-direction:column;gap:6px}
+.local{display:flex;flex-wrap:wrap;gap:6px}
+.local a{text-decoration:none;font-size:.8rem;line-height:1.3;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.local a:hover{border-color:var(--accent)}
+.local a.is-here{background:var(--accent-soft);border-color:transparent;font-weight:600}
+h3[id]{scroll-margin-top:24px}
+h3.subhead{display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+h3.subhead::before{content:"";width:7px;height:7px;border-radius:99px;background:var(--accent);flex:none}
+.ep-group h3.subhead{margin-top:0;padding-top:0;border-top:0;scroll-margin-top:76px}
+.chain.layers{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chain.layers li:nth-child(1){box-shadow:inset 3px 0 0 var(--ok)}
+.chain.layers li:nth-child(2){box-shadow:inset 3px 0 0 var(--accent)}
+.chain.layers li:nth-child(3){box-shadow:inset 3px 0 0 var(--warn)}
+.suite{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.suite>h3.subhead{margin:0;padding:13px 16px;border-top:0;background:var(--ok-soft)}
+.suite.api>h3.subhead{background:var(--accent-soft)}
+.suite.ui>h3.subhead{background:var(--warn-soft)}
+.suite>:not(h3){margin-left:16px;margin-right:16px}
+.suite>:last-child{margin-bottom:16px}
+.suite .tablewrap{min-width:0}
+.suite td code{white-space:normal}
+.pill{font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.03em;padding:2px 7px;border-radius:999px;display:inline-block;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.risk{background:var(--risk-soft);color:var(--risk)}
+.prose{max-width:72ch;display:flex;flex-direction:column;gap:10px}
+.prose.mod{max-width:none;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;gap:6px}
+.prose.mod b{font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:.75rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.meta b{color:var(--ink);font-weight:500}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.card{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.roles .card:nth-child(1){box-shadow:inset 3px 0 0 var(--ok)}
+.roles .card:nth-child(2){box-shadow:inset 3px 0 0 var(--accent)}
+.roles .card:nth-child(3){box-shadow:inset 3px 0 0 var(--warn)}
+.views{counter-reset:view}
+.views .card h3::before{counter-increment:view;content:counter(view);display:inline-grid;place-items:center;width:1.35rem;height:1.35rem;margin-right:8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:.75rem;font-weight:500;vertical-align:1px}
+.say,.edge{padding:14px 16px;border-radius:12px;display:flex;flex-direction:column;gap:6px}
+.say{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent)}
+.edge{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 32%,transparent)}
+.tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+.say .tag{color:var(--accent)}.edge .tag{color:var(--warn)}
+.cue{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:2px}
+.say ol{margin:0}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin:0}
+.gloss div{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.gloss dt{font-family:var(--display);font-weight:700}
+.gloss dd{margin:3px 0 0;color:var(--muted);font-size:.9rem}
+.tablewrap{min-width:0;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:560px}
+th{text-align:left;font-family:var(--mono);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:10px 12px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+td code{white-space:nowrap}
+td:first-child{font-weight:600}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+.fig{min-width:0;overflow-x:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.fig svg{display:block;width:100%;height:auto;min-width:680px}
+.fig img{display:block;width:100%;min-width:720px;height:auto;background:#fff;border-radius:8px}
+figcaption{color:var(--muted);font-size:.88rem;max-width:78ch}
+svg text{font-family:var(--body);fill:currentColor}
+svg .s{font-size:11.5px;fill:var(--muted)} svg .b{font-size:13px;font-weight:600}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.3}
+svg .acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+svg .ok{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.6}
+svg .wn{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.6}
+svg .grp{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
+svg .ln{fill:none;stroke:currentColor;stroke-width:1.5}
+svg .dash{fill:none;stroke:currentColor;stroke-width:1.3;stroke-dasharray:5 4}
+svg .life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:3 5}
+.muted{color:var(--muted)}.small{font-size:.88rem}
+.bridge{max-width:70ch;font-size:1.02rem;background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.path{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.path a{text-decoration:none;color:inherit;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.path a:hover{border-color:var(--accent)}
+.path b{font-family:var(--display);font-weight:700}
+.path span{color:var(--muted);font-size:.88rem}
+.verb{font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.04em;padding:2px 6px;border-radius:999px;display:inline-block}
+.verb.get{background:var(--ok-soft);color:var(--ok)}
+.verb.post{background:var(--accent-soft);color:var(--accent)}
+.verb.put,.verb.patch{background:var(--warn-soft);color:var(--warn)}
+.verb.del{background:var(--risk-soft);color:var(--risk)}
+.finder{display:flex;flex-wrap:wrap;align-items:center;gap:10px;position:sticky;top:12px;z-index:2;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);padding:8px 0}
+.epfilter{width:min(100%,360px);font:400 .95rem var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:9px 14px}
+ol.steps,ol.flow{list-style:none;padding:0;counter-reset:s;display:flex;flex-direction:column;gap:8px}
+ol.steps>li,ol.flow>li{counter-increment:s;display:grid;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+ol.steps>li{grid-template-columns:2rem minmax(0,1fr);align-items:start}
+ol.flow>li{grid-template-columns:2.4rem minmax(0,1fr);padding:14px 16px}
+ol.steps>li::before,ol.flow>li::before{content:counter(s);font-family:var(--display);font-weight:800;color:var(--accent);line-height:1}
+ol.flow>li::before{font-size:1.35rem}
+.flow h3{font-size:1.05rem}
+.flow-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mins{font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+details{background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+summary{cursor:pointer;padding:12px 14px;font-weight:600}
+details .ans{padding:0 14px 14px 28px;display:flex;flex-direction:column;gap:8px;max-width:76ch}
+.stepnav{display:flex;justify-content:space-between;gap:16px;margin-top:4px;padding-top:14px;border-top:1px solid var(--line)}
+.stepnav a{text-decoration:none;color:var(--ink);max-width:46%}
+.stepnav a small{display:block;color:var(--muted);font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase}
+.stepnav .next{margin-left:auto;text-align:right}
+@media(max-width:1080px){
+  .topbar{display:flex;position:fixed;top:0;left:0;right:0;z-index:20;height:52px;align-items:center;gap:10px;padding:0 12px;background:color-mix(in srgb,var(--surface) 92%,transparent);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+  .topbar strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92rem}
+  .frame{grid-template-columns:1fr;gap:12px;padding:68px 12px 64px}
+  .toc{position:fixed;top:0;left:0;bottom:0;width:min(340px,90vw);height:100vh;max-height:none;z-index:30;border-radius:0;transform:translateX(-105%);transition:transform .2s ease;visibility:hidden}
+  .toc.is-open{transform:none;visibility:visible}
+  .toc .theme{display:none}
+  .hero,section{padding:18px 16px 14px;border-radius:14px}
+  .hero,section,h3[id]{scroll-margin-top:68px}
+  .ep-group h3.subhead{scroll-margin-top:124px}
+  .finder{top:60px}
+  .chain{grid-template-columns:1fr 1fr}
+  .chain.layers{grid-template-columns:1fr}
+  .sec-top{grid-template-columns:1fr}
+  .num{font-size:1.4rem}
+}
+@media(min-width:1081px){.toc-close{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.toc{transition:none}}
+@media print{
+  .readbar,.toc,.topbar,.scrim,.stepnav,.finder,.localbar,.skip{display:none !important}
+  .frame{display:block;max-width:none;padding:0}
+  .hero,section{box-shadow:none;break-inside:auto}
+  .card,.say,.edge,tr{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<div class="readbar" aria-hidden="true"><i id="readbar"></i></div>
+<div class="scrim" id="scrim" hidden></div>
+<header class="topbar">
+  <button type="button" class="menu" id="open-toc" aria-controls="toc" aria-expanded="false">Índice</button>
+  <strong id="top-here">Inicio</strong>
+  <button type="button" class="theme">Tema oscuro</button>
+</header>
+<div class="frame">
+<nav class="toc" id="toc" aria-label="Índice de la defensa">
+  <div class="toc-head">
+    <b>Índice</b>
+    <button type="button" class="theme">Tema oscuro</button>
+    <button type="button" class="toc-close" id="toc-close">Cerrar</button>
+  </div>
+  <p class="toc-hint">Dominio, arquitectura, lógica, esquemas, infraestructura, API, y al final CI, Docker y Azure. Abrí un paso y elegí el tema. Si un dibujo no entra, se mueve de costado.</p>
+  <div class="toc-scroll" id="toc-scroll">
+    <div class="toc-static" id="toc-static">
+      <a href="#producto"><span>1</span> Dominio</a>
+      <a href="#servicios"><span>2</span> Conexiones</a>
+      <a href="#flujo"><span>3</span> El clic</a>
+      <a href="#decisiones"><span>4</span> La lógica</a>
+      <a href="#datos"><span>5</span> Esquemas</a>
+      <a href="#observar"><span>6</span> Infra</a>
+      <a href="#swagger"><span>7</span> La API</a>
+      <a href="#entrega"><span>8</span> CI y Azure</a>
+      <a href="#demo"><span>9</span> La demo</a>
+      <a href="#cerrar"><span>10</span> El cierre</a>
+    </div>
+    <div id="toc-tree"></div>
+  </div>
+  <p class="toc-now" id="toc-now">Paso 1 de 10</p>
+</nav>
+<main id="contenido">
+
+<header class="hero" id="inicio">
+  <span class="kicker">Compra Tu Viaje · UNQ · Entrega 2 · 22/10/2026</span>
+  <h1>Vendemos paquetes. Los asientos están en otro sistema.</h1>
+  <p class="lead">La pantalla nunca habla con la base ni con los vuelos. Habla con nuestra API. Esa API guarda el paquete y, si hace falta un asiento, llama por adentro a un servicio de vuelos con otra base. Abajo está el sistema en ocho frases. El resto de la página es el detalle para defenderlo. La rama es <b>dev</b> <code>bb30daf</code>, la misma del <a href="https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/24">PR #24 hacia main</a>.</p>
+  <p class="chain-label" id="resumen">El sistema, en ocho frases</p>
+  <dl class="gloss">
+    <div><dt>1. Qué vendemos</dt><dd>Paquetes de una agencia: hotel, ciudad de origen, ciudad de destino, vuelo de ida, vuelo de vuelta y precio.</dd></div>
+    <div><dt>2. Quién entra</dt><dd>El comprador busca, guarda, compra y reseña. La agencia publica lo suyo y ve sus ventas. El admin carga hoteles y vuelos, y ve todo.</dd></div>
+    <div><dt>3. La pantalla</dt><dd>React, puerto 8090. Muestra y esconde menús. No decide permisos ni reserva asientos.</dd></div>
+    <div><dt>4. Nuestra API</dt><dd>Kotlin, puerto 8080. Usuarios, paquetes, compras y permisos. Swagger es la lista de esas rutas. La pantalla solo habla con esta API.</dd></div>
+    <div><dt>5. Dos bases</dt><dd>La nuestra guarda el negocio y el número del vuelo. La de vuelos guarda los asientos. No hay una clave que las una.</dd></div>
+    <div><dt>6. La compra</dt><dd>Se vende el asiento de ida y el de vuelta. Si la vuelta no tiene lugar, se devuelve la ida y no queda compra. El ticket guarda el precio de ese día.</dd></div>
+    <div><dt>7. Archivar</dt><dd>Sacar una oferta ya vendida del catálogo, sin borrar el historial. Borrar queda solo para paquetes que nadie compró.</dd></div>
+    <div><dt>8. Hasta Azure</dt><dd>Un pull request no publica. GitHub prueba. Si desplegamos, la máquina baja la imagen de ese commit y no compila.</dd></div>
+  </dl>
+  <p class="chain-label">Cómo se conecta, cuando alguien usa la app</p>
+  <ol class="chain" aria-label="Conexión de la aplicación">
+    <li><i>1</i><b>La pantalla</b><span>React, puerto 8090. Muestra y esconde menús. No autoriza.</span></li>
+    <li><i>2</i><b>Nuestra API</b><span>Kotlin, puerto 8080. Paquetes, compras, usuarios y permisos.</span></li>
+    <li><i>3</i><b>Base del negocio</b><span>PostgreSQL. No guarda asientos, solo el número del vuelo.</span></li>
+    <li><i>4</i><b>Vuelos</b><span>Otro programa y otra base. Ahí está el stock de asientos.</span></li>
+  </ol>
+  <p class="chain-label">Cómo se publica el mismo código</p>
+  <ol class="chain" aria-label="Del cambio a Azure">
+    <li><i>A</i><b>Un cambio</b><span>Entra por un pull request. El PR no despliega nada.</span></li>
+    <li><i>B</i><b>GitHub prueba</b><span>Tests, lint y Sonar. Es la integración continua.</span></li>
+    <li><i>C</i><b>Docker empaqueta</b><span>Una imagen marcada con el id del commit.</span></li>
+    <li><i>D</i><b>Azure corre</b><span>La máquina descarga esa imagen. No compila.</span></li>
+  </ol>
+  <div class="say"><span class="tag">Si la defensa es ahora</span><p>Cada paso abre con <b>Decilo así</b>: esa es la frase. El detalle, por si preguntan, está debajo. La demo está en el <a href="#demo">guion</a> y el cierre en <a href="#cerrar-frase">la frase</a>. Si señalan Swagger, el mapa de grupos está en <a href="#swagger-grupos">la API</a>.</p></div>
+  <nav class="path" aria-label="Las zonas de la defensa">
+    <a href="#producto"><span class="kicker">Pasos 1 y 2</span><b>Dominio y arquitectura</b><span>Qué se vende y quién habla con quién.</span></a>
+    <a href="#flujo"><span class="kicker">Pasos 3 a 5</span><b>Lógica y esquemas</b><span>Un clic, las reglas de la compra y qué guarda cada base.</span></a>
+    <a href="#observar"><span class="kicker">Pasos 6 y 7</span><b>Infra y API</b><span>Docker para mirar el sistema, y cada ruta de la pantalla.</span></a>
+    <a href="#entrega"><span class="kicker">Pasos 8 a 10</span><b>CI, Azure y la demo</b><span>Cómo llega el código a la máquina, y en qué orden se cuenta.</span></a>
+  </nav>
+  <div class="meta">
+    <span>Repo <b>AcostaF12/unq-pdes-2026c2-ctv</b></span>
+    <span>App <b>localhost:8090</b></span>
+    <span>API <b>localhost:8080</b></span>
+  </div>
+</header>
+
+<section id="producto" data-part="dominio" data-short="Dominio">
+  <div class="sec-top">
+    <span class="num">01</span>
+    <div class="sec-head">
+      <span class="kicker">Dominio · Paso 1 de 10</span>
+      <h2>Qué vende el sistema, y quién puede hacer qué</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Compra Tu Viaje arma, busca y vende paquetes turísticos. Un paquete es de una agencia: hotel, ciudad de origen, ciudad de destino, vuelo de ida, vuelo de vuelta y precio. El asiento no es nuestro: lo reserva otro sistema.</p>
+    <ul>
+      <li><b>Hace</b> que un comprador busque, compre, guarde y reseñe. La agencia publica. El admin carga inventario y mira reportes.</li>
+      <li><b>Se conecta con</b> una sola pantalla. Esa pantalla habla con nuestra API, no con las bases.</li>
+      <li><b>No hace</b> que la agencia cree vuelos. Los vuelos los carga el administrador.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>Vendemos paquetes de agencias: hotel, origen, destino, ida, vuelta y precio. El asiento no es nuestro. La pantalla habla solo con nuestra API, la que Swagger titula <b>CTV - Backend API</b>, en el puerto 8080.</p>
+    <p><span class="cue">Los tres roles</span>El comprador busca, guarda, compra y reseña. La agencia publica y ve sus ventas, y no manda su id: el backend usa la de la sesión. El admin carga hoteles y vuelos. <code>POST /flights</code> es solo admin: una agencia que lo intenta recibe 403.</p>
+    <p><span class="cue">Si te cortan</span>Esta entrega cierra el admin, el archivo de una oferta ya vendida, el seed que no pisa, el bloqueo del último asiento, y la cadena de tests hasta Azure.</p>
+  </div>
+
+  <h3 class="subhead" id="producto-que" data-label="Qué vende">El producto, en una frase</h3>
+  <div class="prose">
+    <p>Antes de esta entrega el comprador ya podía buscar, comprar, guardar favoritos y reseñar. Esta entrega cierra el producto y la forma de entregarlo: admin, archivo de ofertas, datos de demo que no se pisan, el último asiento, y la cadena de tests, imágenes y Azure.</p>
+  </div>
+
+  <h3 class="subhead" id="producto-roles" data-label="Quién lo usa">Tres personas, tres permisos</h3>
+  <div class="cols roles">
+    <article class="card"><h3>Comprador</h3><p>Se registra solo. Filtra el catálogo, marca favoritos, compra, ve el precio que pagó y reseña una sola vez algo que ya compró.</p><p class="small muted"><code>buyer</code> / <code>buyer123</code></p></article>
+    <article class="card"><h3>Agencia</h3><p>Publica, edita, archiva y borra sus paquetes eligiendo hotel y vuelos de listas. Ve las ventas de su agencia. No crea vuelos.</p><p class="small muted"><code>agency</code> / <code>agency123</code> · Despegar</p></article>
+    <article class="card"><h3>Administrador</h3><p>Crea agencias y usuarios, carga hoteles y vuelos, publica paquetes de cualquier agencia, consulta el historial y mira cuatro reportes Top 5.</p><p class="small muted"><code>vferreyra</code> / <code>vferreyra</code></p></article>
+  </div>
+
+  <h3 class="subhead" id="producto-entrega" data-label="Qué se hizo">Qué se hizo en esta entrega</h3>
+  <ul>
+    <li>El panel de administración.</li>
+    <li>Archivar una oferta ya vendida, sin borrar el historial.</li>
+    <li>Datos de demo que se cargan una vez y no pisan lo que hiciste al reiniciar.</li>
+    <li>El bloqueo del último asiento, para que dos compras no se lo lleven.</li>
+    <li>La cadena para entregarlo: tests, integración continua, Sonar, imágenes Docker y un deploy manual a Azure.</li>
+  </ul>
+  <div class="say"><span class="tag">La idea de la que sale todo</span><p>El vuelo no es una tabla nuestra. Es un sistema externo, con su propia base. El paquete solo guarda el número del vuelo. Compras, permisos, historial y fallas de red salen de esa separación.</p></div>
+
+  <h3 class="subhead" id="producto-palabras" data-label="Palabras">Palabras del dominio, en criollo</h3>
+  <dl class="gloss">
+    <div><dt>Paquete</dt><dd>La oferta. Hotel, origen, destino, ida, vuelta y precio, publicados por una agencia.</dd></div>
+    <div><dt>Archivar</dt><dd>Sacar la oferta del catálogo sin borrar las compras. En la base queda <code>active=false</code>.</dd></div>
+    <div><dt>Copia de la compra</dt><dd>El ticket guarda precio, nombres, hotel, ciudades y números de vuelo de ese día. Si mañana cambia el precio, el ticket no se mueve. En el código se llama snapshot.</dd></div>
+    <div><dt>Compensación</dt><dd>Si la ida se vendió y la vuelta no tiene lugar, se deshace la ida. No es una sola transacción entre las dos bases.</dd></div>
+    <div><dt>Bloqueo del asiento</dt><dd>La segunda persona espera, vuelve a leer y ve cero lugares. Ese bloqueo vive en la base de vuelos.</dd></div>
+    <div><dt>Datos de demo</dt><dd>Se cargan una vez. Reiniciar no borra lo que hiciste en la app. En el código se llama seed.</dd></div>
+    <div><dt>Token de sesión</dt><dd>Dura 24 horas. En cada pedido se vuelve a leer el usuario y el rol. El nombre técnico es JWT.</dd></div>
+    <div><dt>Corte de protección</dt><dd>Si vuelos falla seguido, el backend deja de insistir unos segundos y responde 503. Se llama circuit breaker.</dd></div>
+    <div><dt>Versión del esquema</dt><dd>Los cambios de tablas van numerados. Si el código no coincide con la base, el servicio no arranca. La herramienta es Flyway.</dd></div>
+    <div><dt>Contrato de la API</dt><dd>La lista viva de rutas del backend, la que muestra Swagger. No incluye la API interna de vuelos.</dd></div>
+  </dl>
+</section>
+
+<section id="servicios" data-part="arquitectura" data-short="Conexiones">
+  <div class="sec-top">
+    <span class="num">02</span>
+    <div class="sec-head">
+      <span class="kicker">Arquitectura · Paso 2 de 10</span>
+      <h2>Quién habla con quién, y qué no puede cruzar</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Hay tres programas nuestros y dos bases. El navegador solo ve la pantalla y nuestra API. Vuelos no tiene puerto público: el backend lo llama por la red interna de Docker.</p>
+    <ul>
+      <li><b>Hace</b> separar la oferta (paquete) del stock (asiento).</li>
+      <li><b>Se conecta así</b> pantalla → API del negocio → su base. Si hace falta un vuelo, la API llama a vuelos, y vuelos a su base.</li>
+      <li><b>No hace</b> que vuelos lea usuarios o compras. No está en la red de esa base.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>El navegador baja React en el 8090 y después llama al 8080 con <code>Authorization: Bearer</code>. Vuelos no tiene puerto público: el backend lo alcanza por <code>flights-service:8081</code>. No abre la base de vuelos.</p>
+    <p><span class="cue">Si señalan Swagger</span>El grupo <b>Flight Services</b> es la puerta pública: buscar, ver y, solo el admin, crear. La descripción de ese grupo dice que vender un asiento no está ahí. Lo dispara <code>POST /purchases</code>. Por adentro, <code>FlightsClient</code> hace <code>POST /flights/{id}/sales</code> con <code>passengerName</code> y, si hay que deshacer, <code>DELETE /flights/sales/{id}</code>.</p>
+    <p><span class="cue">Si te cortan</span>Vuelos no está en <code>backend-net</code>, así que no puede leer paquetes ni usuarios. La pantalla tampoco: solo está en <code>frontend-net</code>.</p>
+  </div>
+  <p class="bridge">Se lee de afuera hacia adentro: quién usa el sistema, qué proceso corre, qué red lo aísla y en qué capa del código vive cada decisión.</p>
+
+  <h3 class="subhead" id="servicios-vistas" data-label="Tres miradas">Tres formas de mirar lo mismo</h3>
+  <div class="cols views">
+    <article class="card"><h3>Quién lo usa</h3><p>Comprador, agencia y administrador entran por el navegador. Ninguno habla con la base ni con vuelos. El único cliente de la API es la pantalla.</p></article>
+    <article class="card"><h3>Qué está corriendo</h3><p>Pantalla, API y vuelos son nuestros. Cada programa Kotlin tiene su PostgreSQL. Grafana, Zipkin y Kibana están para mirar, no para vender.</p></article>
+    <article class="card"><h3>Dónde se decide</h3><p>La pantalla no autoriza. El controller no vende asientos. El repositorio no llama a vuelos. Esa llamada sale solo de <code>FlightsClient</code>.</p></article>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Vista</th><th scope="col">Se abre en</th></tr></thead>
+      <tbody>
+        <tr><td>Quién lo usa, y el contrato con el navegador</td><td><a href="#producto-roles">Los permisos</a> y <a href="#swagger">la API</a>.</td></tr>
+        <tr><td>Procesos, redes Docker e imágenes</td><td>Este paso. <a href="#observar">Infraestructura</a> dice quién observa. <a href="#entrega">CI y Azure</a>, cómo se publica cada imagen.</td></tr>
+        <tr><td>Capas, recorridas por un clic</td><td><a href="#flujo">El clic</a>. Ahí se ve qué se queda en la API y qué cruza a vuelos.</td></tr>
+        <tr><td>Dueño de cada dato</td><td><a href="#datos">Esquemas</a>: las dos bases y el número que las une.</td></tr>
+        <tr><td>Qué pasa si una conexión falla</td><td><a href="#decisiones">La lógica</a>: compensación, bloqueo, copia de la compra y corte de protección.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="servicios-contenedores" data-label="Diagrama">El diagrama: qué proceso existe</h3>
+  <div class="prose"><p>Leé de izquierda a derecha. El 1 baja la pantalla. El 2 es la llamada a nuestra API, con el token. El 3 es la llamada interna a vuelos. El recuadro de abajo no vende: sirve para mirar el sistema mientras corre.</p></div>
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 980 420" role="img" aria-label="Navegador, frontend, backend, servicio de vuelos y dos bases">
+        <defs><marker id="mk-arch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+        <rect class="box" x="20" y="150" width="130" height="52" rx="4"/><text class="b" x="85" y="181" text-anchor="middle">Navegador</text>
+        <rect class="box" x="20" y="24" width="170" height="58" rx="4"/><text class="b" x="105" y="48" text-anchor="middle">Frontend</text><text class="s" x="105" y="66" text-anchor="middle">nginx · React · :8090</text>
+        <line class="ln" x1="85" y1="150" x2="85" y2="84" marker-end="url(#mk-arch)"/><text class="s" x="96" y="122">1 · baja la pantalla</text>
+        <rect class="acc" x="360" y="144" width="200" height="68" rx="4"/><text class="b" x="460" y="172" text-anchor="middle">Backend</text><text class="s" x="460" y="192" text-anchor="middle">Kotlin · Spring · :8080</text>
+        <line class="ln" x1="152" y1="176" x2="358" y2="176" marker-end="url(#mk-arch)"/><text class="s" x="250" y="166" text-anchor="middle">2 · API con token</text>
+        <rect class="box" x="740" y="144" width="210" height="68" rx="4"/><text class="b" x="845" y="172" text-anchor="middle">flights-service</text><text class="s" x="845" y="192" text-anchor="middle">Kotlin · Spring · red interna</text>
+        <line class="ln" x1="560" y1="176" x2="738" y2="176" marker-end="url(#mk-arch)"/><text class="s" x="648" y="166" text-anchor="middle">3 · HTTP</text>
+        <rect class="box" x="360" y="24" width="200" height="52" rx="4"/><text class="b" x="460" y="46" text-anchor="middle">PostgreSQL</text><text class="s" x="460" y="64" text-anchor="middle">negocio · :5433</text>
+        <line class="ln" x1="460" y1="142" x2="460" y2="78" marker-end="url(#mk-arch)"/><text class="s" x="472" y="114">Flyway</text>
+        <rect class="box" x="740" y="24" width="210" height="52" rx="4"/><text class="b" x="845" y="46" text-anchor="middle">PostgreSQL</text><text class="s" x="845" y="64" text-anchor="middle">vuelos · :5434</text>
+        <line class="ln" x1="845" y1="142" x2="845" y2="78" marker-end="url(#mk-arch)"/>
+        <rect class="grp" x="250" y="268" width="700" height="128" rx="6"/>
+        <text class="s" x="266" y="290">Para mirar, en el mismo Docker Compose</text>
+        <rect class="box" x="268" y="308" width="200" height="64" rx="4"/><text class="b" x="368" y="334" text-anchor="middle">Prometheus → Grafana</text><text class="s" x="368" y="354" text-anchor="middle">métricas · :9090 / :3001</text>
+        <rect class="box" x="486" y="308" width="160" height="64" rx="4"/><text class="b" x="566" y="334" text-anchor="middle">Zipkin</text><text class="s" x="566" y="354" text-anchor="middle">trazas · :9411</text>
+        <rect class="box" x="664" y="308" width="268" height="64" rx="4"/><text class="b" x="798" y="334" text-anchor="middle">Logstash → Elastic → Kibana</text><text class="s" x="798" y="354" text-anchor="middle">logs · :5601</text>
+      </svg>
+    </div>
+    <figcaption>El navegador baja la pantalla por el puerto 8090 y después llama a la API en el 8080. El contenedor de la pantalla está solo en <code>frontend-net</code> y no reenvía la API. Vuelos no publica puerto: el backend lo alcanza por <code>flights-net</code>. La base del negocio está solo en <code>backend-net</code>, y vuelos no entra a esa red.</figcaption>
+  </figure>
+
+  <h3 class="subhead" id="servicios-limites" data-label="Qué cruza">Qué información cruza cada conexión</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Conexión</th><th scope="col">Qué sí pasa</th><th scope="col">Qué no pasa</th></tr></thead>
+      <tbody>
+        <tr><td>Navegador → frontend</td><td>Archivos estáticos</td><td>Token, SQL, vuelos</td></tr>
+        <tr><td>Navegador → backend</td><td>Pedidos HTTP con token. Es el contrato de la API</td><td>SQL y el servicio de vuelos</td></tr>
+        <tr><td>Backend → su Postgres</td><td>JPA hacia <code>backend-postgres</code></td><td>Las tablas de vuelos. Comparte <code>flights-net</code> para el HTTP y no tiene datasource de esa base</td></tr>
+        <tr><td>Backend → flights-service</td><td>HTTP: buscar, ver, crear, vender y cancelar</td><td>Las tablas de vuelos. El paquete guarda solo el id</td></tr>
+        <tr><td>Vuelos → su Postgres</td><td>JPA, con el lock del asiento</td><td>Usuarios, paquetes y compras</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="servicios-redes" data-label="Redes Docker">Quién puede hablar con quién, adentro de Docker</h3>
+  <div class="prose"><p>El diagrama de arriba dice qué proceso existe. Esta tabla dice quién puede hablar con quién adentro de Docker. El navegador no usa ninguna de estas redes: entra por los puertos que publicamos en la máquina.</p></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Red</th><th scope="col">Quién está</th><th scope="col">Qué aísla</th></tr></thead>
+      <tbody>
+        <tr><td><code>frontend-net</code></td><td>Solo el frontend</td><td>nginx no ve bases ni APIs. Sirve la SPA en el puerto 8090.</td></tr>
+        <tr><td><code>backend-net</code></td><td>Backend, su Postgres, Prometheus, Grafana y Logstash</td><td>La base del negocio. <code>flights-service</code> no está acá: no puede leer paquetes ni usuarios.</td></tr>
+        <tr><td><code>flights-net</code></td><td>Vuelos, su Postgres, el backend, Prometheus y Logstash</td><td>El stock. El backend entra para llamar por HTTP a <code>flights-service:8081</code>. No abre <code>flights_dev</code>.</td></tr>
+        <tr><td><code>tracing-net</code></td><td>Backend, vuelos y Zipkin</td><td>La traza de una compra, de un servicio al otro. Las bases no están en esta red.</td></tr>
+        <tr><td><code>logging-net</code></td><td>Logstash, Elasticsearch y Kibana</td><td>El índice de logs. Kibana no ve Postgres. Logstash es el puente: también está en las dos redes de negocio para recibir el JSON.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="say"><span class="tag">La frase de las redes</span><p>Vuelos no puede leer paquetes ni usuarios: no está en <code>backend-net</code>. El backend sí comparte red con la base de vuelos, porque tiene que alcanzar al servicio. No abre esa base. No tiene host, usuario ni repositorio de <code>flights_dev</code>. La regla vive en <code>FlightsClient</code>.</p></div>
+
+  <h3 class="subhead" id="servicios-capas" data-label="Capas">Dónde vive cada decisión en el código</h3>
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 980 300" role="img" aria-label="Capas del frontend, del backend y del servicio de vuelos">
+        <rect class="box" x="16" y="16" width="250" height="268" rx="6"/>
+        <text class="b" x="141" y="42" text-anchor="middle">Frontend</text>
+        <rect class="acc" x="36" y="58" width="210" height="40" rx="4"/><text class="s" x="141" y="83" text-anchor="middle">pages · lo que se ve</text>
+        <rect class="box" x="36" y="110" width="210" height="40" rx="4"/><text class="s" x="141" y="135" text-anchor="middle">auth y query · sesión y caché</text>
+        <rect class="box" x="36" y="162" width="210" height="40" rx="4"/><text class="s" x="141" y="187" text-anchor="middle">api · axios y el JWT</text>
+        <text class="s" x="141" y="230" text-anchor="middle">No tiene base.</text>
+        <text class="s" x="141" y="248" text-anchor="middle">Esconde menús, no autoriza.</text>
+        <rect class="acc" x="290" y="16" width="400" height="268" rx="6"/>
+        <text class="b" x="490" y="42" text-anchor="middle">Backend</text>
+        <rect class="box" x="310" y="58" width="360" height="34" rx="4"/><text class="s" x="490" y="80" text-anchor="middle">filtro JWT · relee usuario y rol</text>
+        <rect class="box" x="310" y="100" width="360" height="34" rx="4"/><text class="s" x="490" y="122" text-anchor="middle">SecurityConfig · verbo, ruta y rol</text>
+        <rect class="box" x="310" y="142" width="360" height="34" rx="4"/><text class="s" x="490" y="164" text-anchor="middle">controller · el endpoint de Swagger</text>
+        <rect class="box" x="310" y="184" width="360" height="34" rx="4"/><text class="s" x="490" y="206" text-anchor="middle">service · regla y transacción</text>
+        <rect class="box" x="310" y="226" width="168" height="40" rx="4"/><text class="s" x="394" y="250" text-anchor="middle">repositorio · su Postgres</text>
+        <rect class="wn" x="490" y="226" width="180" height="40" rx="4"/><text class="s" x="580" y="250" text-anchor="middle">FlightsClient · HTTP</text>
+        <rect class="box" x="714" y="16" width="250" height="268" rx="6"/>
+        <text class="b" x="839" y="42" text-anchor="middle">flights-service</text>
+        <rect class="box" x="734" y="70" width="210" height="40" rx="4"/><text class="s" x="839" y="95" text-anchor="middle">controller</text>
+        <rect class="box" x="734" y="122" width="210" height="40" rx="4"/><text class="s" x="839" y="147" text-anchor="middle">service · vende y cancela</text>
+        <rect class="box" x="734" y="174" width="210" height="40" rx="4"/><text class="s" x="839" y="199" text-anchor="middle">repositorio · lock de fila</text>
+        <text class="s" x="839" y="240" text-anchor="middle">Su API no es la de Swagger.</text>
+      </svg>
+    </div>
+    <figcaption>La regla de compra está en el service del backend. El descuento del asiento está en el service de vuelos. Entre los dos solo hay una llamada HTTP. Si una clase del backend no está en su capa, ArchUnit rompe el build.</figcaption>
+  </figure>
+
+  <h3 class="subhead" id="servicios-piezas" data-label="De quién es">De quién es cada pieza</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Pieza</th><th scope="col">De quién es</th><th scope="col">Qué guarda o qué hace</th></tr></thead>
+      <tbody>
+        <tr><td>Pantalla</td><td>Nosotros</td><td>React y TypeScript. Vite la compila, nginx la sirve en el 8090. No tiene base. La dirección de la API queda adentro del paquete que se descarga.</td></tr>
+        <tr><td>API del negocio</td><td>Nosotros</td><td>Reglas, seguridad, historial y reportes. Su Postgres se llama <code>backend_dev</code>.</td></tr>
+        <tr><td>Servicio de vuelos</td><td>Nosotros, en el papel de un sistema externo</td><td>Alta, búsqueda, venta y cancelación de asientos. Su Postgres se llama <code>flights_dev</code>. El paquete solo guarda el número del vuelo.</td></tr>
+        <tr><td>Herramientas para mirar</td><td>Imágenes de terceros</td><td>Métricas, el recorrido de una compra entre los dos programas, y logs. No venden.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="servicios-codigo" data-label="El código">Cómo está partido el código</h3>
+  <div class="cols">
+    <article class="card">
+      <h3>Backend</h3>
+      <ul>
+        <li><code>controller</code> recibe HTTP y traduce errores a 400, 401, 403, 404 y 503.</li>
+        <li><code>service</code> tiene la regla y la transacción.</li>
+        <li><code>persistence</code> habla con Postgres. Ahí están los bloqueos de fila.</li>
+        <li><code>external/flights</code> es el único que conoce la URL de vuelos.</li>
+      </ul>
+      <p class="small muted">ArchUnit falla el build si una clase no está en su capa.</p>
+    </article>
+    <article class="card">
+      <h3>Frontend</h3>
+      <ul>
+        <li><code>api/</code> llama al backend y manda el token.</li>
+        <li><code>auth/</code> esconde pantallas según el rol. Es comodidad: la seguridad está en el backend.</li>
+        <li>TanStack Query guarda la respuesta y la invalida después de comprar o de marcar un favorito.</li>
+        <li>Los filtros del catálogo viven en la URL, así se puede compartir y volver atrás.</li>
+      </ul>
+    </article>
+  </div>
+  <div class="say"><span class="tag">Qué es el servicio de vuelos</span><p>Es una API chica que armamos para ocupar el lugar de un sistema de aerolíneas. Lista, busca, crea, vende un asiento y cancela esa venta. Tiene su propia base y su propio stock. El backend lo trata como si no pudiera verle las tablas: si está caído, reintenta y después corta. Si la vuelta no tiene lugar, devuelve el asiento de la ida.</p></div>
+</section>
+
+<section id="flujo" data-part="logica" data-short="El clic">
+  <div class="sec-top">
+    <span class="num">03</span>
+    <div class="sec-head">
+      <span class="kicker">Lógica · Paso 3 de 10</span>
+      <h2>Un clic: de la pantalla a la base, y a veces a vuelos</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Cada clic es un pedido HTTP a nuestra API. Primero se comprueba el token y el rol. Después corre la regla. La pantalla no baja el catálogo entero: pide una página y la siguiente es otro pedido.</p>
+    <ul>
+      <li><b>Hace</b> identificar a la persona, frenar si no tiene permiso, y devolver una página de resultados.</li>
+      <li><b>Se conecta con vuelos</b> solo en el detalle, al crear una oferta, al cargar un vuelo y al comprar.</li>
+      <li><b>No hace</b> que buscar el catálogo dependa de vuelos. Si vuelos está caído, el listado igual sale de nuestra base.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>Cada clic es un pedido a nuestra API. El filtro relee el usuario: cuenta apagada o agencia inactiva es 401, y no llega al controller. <code>SecurityConfig</code> mira verbo y ruta: rol corto, 403. La fila de Swagger es el controller. La regla fina vive en el service.</p>
+    <p><span class="cue">Qué llama a vuelos</span><code>GET /packages</code> no. Filtra, ordena y corta la página en nuestro Postgres. <code>GET /packages/{id}</code> sí pide ida y vuelta, y si vuelos no responde el paquete igual vuelve. Comprar no tiene esa tolerancia: sin los dos asientos no hay 201.</p>
+    <p><span class="cue">La página</span>La 0 es la primera. La pantalla pinta <code>content</code> y arma los botones con <code>totalPages</code>. La siguiente es otro pedido, no un recorte en el navegador.</p>
+  </div>
+  <p class="bridge">La seguridad no es el menú. Sin token, o con la cuenta apagada, la respuesta es 401. Con token válido y rol insuficiente, es 403. La regla fina —por ejemplo, que una agencia no edite el paquete de otra— vive en el service.</p>
+
+  <h3 class="subhead" id="flujo-camino" data-label="El camino">Los nueve pasos de un pedido</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Paso</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Navegador</td><td>Pide <code>http://localhost:8090</code>. nginx devuelve el JavaScript de React. Ahí termina el frontend como servidor.</td></tr>
+        <tr><td>2</td><td>React</td><td>Si hay sesión, manda <code>GET /users/me</code> con el JWT guardado. Los filtros de <code>/trips</code> están en la URL del navegador y se copian al query de la API.</td></tr>
+        <tr><td>3</td><td>axios</td><td>Llama a <code>http://localhost:8080</code>. Agrega <code>Authorization: Bearer …</code>. Si la respuesta es 401, borra la sesión y vuelve al login.</td></tr>
+        <tr><td>4</td><td><code>JwtAuthenticationFilter</code></td><td>Lee el token, busca el usuario en la base y arma el rol. Cuenta deshabilitada o agencia inactiva: 401, sin llegar al controller.</td></tr>
+        <tr><td>5</td><td><code>SecurityConfig</code></td><td>Mira verbo y ruta. <code>/auth/**</code> es público. <code>/admin/**</code> es ADMIN. Comprar es BUYER. Crear vuelos es ADMIN. Si el rol no alcanza: 403.</td></tr>
+        <tr><td>6</td><td>Controller</td><td>Valida el JSON. Traduce la ruta a un método. Eso es lo que ves en Swagger: un <code>@Tag</code> por grupo y un <code>@Operation</code> por fila.</td></tr>
+        <tr><td>7</td><td>Service</td><td>La regla y la transacción. Comprar, archivar y vender un asiento viven acá, no en el controller.</td></tr>
+        <tr><td>8</td><td>Postgres del backend</td><td>Paquetes, usuarios, compras. Flyway ya migró el esquema. Hibernate solo valida que coincida.</td></tr>
+        <tr><td>9</td><td><code>FlightsClient</code></td><td>Solo si la operación necesita un vuelo: detalle, alta de vuelo o compra. Habla por HTTP con <code>flights-service</code>, que tiene la otra base. Esas llamadas de venta no aparecen en Swagger.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="flujo-cruza" data-label="Cuándo llama a vuelos">Cuándo la API llama a vuelos</h3>
+  <div class="prose"><p>Buscar el catálogo no necesita al otro servicio. Lo necesitan el detalle, crear una oferta, cargar un vuelo y comprar. Si vuelos no responde en una lectura, la pantalla igual muestra lo que ya está en nuestra base. En la compra no hay esa tolerancia: sin los dos asientos no hay ticket.</p></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Operación</th><th scope="col">Se resuelve en nuestra API</th><th scope="col">Llama a vuelos</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /packages</code></td><td>Filtros, orden y una página, en su Postgres</td><td>No</td></tr>
+        <tr><td><code>GET /packages/{id}</code></td><td>Paquete, hotel y reseñas</td><td><code>findById</code> de ida y vuelta. Si falla, el paquete igual vuelve</td></tr>
+        <tr><td><code>POST</code> y <code>PUT /packages</code></td><td>La oferta y el dueño</td><td><code>findById</code>, para armar origen y destino y exigir que ida, vuelta y hotel cierren</td></tr>
+        <tr><td><code>PUT /packages/{id}/status</code></td><td>Archivar o volver a publicar</td><td>Solo al republicar: <code>findById</code>, fecha vigente y lugares. Archivar no llama a vuelos</td></tr>
+        <tr><td><code>GET</code> y <code>POST /flights</code></td><td>El permiso. El backend no guarda el vuelo</td><td>Busca o crea, y devuelve lo que respondió el otro servicio</td></tr>
+        <tr><td><code>POST /purchases</code></td><td>Lock del paquete, agencia activa, y el ticket</td><td><code>sell</code> de ida y de vuelta. Si la vuelta falla, <code>cancelSale</code> de la ida</td></tr>
+        <tr><td><code>GET /purchases/{id}</code></td><td>El ticket y la copia histórica</td><td><code>findById</code> para mostrar los vuelos. Si falla, el ticket igual vuelve</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="flujo-capas" data-label="Quién decide">Quién decide en cada capa</h3>
+  <div class="cols">
+    <article class="card">
+      <h3>La responsabilidad</h3>
+      <ul>
+        <li><b>Pantalla:</b> muestra, esconde menús y arma la URL. No decide permisos.</li>
+        <li><b>Filtro del token:</b> vuelve a leer al usuario. El rol no queda congelado en el token.</li>
+        <li><b>Seguridad de la ruta:</b> <code>SecurityConfig</code> dice qué rol puede entrar.</li>
+        <li><b>Regla de negocio:</b> el service. Una agencia no edita el paquete de otra, aunque el rol AGENCY pueda usar esa ruta.</li>
+        <li><b>Swagger:</b> la documentación para leer y para probar el login. No es un segundo backend.</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>Qué no pagina</h3>
+      <p><code>GET /cities</code>, <code>GET /hotels</code>, <code>GET /agencies</code>, <code>GET /packages/agency</code>, <code>GET /favorites</code> y <code>GET /admin/reports</code> devuelven la lista entera. El Top 5 ya viene cortado en cinco por la consulta SQL. El catálogo, el historial y las consultas de admin sí paginan.</p>
+    </article>
+  </div>
+
+  <h3 class="subhead" id="flujo-pagina" data-label="Páginas">Por qué no baja el catálogo entero</h3>
+  <div class="prose"><p>La pantalla pinta <code>content</code> y arma los botones con <code>totalPages</code>. La página 0 es la primera. La siguiente es otro pedido a la API, no un recorte en el navegador.</p></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Campo</th><th scope="col">Qué es</th></tr></thead>
+      <tbody>
+        <tr><td><code>content</code></td><td>Los ítems de esa página.</td></tr>
+        <tr><td><code>page</code></td><td>El número de página. Empieza en 0. En <code>/trips</code>, si es 0, se omite de la URL.</td></tr>
+        <tr><td><code>size</code></td><td>Cuántos ítems pidió. Cada lista tiene su tope.</td></tr>
+        <tr><td><code>totalElements</code></td><td>Cuántos resultados hay en total, no solo en esta página.</td></tr>
+        <tr><td><code>totalPages</code></td><td>Cuántas páginas salen de ese total.</td></tr>
+        <tr><td><code>first</code> y <code>last</code></td><td>Solo el historial de compras. Dicen si estás en un extremo.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Lista</th><th scope="col">Quién pide la página</th><th scope="col">Tope de <code>size</code></th><th scope="col">Orden</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /packages</code> y <code>GET /admin/packages</code></td><td>El catálogo no manda <code>size</code>: el backend usa 20. El admin de paquetes pide 10. <code>page</code> va en la URL de <code>/trips</code> y, si es 0, se omite.</td><td>50. Un pedido más grande se recorta. Un <code>sort</code> desconocido responde 400.</td><td>Por defecto <code>name,asc</code>. También <code>price</code>, <code>destination.name</code> y <code>rating</code>. El puntaje no es una columna: se ordena en la consulta.</td></tr>
+        <tr><td><code>GET /purchases/me</code>, <code>/purchases/agency</code>, <code>/admin/sales</code></td><td>La pantalla pide <code>page</code> y <code>size=20</code>.</td><td>De 1 a 100. Fuera de ese rango, 400.</td><td>Compras propias: <code>date,desc</code> o por precio. Agencia y admin filtran comprador, paquete y fechas.</td></tr>
+        <tr><td><code>GET /admin/users</code>, favoritos, reseñas y compras globales</td><td>El cliente pide <code>size=20</code>.</td><td>De 1 a 100.</td><td>Sin orden elegido por la UI. Son consultas de lectura.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="say"><span class="tag">Cómo decirlo</span><p>Filtrar en <code>/trips</code> cambia la dirección del navegador, y esa dirección es el pedido <code>GET /packages</code>. El backend arma la consulta, corta la página en Postgres y devuelve solo esa página. La siguiente es otro pedido.</p></div>
+</section>
+
+<section id="decisiones" data-part="logica" data-short="La lógica">
+  <div class="sec-top">
+    <span class="num">04</span>
+    <div class="sec-head">
+      <span class="kicker">Lógica · Paso 4 de 10</span>
+      <h2>Las reglas, y el límite de cada una</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>La compra no es una sola transacción entre las dos bases. Se vende la ida, se intenta la vuelta y, si la vuelta falla, se deshace la ida. El último asiento sí queda cerrado con un bloqueo de fila.</p>
+    <ul>
+      <li><b>Hace</b> deshacer la ida si la vuelta falla, congelar el precio en el ticket y archivar una oferta sin borrar la historia.</li>
+      <li><b>Se conecta con</b> la base del paquete y, por HTTP, con la base de asientos.</li>
+      <li><b>No hace</b> una transacción única entre las dos bases. Si la cancelación también falla, puede quedar un asiento vendido sin compra. No hay una cola de reintentos.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La compra</span><code>POST /purchases</code> es la única ruta pública que vende asientos. El body es <code>{"packageId": 1}</code>. Bloqueamos la fila del paquete, vendemos la ida, intentamos la vuelta. Si la vuelta no tiene lugar, cancelamos la ida, no guardamos compra y devolvemos 400. Si el guardado local falla, cancelamos las dos. El ticket responde 201 con el precio de ese momento.</p>
+    <p><span class="cue">Qué no es una caída</span>Un “sin lugar” es negocio: no se reintenta y no abre el corte. El 503 es cuando vuelos no responde. Tres reintentos de 500 ms, solo si no hay conexión. Si falla la mitad de las últimas diez, el corte abre diez segundos.</p>
+    <p><span class="cue">El límite, sin que lo pregunten</span>No hay una transacción única entre las dos bases. Si la cancelación también falla, <code>runCatching</code> se traga el error y puede quedar un asiento vendido sin compra. No hay cola de reintentos.</p>
+  </div>
+  <p class="bridge">Cada fila es una pregunta posible. La segunda columna es la respuesta. La tercera es el límite que hay que decir sin que te lo pregunten.</p>
+
+  <h3 class="subhead" id="decisiones-tabla" data-label="Las reglas">Qué había que resolver</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Qué había que resolver</th><th scope="col">Qué hicimos</th><th scope="col">El límite, en voz alta</th></tr></thead>
+      <tbody>
+        <tr><td>Los vuelos son de otro dominio</td><td>Un servicio y una base propios. El backend solo guarda ids.</td><td>Hay que resolver fallas de red y una compra que toca dos sistemas.</td></tr>
+        <tr><td>La compra no puede quedar a medias</td><td>Se vende la ida, se intenta la vuelta y, si falla, se cancela la ida. Si falla el guardado local, se cancelan las dos ventas.</td><td>Si la cancelación también falla, el error se ignora y puede quedar un asiento sin compra. No hay una cola de reintentos.</td></tr>
+        <tr><td>Dos personas y el último asiento</td><td>Se bloquea la fila del vuelo en Postgres. La segunda espera, relee y ve cero lugares.</td><td>Ese bloqueo vive en la base de vuelos. La compra, además, bloquea la fila del paquete para no cruzarse con un archivo.</td></tr>
+        <tr><td>El historial no puede cambiar</td><td>La compra guarda una copia: precio, nombres, hotel, ciudades y números de vuelo de ese momento.</td><td>Los reportes de destinos vendidos usan ese código histórico. El ranking de puntaje usa el destino actual del paquete.</td></tr>
+        <tr><td>Una oferta vendida se quiere retirar</td><td>Archivar (<code>active=false</code>). Sale del catálogo y rechaza compras. El detalle sigue desde el historial.</td><td>Borrar queda solo para paquetes sin compras, reseñas ni favoritos. Republicar exige vuelos vigentes y con lugar.</td></tr>
+        <tr><td>El rol puede cambiar con la sesión abierta</td><td>El token dura 24 horas y en cada pedido se vuelve a leer el usuario. Cuenta apagada o agencia inactiva responden 401. El rol sale de esa lectura.</td><td>La protección contra CSRF está apagada porque el token va en un encabezado, no en una cookie.</td></tr>
+        <tr><td>Vuelos puede estar caído</td><td>Tres reintentos de 500 ms solo si no hay conexión. Si falla la mitad de las últimas 10 llamadas, el corte abre 10 segundos y el usuario recibe 503.</td><td>Un “sin lugar” es un error de negocio: no se reintenta y no abre el corte. Crear un vuelo tiene corte y no tiene reintento.</td></tr>
+        <tr><td>La demo no puede pisar el trabajo</td><td>Los datos de demo se cargan una vez, en una transacción, y si ya están no se vuelven a cargar. No hay botón de reset.</td><td>Una demo desde cero se hace con el Compose de pruebas o borrando los volúmenes a propósito.</td></tr>
+        <tr><td>Hay que entregar el mismo código que se probó</td><td>GitHub prueba cada pull request. La imagen se marca con el id del commit. La máquina en Azure la descarga y no compila.</td><td>Sonar espera el veredicto solo en <code>main</code>. El botón de merge todavía no está bloqueado por esos checks.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="decisiones-compra" data-label="La compra">La compra, en el orden en que pasa</h3>
+  <ol class="steps">
+    <li><p>El comprador manda <code>POST /purchases</code> con el id del paquete.</p></li>
+    <li><p>El backend bloquea la fila del paquete en <code>backend_dev</code>. Exige agencia activa y paquete publicado. Ese lock no está en la base de vuelos.</p></li>
+    <li><p>Le pide a vuelos la ida. Vuelos bloquea la fila de ese vuelo en <code>flights_dev</code> y, si hay lugar, devuelve la venta.</p></li>
+    <li><p>Le pide la vuelta. Si no hay lugar, cancela la ida, el asiento vuelve y el comprador recibe 400. No se guarda compra.</p></li>
+    <li><p>Si las dos ventas salen bien, el backend guarda la compra en su base, con precio y snapshots, y responde 201.</p></li>
+  </ol>
+  <p class="small muted">Si las dos ventas salieron y después falla el guardado local, se cancelan las dos. Ese caso está en la tabla de arriba y en el borde del final de este paso.</p>
+  <figure>
+    <div class="fig wide">
+      <svg viewBox="0 0 980 540" role="img" aria-label="Secuencia de compra. El paquete se bloquea en backend_dev y el asiento en flights_dev.">
+        <defs>
+          <marker id="mk-buy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+          <marker id="mk-warn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--warn)"/></marker>
+        </defs>
+        <rect class="box" x="16" y="12" width="132" height="44" rx="4"/><text class="b" x="82" y="39" text-anchor="middle">Comprador</text>
+        <rect class="acc" x="188" y="12" width="140" height="44" rx="4"/><text class="b" x="258" y="32" text-anchor="middle">Backend</text><text class="s" x="258" y="48" text-anchor="middle">:8080</text>
+        <rect class="ok" x="368" y="12" width="150" height="44" rx="4"/><text class="b" x="443" y="32" text-anchor="middle">backend_dev</text><text class="s" x="443" y="48" text-anchor="middle">paquete y compra</text>
+        <rect class="box" x="558" y="12" width="170" height="44" rx="4"/><text class="b" x="643" y="32" text-anchor="middle">flights-service</text><text class="s" x="643" y="48" text-anchor="middle">HTTP interno</text>
+        <rect class="wn" x="768" y="12" width="190" height="44" rx="4"/><text class="b" x="863" y="32" text-anchor="middle">flights_dev</text><text class="s" x="863" y="48" text-anchor="middle">asientos</text>
+        <line class="life" x1="82" y1="56" x2="82" y2="524"/>
+        <line class="life" x1="258" y1="56" x2="258" y2="524"/>
+        <line class="life" x1="443" y1="56" x2="443" y2="524"/>
+        <line class="life" x1="643" y1="56" x2="643" y2="524"/>
+        <line class="life" x1="863" y1="56" x2="863" y2="524"/>
+        <line class="ln" x1="90" y1="92" x2="250" y2="92" marker-end="url(#mk-buy)"/><text class="s" x="170" y="84" text-anchor="middle">1 · POST /purchases</text>
+        <line class="ln" x1="266" y1="132" x2="435" y2="132" marker-end="url(#mk-buy)"/><text class="s" x="350" y="124" text-anchor="middle">2 · bloquea el paquete</text>
+        <line class="ln" x1="266" y1="176" x2="635" y2="176" marker-end="url(#mk-buy)"/><text class="s" x="450" y="168" text-anchor="middle">3 · vende la ida</text>
+        <line class="ln" x1="651" y1="214" x2="855" y2="214" marker-end="url(#mk-buy)"/><text class="s" x="752" y="206" text-anchor="middle">4 · bloquea ese vuelo</text>
+        <line class="dash" x1="635" y1="252" x2="266" y2="252" marker-end="url(#mk-buy)"/><text class="s" x="450" y="244" text-anchor="middle">devuelve la venta, por ejemplo #10</text>
+        <rect class="grp" x="168" y="274" width="760" height="132" rx="6"/>
+        <text class="s" x="184" y="296" style="fill:var(--warn);font-weight:600">Si la vuelta no tiene lugar</text>
+        <line class="ln" x1="266" y1="328" x2="635" y2="328" marker-end="url(#mk-warn)"/><text class="s" x="450" y="320" text-anchor="middle">la vuelta responde sin lugar</text>
+        <line class="ln" x1="266" y1="366" x2="635" y2="366" marker-end="url(#mk-warn)"/><text class="s" x="450" y="358" text-anchor="middle">cancela la venta #10</text>
+        <line class="ln" x1="250" y1="392" x2="90" y2="392" marker-end="url(#mk-warn)"/><text class="s" x="170" y="384" text-anchor="middle">400, no hay compra</text>
+        <text class="s" x="184" y="436" style="fill:var(--ok);font-weight:600">Si las dos ventas salen bien</text>
+        <line class="ln" x1="266" y1="470" x2="435" y2="470" marker-end="url(#mk-buy)"/><text class="s" x="350" y="462" text-anchor="middle">guarda precio y snapshot</text>
+        <line class="ln" x1="250" y1="508" x2="90" y2="508" marker-end="url(#mk-buy)"/><text class="s" x="170" y="500" text-anchor="middle">201</text>
+      </svg>
+    </div>
+    <figcaption>Cinco columnas: quien pide, el backend, la base del negocio, el servicio de vuelos y la base de vuelos. La #10 es un ejemplo para señalar la venta que después se cancela, no un id fijo. El método es <code>PurchaseService.purchase</code>. El bloqueo del vuelo es <code>FlightService.sell</code> con <code>FlightRepository.findForUpdate</code>. Cucumber comprueba la compensación y que el precio queda congelado. Un test de Postgres comprueba que dos ventas no se llevan el último asiento.</figcaption>
+  </figure>
+
+  <h3 class="subhead" id="decisiones-permisos" data-label="Seguridad">Quién puede llamar qué</h3>
+  <div class="prose"><p>Las rutas están en <code>SecurityConfig</code> y los servicios vuelven a mirar el rol. Comprar, favoritos, reseñas e historial propio son del comprador. Paquetes y ventas de la agencia son del vendedor, si su cuenta y su agencia están activas. <code>/admin/**</code>, escribir hoteles y crear vuelos son del admin. El admin no puede deshabilitarse ni quitarse el rol.</p></div>
+
+  <h3 class="subhead" id="decisiones-admin" data-label="El admin">Qué muestra el admin</h3>
+  <div class="prose"><p><code>/admin/users</code> y <code>/admin/agencies</code> gestionan. <code>/admin/flights</code> y <code>/admin/packages</code> cargan inventario y ofertas. <code>/admin/sales</code> es el historial global. Favoritos, reseñas y compras son consultas paginadas de solo lectura. <code>/admin/reports</code> trae cuatro rankings de como máximo cinco filas, calculados en la base: compradores, agencias, destinos vendidos y destinos mejor puntuados.</p></div>
+
+  <h3 class="subhead" id="decisiones-borde" data-label="El límite">Lo que sigue abierto en la compra</h3>
+  <div class="edge"><span class="tag">Hay que decirlo</span><p>Elegimos deshacer la ida, y no una transacción única entre las dos bases, porque eso las acoplaría. El último asiento sí quedó cerrado con el bloqueo. Lo que sigue abierto es la cancelación que falla: <code>runCatching</code> se traga el error. En la configuración hay un timeout de 3 segundos que no está anotado en el cliente, así que no está aplicado. Lo que sí corre es el reintento y el corte de protección.</p></div>
+</section>
+
+<section id="datos" data-part="esquemas" data-short="Esquemas">
+  <div class="sec-top">
+    <span class="num">05</span>
+    <div class="sec-head">
+      <span class="kicker">Esquemas · Paso 5 de 10</span>
+      <h2>Dos bases. Se conocen por el número del vuelo.</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>La base del negocio guarda personas, agencias, hoteles, paquetes y compras. La base de vuelos guarda capacidad y asientos vendidos. No hay una clave foránea entre ellas: el paquete guarda dos números, ida y vuelta.</p>
+    <ul>
+      <li><b>Hace</b> que cada servicio migre su propio esquema, con versiones numeradas.</li>
+      <li><b>Se conectan</b> solo por ese número. Al comprar, el ticket copia los datos de ese momento.</li>
+      <li><b>No hace</b> que borrar un vuelo rompa solo el paquete. La coherencia se revisa al crear o al volver a publicar.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>Dos Postgres, sin clave foránea entre ellos. El paquete guarda <code>outboundFlightId</code> y <code>returnFlightId</code>. La compra copia precio, nombres, hotel, ciudades y esos números. Por eso <code>GET /purchases/me</code> no se mueve si mañana cambia el paquete.</p>
+    <p><span class="cue">Si preguntan por borrar</span>Borrar un paquete con compras, reseñas o favoritos es 400. Borrar un hotel que un paquete usa es 409: el historial tiene que seguir apuntando. En Swagger está en <b>Hotel Services → Eliminar hotel</b>, y el cuerpo del error trae <code>httpCode</code>, <code>httpStatus</code> y <code>errorData.description</code>.</p>
+    <p><span class="cue">El seed</span>Se carga una vez. Reiniciar no pisa usuarios, permisos, historial ni stock. <code>/internal/demo/*</code> existe solo en vuelos y no sale en este Swagger.</p>
+  </div>
+  <p class="bridge">El diagrama chico es el límite. El dibujo de abajo, el MER, es el detalle de cada tabla. A la izquierda el negocio, a la derecha los vuelos.</p>
+
+  <h3 class="subhead" id="datos-bases" data-label="Dos bases">El esquema, de un vistazo</h3>
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 980 210" role="img" aria-label="Dos bases unidas por el id del vuelo, sin foreign key">
+        <rect class="acc" x="16" y="16" width="430" height="178" rx="6"/>
+        <text class="b" x="231" y="44" text-anchor="middle">backend_dev · :5433</text>
+        <text class="s" x="231" y="72" text-anchor="middle">user · agency · city · hotel</text>
+        <text class="s" x="231" y="94" text-anchor="middle">package · purchase · favorite · review</text>
+        <text class="s" x="231" y="128" text-anchor="middle">El paquete guarda dos números</text>
+        <text class="s" x="231" y="148" text-anchor="middle">outbound_flight_id · return_flight_id</text>
+        <text class="s" x="231" y="176" text-anchor="middle">Flyway V1 a V5</text>
+        <line class="dash" x1="446" y1="138" x2="534" y2="96"/>
+        <text class="s" x="490" y="112" text-anchor="middle">id</text>
+        <rect class="box" x="534" y="16" width="430" height="178" rx="6"/>
+        <text class="b" x="749" y="44" text-anchor="middle">flights_dev · :5434</text>
+        <text class="s" x="749" y="72" text-anchor="middle">flight · flight_sale</text>
+        <text class="s" x="749" y="102" text-anchor="middle">Capacidad, lugares libres</text>
+        <text class="s" x="749" y="122" text-anchor="middle">y cada asiento vendido</text>
+        <text class="s" x="749" y="176" text-anchor="middle">Flyway V1 y V2 · sin usuarios ni paquetes</text>
+      </svg>
+    </div>
+    <figcaption>No hay clave foránea entre las bases. Si un vuelo desaparece, el paquete no se entera solo: se valida al crear la oferta o al volver a publicarla. La compra copia esos números en el ticket.</figcaption>
+  </figure>
+  <div class="prose"><p>En el dibujo los nombres son los del dominio, en singular: ciudad, paquete, usuario. En Postgres las tablas están en plural (<code>cities</code>, <code>hotels</code>, <code>packages</code>) porque <code>package</code> es una palabra reservada de SQL. La línea de ida y vuelta hacia el vuelo no es una clave foránea: es el número que guarda el paquete.</p></div>
+
+  <h3 class="subhead" id="datos-mer" data-label="El diagrama">Cómo leer el diagrama de datos</h3>
+  <figure>
+    <div class="fig"><img src="mer.png" alt="Modelo entidad-relación: a la izquierda la base del negocio y a la derecha vuelos, unidos por una referencia lógica de ida y vuelta"></div>
+    <figcaption>El fuente es <code>docs/mer.puml</code>. Esta copia es <code>docs/mer.png</code>, al lado de este HTML. PK es la clave de la tabla, FK una clave hacia otra tabla de la misma base, UK un valor que no se puede repetir.</figcaption>
+  </figure>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Etiqueta del dibujo</th><th scope="col">Qué relación es</th></tr></thead>
+      <tbody>
+        <tr><td>EMPLEA</td><td>La agencia y el usuario vendedor. <code>agency_id</code> existe solo cuando el rol es AGENCY.</td></tr>
+        <tr><td>OFRECE</td><td>La agencia y el paquete que publica.</td></tr>
+        <tr><td>ORIGEN y DESTINO</td><td>El paquete y dos ciudades. La ciudad usa el código IATA como clave.</td></tr>
+        <tr><td>tiene / incluido en</td><td>La ciudad y el hotel que está en esa ciudad.</td></tr>
+        <tr><td>GUARDA</td><td>El comprador y un favorito. Uno por comprador y paquete.</td></tr>
+        <tr><td>REALIZA</td><td>El comprador y la compra.</td></tr>
+        <tr><td>vendida por / guardada en</td><td>La compra apunta a la agencia y al paquete, y además copia nombres y precio del momento.</td></tr>
+        <tr><td>ESCRIBE</td><td>El comprador y su reseña.</td></tr>
+        <tr><td>VENDIDO y RESEÑADO EN</td><td>La reseña y el paquete. También es única por comprador y paquete.</td></tr>
+        <tr><td>IDA / VUELTA</td><td>El paquete y el vuelo. Es un id, no una foreign key. El vuelo vive en la otra base.</td></tr>
+        <tr><td>VENDIDO EN</td><td>El vuelo y cada asiento vendido, con el nombre del pasajero.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="datos-tablas" data-label="Cada tabla">Para qué existe cada tabla</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Dato</th><th scope="col">Para qué existe</th><th scope="col">Regla que protege</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>Una sola tabla. El rol es BUYER, AGENCY o ADMIN. El vendedor es un <code>AgencyUser</code> con agencia.</td><td>Username único. <code>enabled</code> apaga la cuenta. El registro público solo crea compradores.</td></tr>
+        <tr><td><code>agency</code></td><td>Quien publica paquetes.</td><td><code>active</code>. Apagarla esconde sus paquetes, bloquea a sus vendedores y rechaza compras nuevas. El historial queda.</td></tr>
+        <tr><td><code>city</code> y <code>hotel</code></td><td>La ciudad usa el código IATA como clave. El hotel pertenece a una ciudad.</td><td>Escribir hoteles es de admin. Leerlos es de cualquier usuario logueado.</td></tr>
+        <tr><td><code>package</code></td><td>La oferta: agencia, hotel, origen, destino, dos ids de vuelo, precio y <code>active</code>.</td><td>El nombre es único dentro de la agencia. <code>active=false</code> es archivado: sale del catálogo y no se puede comprar.</td></tr>
+        <tr><td><code>purchase</code></td><td>La venta, con precio, fecha y una copia del comprador, paquete, agencia, hotel, ciudades e ids de vuelo.</td><td>Si mañana cambian el precio o el nombre, el ticket no se mueve. La migración que agregó esa copia es la <code>V2</code>.</td></tr>
+        <tr><td><code>favorite</code> y <code>review</code></td><td>Un comprador guarda o puntúa un paquete.</td><td>Uno por comprador y paquete. La reseña va de 0 a 10 y exige una compra previa.</td></tr>
+        <tr><td><code>flight</code> y <code>flight_sale</code></td><td>Capacidad, lugares libres y cada asiento vendido, con el nombre del pasajero.</td><td>Vender bloquea la fila. Cancelar devuelve un lugar. La demo identifica sus vuelos con una clave estable para no duplicarlos.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="datos-esquema" data-label="Versiones">Las tablas tienen versión</h3>
+  <div class="prose"><p>Flyway aplica los cambios numerados y Hibernate queda en <code>validate</code>: si el código y la base no coinciden, el servicio no arranca. Negocio: <code>V1</code> esquema, <code>V2</code> historial, <code>V3</code> agencia activa, <code>V4</code> usuario habilitado, <code>V5</code> datos de demo y estado del paquete. Vuelos: <code>V1</code> esquema y <code>V2</code> clave de demo.</p></div>
+
+  <h3 class="subhead" id="datos-seed" data-label="Datos de demo">La demo ya trae datos, y se cargan una sola vez</h3>
+  <div class="prose">
+    <p>En una base nueva: 10 ciudades, 30 hoteles, 4 agencias, 3 admins, 6 compradores, 4 vendedores, 28 paquetes, 54 vuelos, 26 compras, 19 reseñas, 15 favoritos y 52 reservas. Hay precios, puntajes y vuelos con pocos lugares para poder mostrar filtros y el último asiento.</p>
+    <p>Esa carga corre una sola vez. Vuelos reconoce sus filas de demo por una clave <code>ctv-demo-v1:...</code> y conserva el número real. El backend anota en <code>demo_seed_runs</code> que la versión terminó y, si ya está, no vuelve a cargar. En el diagrama esa marca aparece suelta: no es una relación de negocio. Las reservas del lote también tienen clave única: reintentar no descuenta otro asiento. Reiniciar los dos servicios deja quietos usuarios, permisos, historial y stock.</p>
+    <p>En desarrollo esa carga arranca prendida. En producción el default es apagada, y la máquina de demo la prende con <code>SEED_ENABLED=true</code>. Las rutas <code>/internal/demo/*</code> existen solo en vuelos y solo con esa carga. No forman parte de la API pública.</p>
+  </div>
+</section>
+
+<section id="observar" data-part="infra" data-short="Infra">
+  <div class="sec-top">
+    <span class="num">06</span>
+    <div class="sec-head">
+      <span class="kicker">Infraestructura · Paso 6 de 10</span>
+      <h2>Docker levanta todo. Estas pantallas lo miran.</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Un solo <code>docker compose</code> levanta la pantalla, la API, vuelos, las dos bases y las herramientas para mirar. Nosotros construimos los tres programas. Grafana, Zipkin y Kibana son imágenes de terceros.</p>
+    <ul>
+      <li><b>Hace</b> mostrar que el sistema está vivo, cuánto tarda una búsqueda, el recorrido de una compra y los logs.</li>
+      <li><b>Se conecta con</b> los puertos de métricas de la API (<code>:8080</code>) y de vuelos (<code>:8081</code>).</li>
+      <li><b>No hace</b> vender ni autorizar. Si está apagado, la app sigue funcionando.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>Grafana, Zipkin y Kibana miran. No venden y no están en Swagger. Si están apagados, la compra sigue.</p>
+    <p><span class="cue">Por qué Actuator no pide token</span><code>SecurityConfig</code> deja pasar los endpoints de Actuator. Por eso <code>/actuator/health</code> y <code>/actuator/prometheus</code> se abren sin JWT. Prometheus los lee cada 15 segundos, en el 8080 y en el 8081. El corte de <code>flightsService</code> se ve en el health.</p>
+    <p><span class="cue">La compra en Zipkin</span>No es una sola caja. La traza entra al backend y sigue a vuelos. Los dos la mandan al mismo Zipkin, puerto 9411.</p>
+  </div>
+  <p class="bridge">Cada fila es una pantalla, qué señalás y qué decís parado delante.</p>
+
+  <h3 class="subhead" id="observar-pantallas" data-label="Qué mirar">Qué mostrás en cada pantalla</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Dónde</th><th scope="col">Qué mostrás</th><th scope="col">Qué decís</th></tr></thead>
+      <tbody>
+        <tr><td>Grafana <code>:3001</code><br><code>admin</code> / <code>admin</code></td><td>Dashboard <b>CTV - Overview</b></td><td>Prometheus scrapea cada 15 segundos <code>/actuator/prometheus</code> del backend (<code>:8080</code>) y de vuelos (<code>:8081</code>). El panel muestra servicios activos, uptime, memoria heap de la JVM y requests por segundo.</td></tr>
+        <tr><td>La búsqueda</td><td>Una métrica propia, no un panel aparte</td><td>Cada <code>GET /packages</code> registra <code>package_search_duration</code> y <code>package_search_results</code>, con tags de qué filtros se usaron. Sale por el mismo Actuator y la junta Prometheus.</td></tr>
+        <tr><td><code>/actuator/health</code></td><td>El estado del corte de protección</td><td>Si vuelos deja de responder, el corte de <code>flightsService</code> se ve ahí. Es la prueba de que el backend se protege.</td></tr>
+        <tr><td>Zipkin <code>:9411</code></td><td>El recorrido de un pedido</td><td>La compra no es una sola caja. El recorrido entra al backend y sigue al servicio de vuelos. Los dos lo mandan al mismo Zipkin.</td></tr>
+        <tr><td>Kibana <code>:5601</code></td><td>Discover, índice <code>ctv-logs-*</code></td><td>Backend y vuelos mandan logs JSON a Logstash, y de ahí a Elasticsearch. La primera vez hay que crear el data view con el patrón <code>ctv-logs-*</code> y el tiempo <code>@timestamp</code>. Después se filtra por <code>service</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="observar-quien" data-label="Quién mira a quién">Quién mira a quién</h3>
+  <div class="prose"><p>Prometheus está en la red del negocio y en la de vuelos, y lee los dos medidores. Grafana está solo en la red del negocio y lee a Prometheus. Zipkin está en la red de trazas, y los dos programas le mandan el recorrido. Kibana está solo en la red de logs: llega porque Logstash hace de puente.</p></div>
+
+  <h3 class="subhead" id="observar-resto" data-label="Con el resto">Cómo se enchufa con lo demás</h3>
+  <div class="prose"><p>Un clic recorre <a href="#flujo-camino">los nueve pasos</a>. Qué operación llama a vuelos está en <a href="#flujo-cruza">esa tabla</a>. Publicar el código es otra secuencia: pull request, pruebas, imagen con el id del commit y la máquina en Azure, en <a href="#entrega-pipeline">CI y Azure</a>. Swagger documenta solo la API del backend. No documenta Prometheus ni el servicio de vuelos.</p></div>
+</section>
+
+<section id="swagger" data-part="api" data-short="La API">
+  <div class="sec-top">
+    <span class="num">07</span>
+    <div class="sec-head">
+      <span class="kicker">La API · Paso 7 de 10</span>
+      <h2>Las rutas con las que habla la pantalla</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Swagger es el contrato de la API del negocio, partido en quince módulos. Cada módulo es un bloque de la pantalla <b>CTV - Backend API</b>. Se recorren como los usa una persona: entrar, armar la oferta, comprar y administrar.</p>
+    <ul>
+      <li><b>Hace</b> decir, por módulo, para qué existe, quién lo llama y qué no hace. La tabla de rutas queda debajo de esa explicación.</li>
+      <li><b>Se conecta con</b> el backend en <code>localhost:8080</code>. El login es público. El botón <b>Authorize</b> pega el JWT y prueba el resto.</li>
+      <li><b>No hace</b> documentar la API interna de vuelos ni Prometheus. Vender un asiento no es un módulo: lo dispara <code>POST /purchases</code> por adentro.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">Al abrir</span>Esto es el contrato vivo del backend, generado desde los controllers. El título es <b>CTV - Backend API</b>, versión <code>v0.0.1</code>. El texto de arriba ya dice que los asientos no están acá. La UI es pública: <code>/swagger-ui/**</code> y <code>/v3/api-docs/**</code> no piden token. Las operaciones, salvo el login, sí.</p>
+    <p><span class="cue">Authorize</span>El esquema se llama <code>bearer-jwt</code> y está declarado en <code>OpenApiConfig</code>. Hago <code>POST /auth/login</code>, copio <code>token</code> y lo pego en Authorize <b>sin</b> la palabra Bearer. Auth Services no tiene candado: el controller está marcado sin requisito de seguridad. El resto sí. El token dura 24 horas y en cada pedido se relee el usuario.</p>
+    <p><span class="cue">Los quince</span>No es una lista suelta. Cuatro momentos: entrar, armar la oferta, comprar y administrar. Si señalan un bloque, el nombre de Swagger está en el título y la idea está en el recuadro de arriba de la tabla.</p>
+  </div>
+  <p class="bridge">El mapa de abajo es para mostrarlo entero. Después, cada módulo explica su idea y recién ahí lista las rutas. El filtro busca por nombre, ruta o rol.</p>
+
+  <h3 class="subhead" id="swagger-leer" data-label="Cómo se lee">Cómo se lee una fila, y cómo se prueba el login</h3>
+  <div class="cols">
+    <article class="card">
+      <h3>Una fila</h3>
+      <ul>
+        <li>El bloque con nombre (“Package Services”, “Auth Services”) es un grupo. En el código es un <code>@Tag</code>.</li>
+        <li>La pastilla de color es el verbo: GET lee, POST crea, PUT reemplaza, PATCH cambia una parte, DELETE borra.</li>
+        <li>La ruta es lo que va después de <code>http://localhost:8080</code>. <code>{id}</code> es un número de la URL.</li>
+        <li>Adentro, <b>Parameters</b> son query o path. <b>Request body</b> es el JSON. <b>Responses</b> es el código y la forma de la respuesta. Abajo de todo, <b>Schemas</b> repite esos JSON.</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>El login</h3>
+      <p>POST <code>/auth/login</code> es público. Try it out, este cuerpo, Execute:</p>
+      <pre><code>{"username":"buyer","password":"buyer123"}</code></pre>
+      <p>El 200 trae <code>token</code> y <code>user</code>, con <code>role</code>. El registro, POST <code>/auth/register</code>, siempre crea un comprador y devuelve lo mismo con 201. Credenciales malas, o cuenta apagada, responden 401.</p>
+      <p>Copiás solo el <code>token</code>. Arriba a la derecha, <b>Authorize</b>, lo pegás sin la palabra Bearer, y Authorize de nuevo. A partir de ahí Try it out manda el JWT. Para cambiar de rol, hacés login con otra cuenta y reemplazás el token.</p>
+      <p class="small muted">Sin ese paso, un endpoint protegido responde 401. El cuerpo del error no es un string: trae <code>httpCode</code>, <code>httpStatus</code>, <code>errorData.description</code> y <code>timestamp</code>. Ese schema está al final de la página.</p>
+    </article>
+  </div>
+
+  <h3 class="subhead" id="swagger-codigos" data-label="Códigos">Qué significa cada código</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Código</th><th scope="col">Cuándo aparece</th></tr></thead>
+      <tbody>
+        <tr><td>200</td><td>Leyó o actualizó bien. 201 creó. 204 borró o cambió la contraseña y no devuelve cuerpo.</td></tr>
+        <tr><td>400</td><td>Regla de negocio o body inválido: sin lugar, reseña repetida, paquete archivado, no se puede borrar porque ya se vendió.</td></tr>
+        <tr><td>401</td><td>Falta el token, está vencido, la cuenta está deshabilitada o la agencia del vendedor está inactiva.</td></tr>
+        <tr><td>403</td><td>El token es válido y el rol no alcanza. Un comprador en <code>/admin</code> o una agencia comprando.</td></tr>
+        <tr><td>404</td><td>Ese id no existe.</td></tr>
+        <tr><td>409</td><td>Choca con datos que hay que conservar. El caso para mostrar: borrar un hotel que un paquete usa. No es un 400 de regla de negocio.</td></tr>
+        <tr><td>503</td><td>Vuelos no responde y el circuito o los reintentos se agotaron. Un vuelo sin lugar no es esto: es 400.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose">Las listas paginadas traen <code>content</code>, <code>page</code>, <code>size</code>, <code>totalElements</code> y <code>totalPages</code>. La página 0 es la primera. El historial agrega <code>first</code> y <code>last</code>. El catálogo corta <code>size</code> en 50. Las consultas de admin aceptan de 1 a 100. El recorrido de un pedido está en <a href="#flujo-camino">el camino de un clic</a>.</p>
+
+  <h3 class="subhead" id="swagger-grupos" data-label="Los 15 módulos">Los quince módulos, en cuatro momentos</h3>
+  <div class="prose"><p>En Swagger cada módulo es un bloque con nombre. Ese nombre sale de un <code>@Tag</code> en el controller. Acá están en el orden en que los usa una persona, no en el orden alfabético de la pantalla.</p></div>
+  <dl class="gloss">
+    <div><dt>1. Entrar</dt><dd>Auth Services abre la sesión. User Services lee el perfil del token. Sin esto no hay rol, y sin rol el resto responde 401.</dd></div>
+    <div><dt>2. Armar la oferta</dt><dd>Ciudades, hoteles, agencias, vuelos y paquetes. El paquete junta lo anterior. Buscarlo no llama a vuelos. Crearlo sí, para comprobar que ida, vuelta y hotel cierran.</dd></div>
+    <div><dt>3. Comprar y opinar</dt><dd>Purchase Services vende. Favorite Services solo marca. Review Services puntúa, y solo si ya hubo compra. Favorito no reserva asiento.</dd></div>
+    <div><dt>4. Administrar</dt><dd>Cinco módulos de admin: personas, catálogo completo, ventas globales, cuatro rankings y tres consultas de lectura. Todos exigen rol admin.</dd></div>
+  </dl>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Módulo en Swagger</th><th scope="col">Para qué está</th><th scope="col">Quién lo usa</th></tr></thead>
+      <tbody>
+        <tr><td>Auth Services</td><td>Entrar y registrarse. Devuelve el token.</td><td>Público. El registro solo crea compradores.</td></tr>
+        <tr><td>User Services</td><td>Ver y editar el perfil de quien ya entró.</td><td>Cualquier logueado. No cambia el rol.</td></tr>
+        <tr><td>City Services</td><td>Listar ciudades para origen y destino.</td><td>Cualquier logueado. No hay alta.</td></tr>
+        <tr><td>Hotel Services</td><td>El alojamiento del paquete.</td><td>Leer: cualquiera. Escribir: admin.</td></tr>
+        <tr><td>Agency Services</td><td>Quién publica. Activar o apagar una agencia.</td><td>Listar: cualquiera. Crear y editar: admin.</td></tr>
+        <tr><td>Flight Services</td><td>La puerta hacia el otro sistema. Buscar, ver y cargar vuelos.</td><td>Leer: cualquiera. Crear: admin. No vende asientos.</td></tr>
+        <tr><td>Package Services</td><td>La oferta: buscar, ver, publicar, editar, archivar o borrar.</td><td>Buscar: cualquiera. Escribir: la agencia dueña o un admin.</td></tr>
+        <tr><td>Purchase Services</td><td>Comprar y ver el historial, con el precio de ese día.</td><td>Comprar: comprador. Ventas de la agencia: agencia.</td></tr>
+        <tr><td>Favorite Services</td><td>Guardar un paquete para después.</td><td>Solo comprador. No reserva lugar.</td></tr>
+        <tr><td>Review Services</td><td>Puntuar un paquete de 0 a 10.</td><td>Leer: cualquiera. Publicar: comprador que ya lo compró.</td></tr>
+        <tr><td>Administración de usuarios</td><td>Crear personas y cambiarles rol o habilitación.</td><td>Solo admin. Nunca devuelve contraseñas.</td></tr>
+        <tr><td>Administración de paquetes</td><td>El catálogo completo, incluidos los archivados.</td><td>Solo admin. La agencia usa otro módulo.</td></tr>
+        <tr><td>Administración de ventas</td><td>El historial de todas las agencias.</td><td>Solo admin. Los montos son los que se pagaron.</td></tr>
+        <tr><td>Administrative reports</td><td>Cuatro rankings de hasta cinco filas, en un solo pedido.</td><td>Solo admin. No llama a vuelos.</td></tr>
+        <tr><td>Administrative queries</td><td>Leer favoritos, reseñas y compras de todo el sistema.</td><td>Solo admin. No modifica nada.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="finder">
+    <input class="epfilter" id="epfilter" type="search" placeholder="Filtrar por ruta, rol o verbo" aria-label="Filtrar endpoints">
+    <span class="small muted" id="epcount" aria-live="polite"></span>
+  </div>
+  <p class="small muted" id="epempty" hidden>Ningún endpoint coincide con esa búsqueda.</p>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-auth" data-label="Auth">Auth Services y User Services</h3>
+    <div class="prose mod">
+      <p><b>Auth Services</b> es la puerta de entrada y es el único módulo público: no tiene candado. El registro siempre crea un comprador. Una agencia o un admin no se dan de alta solos: los crea un administrador. El login comprueba la contraseña y devuelve el token de 24 horas más el usuario, con su rol. Ese token es el que se pega en Authorize.</p>
+      <p><b>User Services</b> es el perfil de la persona que ya entró. La pantalla lo pide al recargar, para saber si el rol sigue igual. Desde acá se cambian el nombre y la contraseña. No se cambia el rol ni la agencia: si se pudiera, el usuario se daría permisos solo.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb post">POST</span></td><td><code>/auth/register</code></td><td>Público</td><td>Crea un comprador. Body: <code>username</code>, <code>password</code>, <code>firstName</code>, <code>lastName</code>. Responde token y usuario.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/auth/login</code></td><td>Público</td><td>Valida BCrypt y devuelve el JWT de 24 horas más el usuario, con su rol.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/users/me</code></td><td>Logueado</td><td>El perfil según el token. El frontend lo usa para rehidratar la sesión.</td></tr>
+        <tr><td><span class="verb patch">PATCH</span></td><td><code>/users/me</code></td><td>Logueado</td><td>Cambia <code>firstName</code> y <code>lastName</code>.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/users/me/password</code></td><td>Logueado</td><td>Body: <code>currentPassword</code> y <code>newPassword</code>. Responde 204.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-city" data-label="Ciudades y hoteles">City Services y Hotel Services</h3>
+    <div class="prose mod">
+      <p><b>City Services</b> lista las ciudades. La clave es el código IATA, el de tres letras. Sirve para elegir origen y destino. No hay alta: las ciudades vienen con los datos de demo y esta API no las crea.</p>
+      <p><b>Hotel Services</b> es el alojamiento que después entra en un paquete. Cualquier usuario logueado puede leer. Crear, editar y borrar es solo del admin. Si un paquete usa ese hotel, el borrado no pasa y responde 409: una compra vieja tiene que seguir señalando el hotel donde se alojó.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/cities</code></td><td>Logueado</td><td>Todas las ciudades. La clave es el código IATA. Llena los selects de origen, destino y hotel.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/hotels</code> y <code>/hotels/{id}</code></td><td>Logueado</td><td>Catálogo y detalle. Cualquier rol puede leer.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/hotels</code></td><td>Admin</td><td>Crea. Body: <code>name</code>, <code>cityCode</code>, <code>photoUrl</code>. 201.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/hotels/{id}</code></td><td>Admin</td><td>Reemplaza el hotel con el mismo body.</td></tr>
+        <tr><td><span class="verb del">DELETE</span></td><td><code>/hotels/{id}</code></td><td>Admin</td><td>Lo elimina. 204. Si algún paquete lo usa, no se borra y responde 409: el historial tiene que seguir apuntando al hotel.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-flight" data-label="Vuelos">Flight Services</h3>
+    <div class="prose mod">
+      <p><b>Flight Services</b> es la puerta de nuestra API hacia el sistema de vuelos. Estas tres rutas son del backend: por dentro llaman al otro servicio y devuelven lo que él respondió. El backend no guarda la fila del vuelo.</p>
+      <p>Buscar y ver puede cualquier usuario logueado. Crear un vuelo es solo del admin. Si el otro servicio no responde, la ruta responde 503. Este módulo no vende asientos. Vender es <code>POST /flights/{id}/sales</code> en el servicio interno, y lo dispara solo la compra de un paquete. Cancelar esa venta es <code>DELETE /flights/sales/{id}</code>. Ninguna de las dos aparece en Swagger.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/flights</code></td><td>Logueado</td><td>Busca por <code>origin</code>, <code>destination</code> y <code>date</code> (<code>yyyy-MM-dd</code>). Alimenta el selector de ida y vuelta.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/flights/{id}</code></td><td>Logueado</td><td>Un vuelo. El detalle del paquete lo pide para mostrar horario y lugares.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/flights</code></td><td>Admin</td><td>Carga un vuelo. Body: <code>airline</code>, <code>flightDate</code>, <code>departureTime</code>, <code>origin</code>, <code>destination</code>, <code>capacity</code>, <code>availability</code>. 201.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-package" data-label="Paquetes">Package Services</h3>
+    <div class="prose mod">
+      <p><b>Package Services</b> es la oferta que se vende: hotel, origen, destino, ida, vuelta y precio, de una agencia. Buscar el catálogo no llama a vuelos. Filtra, ordena y corta la página en nuestra base. Solo lista publicados de agencias activas. Un admin, en esta misma ruta, también ve las de agencias inactivas.</p>
+      <p>Crear y editar sí consultan los dos vuelos, para exigir que la vuelta salga de la ciudad de llegada y que el hotel esté en esa ciudad. Si no cierran, 400. La agencia no manda su id: el backend usa la de la sesión. El admin sí manda <code>agencyId</code>, porque puede publicar para cualquiera. Archivar saca la oferta del catálogo y rechaza compras nuevas, sin borrar el historial. Borrar queda solo si no hay compras, reseñas ni favoritos.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/packages</code></td><td>Logueado</td><td>El catálogo. Filtros: <code>name</code>, <code>origin</code>, <code>destination</code>, <code>minPrice</code>, <code>maxPrice</code>, <code>agencyId</code>, <code>hotel</code>, <code>minRating</code>. Paginá con <code>page</code>, <code>size</code> y <code>sort</code> (<code>name,asc</code>, <code>price,desc</code>, <code>rating,desc</code>). Lista publicados de agencias activas. Un admin, en esta misma ruta, también ve agencias inactivas.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/packages/{id}</code></td><td>Logueado</td><td>Detalle con hotel, reseñas y los dos vuelos si el otro servicio responde.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/packages/agency</code></td><td>Agencia</td><td>Los paquetes de la agencia logueada, publicados y archivados.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/packages</code></td><td>Agencia o admin</td><td>Crea y lo deja publicado. Body: <code>name</code>, <code>hotelId</code>, <code>outboundFlightId</code>, <code>returnFlightId</code>, <code>price</code>. El admin agrega <code>agencyId</code>. La agencia ignora ese campo. 201.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/packages/{id}</code></td><td>Dueña o admin</td><td>Edita con el mismo body. El admin manda <code>agencyId</code>. Editar un archivado no lo republica.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/packages/{id}/status</code></td><td>Dueña o admin</td><td><code>{"active":false}</code> archiva. <code>{"active":true}</code> publica si los vuelos siguen vigentes y con lugar.</td></tr>
+        <tr><td><span class="verb del">DELETE</span></td><td><code>/packages/{id}</code></td><td>Dueña o admin</td><td>Borra solo si no hay compras, reseñas ni favoritos. Si los hay, 400.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-purchase" data-label="Compras">Purchase Services</h3>
+    <div class="prose mod">
+      <p><b>Purchase Services</b> es la venta y el historial. <code>POST /purchases</code> es la única ruta pública que descuenta asientos, y es solo del comprador. El cuerpo manda el id del paquete. Por adentro se venden la ida y la vuelta. Si la vuelta no tiene lugar, se cancela la ida, no se guarda compra y la respuesta es 400. Si sale bien, 201, con el precio de ese momento.</p>
+      <p>El historial del comprador y el de la agencia muestran ese precio congelado: si mañana la agencia cambia el paquete, el ticket no se mueve. La agencia ve solo sus ventas. El detalle de una compra lo abren el comprador, la agencia que vendió o un admin. Otro rol recibe 403.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb post">POST</span></td><td><code>/purchases</code></td><td>Comprador</td><td><code>{"packageId": 1}</code>. Bloquea el paquete, vende ida y vuelta, guarda precio y snapshots. 201. Si la vuelta no tiene lugar, cancela la ida y responde 400.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/purchases/me</code></td><td>Comprador</td><td>Su historial. Filtros: <code>packageName</code>, <code>destination</code>, <code>from</code>, <code>to</code>, <code>minPrice</code>, <code>maxPrice</code>, <code>sort</code> (<code>date,desc</code> por defecto, o <code>price,asc</code>).</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/purchases/me/packages/{packageId}</code></td><td>Comprador</td><td>Responde <code>true</code> o <code>false</code>. La pantalla lo usa para “Ya comprado” y para habilitar la reseña.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/purchases/agency</code></td><td>Agencia</td><td>Ventas de su agencia. Filtros: <code>buyerUsername</code>, <code>packageName</code>, <code>from</code>, <code>to</code>.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/purchases/{id}</code></td><td>Comprador, agencia vendedora o admin</td><td>Detalle con la copia histórica. Si vuelos responde, suma ida y vuelta. La reseña se adjunta solo cuando mira el propio comprador.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-fav" data-label="Favoritos y reseñas">Favorite Services y Review Services</h3>
+    <div class="prose mod">
+      <p><b>Favorite Services</b> guarda un paquete para verlo después. No reserva asiento y no crea una compra. Hay uno solo por comprador y paquete. El número de la URL al borrar es el del paquete, no un id de favorito.</p>
+      <p><b>Review Services</b> es el puntaje, de 0 a 10, con un comentario opcional. Leer las reseñas de un paquete puede cualquier usuario logueado. Publicar es solo un comprador que ya lo compró, y una sola vez. Si no compró, o si repite, responde 400. La pantalla sabe si puede reseñar con <code>GET /purchases/me/packages/{packageId}</code>, que responde true o false.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/favorites</code></td><td>Comprador</td><td>Sus paquetes guardados.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/favorites</code></td><td>Comprador</td><td><code>{"packageId": 1}</code>. Uno por comprador y paquete. 201.</td></tr>
+        <tr><td><span class="verb del">DELETE</span></td><td><code>/favorites/{packageId}</code></td><td>Comprador</td><td>El número de la URL es el paquete, no un id de favorito. 204.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/reviews/package/{packageId}</code></td><td>Logueado</td><td>Las reseñas de ese paquete. También vienen dentro del detalle.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/reviews</code></td><td>Comprador</td><td><code>packageId</code>, <code>score</code> de 0 a 10 y <code>comment</code> opcional. Exige compra previa y una sola reseña. Si no, 400.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-agency" data-label="Agencias">Agency Services</h3>
+    <div class="prose mod">
+      <p><b>Agency Services</b> es quién publica los paquetes. El listado lo ve cualquier usuario logueado: el admin lo usa para elegir dueña al crear una oferta. Crear y editar es solo del admin.</p>
+      <p>El alta crea la agencia y su usuario vendedor en una sola transacción. Si falla una parte, no queda la otra a medias. Desactivar una agencia esconde sus paquetes, bloquea el login de sus vendedores y rechaza compras nuevas. Las compras que ya se hicieron quedan.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/agencies</code></td><td>Logueado</td><td>Agencias ordenadas por nombre. El admin la usa para elegir dueña al publicar.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/agencies</code></td><td>Admin</td><td>Crea la agencia y su cuenta en una transacción. Body: <code>name</code>, <code>username</code>, <code>password</code>, <code>firstName</code>, <code>lastName</code>. 201.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/agencies/{id}</code></td><td>Admin</td><td><code>name</code> y <code>active</code>. Desactivar bloquea el login de sus vendedores, esconde paquetes y rechaza compras. El historial queda.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-admin-users" data-label="Usuarios">Administración de usuarios</h3>
+    <div class="prose mod">
+      <p>Este módulo da de alta personas y les cambia el permiso. Solo el admin. La respuesta nunca trae la contraseña. Se puede crear comprador, admin o vendedor de una agencia. El vendedor lleva <code>agencyId</code>.</p>
+      <p>Un admin no puede deshabilitarse ni quitarse el rol: si pudiera, el sistema se queda sin quien lo administre. El cambio de otra persona vale en el pedido siguiente, porque cada request vuelve a leer al usuario. No queda congelado en el token.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/users</code></td><td>Admin</td><td>Usuarios paginados, sin contraseñas. Incluye rol, agencia y si está habilitado.</td></tr>
+        <tr><td><span class="verb post">POST</span></td><td><code>/admin/users</code></td><td>Admin</td><td>Crea BUYER, ADMIN o AGENCY. El vendedor lleva <code>agencyId</code>. Body: <code>username</code>, <code>password</code>, <code>firstName</code>, <code>lastName</code>, <code>role</code>.</td></tr>
+        <tr><td><span class="verb put">PUT</span></td><td><code>/admin/users/{id}</code></td><td>Admin</td><td>Cambia nombre, <code>role</code>, <code>enabled</code> y <code>agencyId</code>. El admin no puede apagarse ni dejar de ser admin. El cambio vale en el request siguiente.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-admin-packages" data-label="Catálogo admin">Administración de paquetes</h3>
+    <div class="prose mod">
+      <p>Es el mismo buscador del catálogo, pero para el admin y con los archivados incluidos. Sirve para encontrar una oferta aunque ya no se venda. <code>active=true</code> o <code>false</code> filtra ese estado.</p>
+      <p>La agencia no usa esta ruta. Ella ve las suyas, publicadas y archivadas, con <code>GET /packages/agency</code>, que está en Package Services.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/packages</code></td><td>Admin</td><td>El mismo buscador, incluyendo archivados. <code>active=true</code> o <code>false</code> filtra el estado.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-admin-sales" data-label="Ventas admin">Administración de ventas</h3>
+    <div class="prose mod">
+      <p>Es el historial de todas las agencias, no el de una sola. Los filtros son los mismos que usa la agencia para las suyas: comprador, paquete y fechas. Los montos son los que se pagaron, no el precio de hoy del paquete. El detalle de una fila se abre con <code>GET /purchases/{id}</code>, en Purchase Services.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/sales</code></td><td>Admin</td><td>Historial global. Mismos filtros que las ventas de agencia: comprador, paquete y fechas. Los montos son los congelados.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-admin-reports" data-label="Reportes">Administrative reports</h3>
+    <div class="prose mod">
+      <p>Un solo pedido trae cuatro rankings, de como máximo cinco filas cada uno, calculados en nuestra base. No llama a vuelos. <code>topBuyers</code> es quién más compró. <code>topAgencies</code> es qué agencia vendió más. <code>topDestinations</code> usa el destino guardado en la compra. <code>topRatedDestinations</code> usa el destino actual del paquete y su puntaje.</p>
+      <p>Con el token de un comprador responde 403: el token es válido y el rol no alcanza. Es el ejemplo para mostrar que el menú esconde y la API autoriza.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/reports</code></td><td>Admin</td><td>Un JSON con <code>topBuyers</code>, <code>topAgencies</code>, <code>topDestinations</code> y <code>topRatedDestinations</code>. Cada lista trae como máximo cinco filas, calculadas en la base.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="ep-group">
+    <h3 class="subhead" id="sw-admin-queries" data-label="Consultas">Administrative queries</h3>
+    <div class="prose mod">
+      <p>Tres lecturas de todo el sistema: favoritos, reseñas y compras. No crean, no editan y no borran. Vienen paginadas, con <code>size</code> de 1 a 100. Sirven para que el admin inspeccione sin pasar por la pantalla de cada persona. La compra trae la copia histórica. El detalle de una venta sigue siendo <code>GET /purchases/{id}</code>.</p>
+    </div>
+    <div class="tablewrap"><table class="ep">
+      <thead><tr><th scope="col">Verbo</th><th scope="col">Ruta</th><th scope="col">Quién</th><th scope="col">Qué hace</th></tr></thead>
+      <tbody>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/favorites</code></td><td>Admin</td><td>Favoritos de todos, paginados. Solo lectura.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/reviews</code></td><td>Admin</td><td>Reseñas de todos, paginadas. Solo lectura.</td></tr>
+        <tr><td><span class="verb get">GET</span></td><td><code>/admin/purchases</code></td><td>Admin</td><td>Compras de todos, con la copia histórica. Solo lectura.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <h3 class="subhead" id="swagger-fuera" data-label="Lo que no lista">Lo que esta lista no muestra</h3>
+  <div class="edge"><span class="tag">Si preguntan por el stock</span><p>El servicio de vuelos no publica esta pantalla. Sus rutas internas son buscar y ver vuelos, crear, <code>POST /flights/{id}/sales</code> y <code>DELETE /flights/sales/{id}</code>. <code>/internal/demo/*</code> solo existe con los datos de demo prendidos y no sale por el backend. La ruta pública para comprar es <code>POST /purchases</code>. La venta del asiento es una llamada de servidor a servidor.</p></div>
+</section>
+
+<section id="entrega" data-part="publicacion" data-short="CI y Azure">
+  <div class="sec-top">
+    <span class="num">08</span>
+    <div class="sec-head">
+      <span class="kicker">CI, Docker y Azure · Paso 8 de 10</span>
+      <h2>Del cambio en GitHub a una máquina que no compila</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>GitHub prueba cada pull request. Si alguien dispara el deploy, se arma una imagen Docker con el id de ese commit, se publica y una máquina en Azure la descarga y la levanta. La máquina no compila.</p>
+    <ul>
+      <li><b>Hace</b> repetir en el deploy los mismos controles del pull request, y marcar la imagen con el commit.</li>
+      <li><b>Se conecta con</b> GitHub Actions, GHCR y, en <code>main</code>, también Docker Hub. Azure solo hace pull.</li>
+      <li><b>No hace</b> que un pull request publique solo. Tampoco bloquea todavía el botón de merge si un check falla.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">La frase</span>Un pull request no despliega. GitHub prueba: tests, lint, Cucumber, Cypress y Sonar. Si alguien dispara el deploy, se repite esa batería, se publica una imagen marcada con el commit y la máquina de Azure la descarga. No compila.</p>
+    <p><span class="cue">Las tres pruebas</span>Integración: Spring arranca con una base; el cliente de vuelos está simulado, salvo los tests que necesitan Postgres. Cucumber: 13 reglas escritas en castellano, contra las dos APIs reales. Cypress: 15 recorridos en un navegador, en otro Docker, con la app en el 18090.</p>
+    <p><span class="cue">El límite</span>Sonar espera el veredicto solo en <code>main</code>. El botón de merge todavía no está bloqueado por esos checks. <code>stop</code> apaga la VM sin depender de los tests.</p>
+  </div>
+  <p class="bridge">Un pull request no despliega nada. El deploy es manual, y <code>stop</code> apaga la máquina sin depender de los tests.</p>
+
+  <h3 class="subhead" id="entrega-equipo" data-label="Qué se hizo">Quién armó qué</h3>
+  <div class="prose"><p>Cada cambio entró por una rama y un pull request hacia <code>dev</code>. Federico armó la base, vuelos, observabilidad, Azure y Sonar. Valentín armó Cucumber, Cypress, la CI, agencias, consultas, reportes y los filtros de vuelos. Agustín armó catálogo, compras, favoritos, buscador, historial y la integración de administración, seed y ciclo de vida. El PR #24 junta esa <code>dev</code> y la propone para <code>main</code>.</p></div>
+
+  <h3 class="subhead" id="entrega-controles" data-label="Qué se prueba">Qué prueba la integración continua</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Control</th><th scope="col">Qué demuestra</th><th scope="col">Corrida del 22/10</th></tr></thead>
+      <tbody>
+        <tr><td>Unitarios</td><td>Una pieza: modelo, cliente HTTP, formulario, página con la API mockeada. ArchUnit mira las capas.</td><td>Dentro de los totales de Gradle y Vitest</td></tr>
+        <tr><td>Integración</td><td>Spring, seguridad y base reales. Vuelos se simula, salvo los tests que necesitan Postgres de verdad.</td><td>Backend <b>443</b> tests, vuelos <b>67</b></td></tr>
+        <tr><td>Cucumber</td><td>13 reglas por API, con los dos servicios y bases temporales: compra, compensación, precio, reseñas, permisos de vuelos.</td><td><b>13</b> escenarios, 67 pasos</td></tr>
+        <tr><td>Cypress</td><td>15 recorridos en un navegador: login, compra, hoteles, admin, archivo, reportes y el 403.</td><td><b>15</b> en 7 archivos</td></tr>
+        <tr><td>Frontend</td><td>ESLint, Vitest y el build de Vite. Sonar no analiza este módulo.</td><td><b>222</b> tests</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Esos números están en <code>docs/entrega-2-verificacion.md</code>. Si piden la cifra, mostrá el log de esa corrida. El fuente tiene más anotaciones <code>@Test</code> que ese total: el número que vale es el de Gradle. Los 443 y los 67 mezclan unitarios e integración: Gradle publica un solo total.</p>
+
+  <h3 class="subhead" id="entrega-definicion" data-label="La definición">La definición: qué prueba cada suite</h3>
+  <ol class="chain layers" aria-label="Tres capas de prueba">
+    <li><i>Adentro del módulo</i><b>Integración</b><span>Spring y una base. El cliente de vuelos está simulado, salvo cuando hace falta Postgres.</span></li>
+    <li><i>Las dos APIs</i><b>Cucumber</b><span>13 reglas en castellano. Backend y vuelos reales, sin navegador.</span></li>
+    <li><i>La pantalla</i><b>Cypress</b><span>15 clics en el navegador. Puertos 18090, 18080 y 18081.</span></li>
+  </ol>
+  <p class="bridge">Cada suite corre en su proceso. El verde de una no acredita a las otras.</p>
+
+  <div class="suite">
+    <h3 class="subhead" id="entrega-integracion" data-label="Integración">Integración: Spring y la base</h3>
+    <p>La pregunta es si el módulo se lleva bien con Spring, la seguridad y la base. Vive en <code>backend/src/test</code> y <code>flights-service/src/test</code>.</p>
+    <ol class="steps">
+      <li><div><b>Arranca el contexto</b><p><code>@SpringBootTest</code> con el perfil de test. La base es H2 en memoria. Entre un test y el siguiente, <code>DataServiceH2</code> vacía las tablas.</p></div></li>
+      <li><div><b>El pedido no abre un puerto</b><p>MockMvc arma el HTTP sobre ese contexto y <code>springSecurity</code> aplica los mismos filtros que la app. <code>@WithMockUser</code> pone el rol.</p></div></li>
+      <li><div><b>Vuelos es un doble</b><p><code>@MockitoBean</code> reemplaza <code>FlightsClient</code>. La compra mira el precio y el permiso en nuestra base.</p></div></li>
+      <li><div><b>Postgres, solo en dos clases</b><p>Testcontainers levanta la imagen <code>postgres:16</code>. Sin Docker, esas clases no corren. La corrida del 22/10 las incluye.</p></div></li>
+    </ol>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th scope="col">Clase</th><th scope="col">Qué deja asentado</th></tr></thead>
+        <tbody>
+          <tr><td><code>PostgresQueriesTest</code></td><td>Flyway y el script de Postgres. Búsqueda por nombre, destino y precio. Historial de la agencia y sus filtros. Un cambio de rol conserva las compras.</td></tr>
+          <tr><td><code>FlightLifecyclePostgresTest</code></td><td>El seed no pisa vuelos, fechas ni asientos vendidos. La reserva demo es idempotente. Si no hay lugar, vuelve atrás. Dos ventas a la vez sobre el último asiento dejan una sola: <code>findForUpdate</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">Los 443 y los 67 mezclan unitarios e integración. ArchUnit, en <code>ArchitectureTests</code>, mira las capas y no levanta Spring. JaCoCo mide la corrida y Sonar lee ese reporte.</p>
+  </div>
+
+  <div class="suite api">
+    <h3 class="subhead" id="entrega-cucumber" data-label="Cucumber">Cucumber: las reglas contra las dos APIs</h3>
+    <p>13 escenarios y 67 pasos en <code>acceptance-tests/features/critical-flows.feature</code>, tag <code>@critical</code>. La frase está en castellano. El código está en el paso que la traduce a un <code>fetch</code>. Manda HTTP, mira el status y vuelve a leer el estado en las dos APIs.</p>
+    <div class="say"><span class="tag">Decilo así</span>
+      <p><span class="cue">El hueco</span>La integración de Spring prueba un servicio con el cliente de vuelos simulado. Cypress recorre la pantalla. Cucumber comprueba que backend y vuelos, cada uno con su Postgres, se ponen de acuerdo en compra, compensación, precio y permisos.</p>
+      <p><span class="cue">La frase</span>El feature dice la regla. El paso la convierte en un pedido. El mundo recuerda lo que el paso anterior dejó. El cliente habla con las dos URLs.</p>
+    </div>
+    <ol class="steps">
+      <li><div><b>El feature</b><p><code>critical-flows.feature</code> dice quién hace qué y qué status tiene que volver. Ahí no hay URLs ni JSON.</p></div></li>
+      <li><div><b>Los pasos</b><p><code>critical-flows.steps.js</code>. Cada <code>Given</code>, <code>When</code> y <code>Then</code> llama a una ruta. El <code>Then</code> compara el status y, si hace falta, vuelve a pedir el recurso.</p></div></li>
+      <li><div><b>El mundo</b><p><code>CtvWorld</code> es la memoria de un solo escenario. Cucumber crea uno nuevo por escenario. Guarda la respuesta, el token, el token del comprador, el paquete, el precio, los dos vuelos y la disponibilidad de antes.</p></div></li>
+      <li><div><b>El cliente</b><p><code>api.js</code> usa <code>BACKEND_URL</code> y <code>FLIGHTS_URL</code>. El token va como <code>Bearer</code>. <code>hooks.js</code> espera <code>GET /actuator/health</code> de los dos servicios, hasta 120 segundos. Cada paso tiene 30.</p></div></li>
+    </ol>
+    <p class="bridge">Los escenarios comparten las dos bases: entre uno y otro no hay reset. El perfil <code>dev</code> ya trae <code>buyer</code>, <code>agency</code> y los vuelos BUE–PAR. Por eso ningún paso afirma un total del seed.</p>
+    <ol class="steps">
+      <li><div><b>Nombre único</b><p>El paquete se llama <code>Aceptación …</code> más 8 caracteres de un UUID. No choca con el seed ni con otro escenario.</p></div></li>
+      <li><div><b>Comprador nuevo</b><p>Se registra <code>buyer_</code> más un id corto. Su historial arranca vacío, y la compensación puede afirmar que <code>totalElements</code> es 0.</p></div></li>
+      <li><div><b>Vuelos propios para compensar</b><p>Ese escenario crea la ida con capacidad 1 y disponibilidad 1, y la vuelta con disponibilidad 0, a 60 días. Lo hace con <code>POST /flights</code> directo al servicio de vuelos. No toca un vuelo de la demo.</p></div></li>
+      <li><div><b>Disponibilidad relativa</b><p>El escenario de los asientos anota el número justo antes de comprar y espera uno menos. El absoluto puede haber cambiado; la diferencia sigue valiendo.</p></div></li>
+    </ol>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th scope="col">Escenario</th><th scope="col">Vuelve</th><th scope="col">Qué se comprueba</th></tr></thead>
+        <tbody>
+          <tr><td>Login del comprador inicial</td><td><span class="pill ok">200</span></td><td>El token trae el rol <code>BUYER</code>.</td></tr>
+          <tr><td>La agencia publica</td><td><span class="pill ok">201</span></td><td>El paquete queda en Despegar. El id de la agencia sale de la sesión: el cuerpo no lo manda.</td></tr>
+          <tr><td>Dos búsquedas</td><td><span class="pill ok">200</span></td><td>El paquete está en <code>content</code>. La segunda busca por nombre, origen, destino y precio mínimo igual al máximo.</td></tr>
+          <tr><td>Compra con lugar</td><td><span class="pill ok">201</span></td><td><code>/purchases/me</code> muestra el precio publicado.</td></tr>
+          <tr><td>Compensación</td><td><span class="pill warn">400</span></td><td>Ida en 1, vuelta en 0. No queda compra y la ida vuelve a 1. Se lee en la API de vuelos.</td></tr>
+          <tr><td>El comprador publica</td><td><span class="pill risk">403</span></td><td>El mismo alta de paquete, con token de comprador. El rol lo mira el backend.</td></tr>
+          <tr><td>Los dos asientos</td><td><span class="pill ok">201</span></td><td>Ida y vuelta tienen un asiento menos. Se lee en la API de vuelos, no en el backend.</td></tr>
+          <tr><td>El precio congelado</td><td><span class="pill ok">201</span></td><td>La agencia pone 2400. El historial guarda <code>purchasePrice</code> y ese número es distinto de 2400.</td></tr>
+          <tr><td>Dos reseñas</td><td><span class="pill warn">400</span></td><td>Sin compra previa, y una segunda reseña del mismo paquete.</td></tr>
+          <tr><td>El admin carga y publica</td><td><span class="pill ok">201</span></td><td>Carga los vuelos por el backend, publica para Despegar a 2100 con <code>agencyId</code> y un comprador lo encuentra.</td></tr>
+          <tr><td>La agencia carga un vuelo</td><td><span class="pill risk">403</span></td><td>El alta de vuelo con token de agencia, otra vez contra el backend.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">La tabla junta los 13 escenarios en 11 filas: las dos búsquedas van juntas, y las dos reseñas también.</p>
+    <div class="cols">
+      <article class="card">
+        <h3>Sesión, catálogo y permisos</h3>
+        <p>El comprador inicial entra y el token trae <code>BUYER</code>. La agencia publica para PAR a 1750 y el paquete queda en Despegar. Un comprador lo encuentra por origen y destino, y otra vez con todos los filtros juntos. El mismo alta, con token de comprador, vuelve 403. El alta de vuelo, con token de agencia, también.</p>
+      </article>
+      <article class="card">
+        <h3>Dónde vive el permiso del vuelo</h3>
+        <p>La compensación fabrica los vuelos pegándole directo al servicio de vuelos, porque necesita disponibilidades exactas. El 403 de la agencia pega a <code>POST /flights</code> del backend, con <code>Bearer</code>: ahí está el rol. El admin usa esa misma ruta, y al publicar manda <code>agencyId</code>.</p>
+      </article>
+    </div>
+    <div class="say"><span class="tag">Los dos que justifican Cucumber</span>
+      <p><span class="cue">Compensación</span><code>PurchaseService.purchase</code> vende la ida y después la vuelta. Si la vuelta falla, cancela la venta de la ida y no guarda la compra. El test de Spring lo ve con el cliente simulado. Cucumber lo ve de punta a punta: arma la ida en 1 y la vuelta en 0, el <code>POST /purchases</code> vuelve 400, el historial de ese comprador queda vacío y <code>GET /flights/{id}</code> muestra la ida otra vez en 1.</p>
+      <p><span class="cue">Precio congelado</span>El comprador compra. La agencia hace <code>PUT</code> y pone el paquete en 2400. El login de la agencia pisa <code>token</code>, así que el paso guarda el del comprador en <code>buyerToken</code> y después lo restaura. El historial sigue con el <code>purchasePrice</code> de la compra, distinto de 2400. El precio vive en la compra.</p>
+    </div>
+    <div class="edge"><span class="tag">Qué no cubre</span>
+      <p>La pantalla la recorre Cypress, 15 tests, en los puertos 18090, 18080 y 18081. Que dos ventas a la vez no se lleven el último asiento lo prueba <code>FlightLifecyclePostgresTest</code>, con <code>findForUpdate</code>. Cucumber mira la regla desde afuera, con los dos procesos y las dos bases prendidos.</p>
+    </div>
+    <div class="cols">
+      <article class="card">
+        <h3>En la máquina</h3>
+        <p>Desde <code>acceptance-tests/</code>: <code>docker compose run --rm --build acceptance-tests</code>. Dos Postgres 16 con el disco en <code>tmpfs</code>: los datos mueren con el contenedor y no tocan los volúmenes de desarrollo. El runner es <code>node:24-alpine</code>, espera a que backend y vuelos estén sanos, y hace <code>npm test</code>. El reporte queda en <code>reports/cucumber-report.html</code>.</p>
+      </article>
+      <article class="card">
+        <h3>En GitHub</h3>
+        <p>Job <code>acceptance</code>, proyecto <code>ctv-acceptance-ci</code>, para no chocar con el de Cypress. Perfil <code>ci</code>: solo consola, sin HTML. Si falla, muestra 200 líneas de log. El <code>down</code> corre igual. Cypress va en paralelo, con otros contenedores.</p>
+      </article>
+    </div>
+  </div>
+
+  <div class="suite ui">
+    <h3 class="subhead" id="entrega-interfaz" data-label="Interfaz">Interfaz: el clic en la app</h3>
+    <p>Siete archivos y 15 tests en <code>frontend/cypress/e2e/</code>. Cypress tipea, filtra, confirma y recarga. <code>cypress.config.js</code> apunta a <code>http://localhost:18090</code>.</p>
+    <ol class="steps">
+      <li><div><b>Otro Docker</b><p><code>docker-compose.e2e.yml</code>, proyecto <code>ctv-e2e</code>. Reusa backend, vuelos y las bases de Cucumber, y suma el frontend. Puertos 18090, 18080 y 18081, para convivir con el entorno de desarrollo.</p></div></li>
+      <li><div><b>La URL queda en el build</b><p>El frontend se compila con <code>VITE_API_BASE_URL=http://localhost:18080</code>. El navegador, en la máquina, habla con el puerto publicado.</p></div></li>
+      <li><div><b>La pantalla hace la acción</b><p>Comprador, vuelos y paquete se crean por API en <code>frontend/cypress/support/helpers.js</code> (<code>loginThroughUI</code>, <code>registerBuyer</code>, <code>createPackageViaApi</code>). El clic de comprar se hace en el detalle.</p></div></li>
+      <li><div><b>El menú y la API</b><p>Si la pantalla dice Sin permiso, el mismo test pide la ruta con el token y espera 403.</p></div></li>
+    </ol>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th scope="col">Archivo</th><th scope="col">Qué recorre</th></tr></thead>
+        <tbody>
+          <tr><td><code>login-search-detail.cy.js</code></td><td>Login, búsqueda por nombre, origen y destino, y el detalle.</td></tr>
+          <tr><td><code>auth-access.cy.js</code></td><td>Contraseña incorrecta y reintento. Un comprador no abre el alta de hoteles, ni por pantalla ni por API.</td></tr>
+          <tr><td><code>hotel-management.cy.js</code></td><td>El admin crea un hotel, lo edita y lo elimina.</td></tr>
+          <tr><td><code>purchase-history.cy.js</code></td><td>Compra desde el detalle. Al recargar, siguen el viaje y el precio.</td></tr>
+          <tr><td><code>admin-management.cy.js</code></td><td>Administración según el rol. Alta de vuelos y de paquete, compra, edición, borrado y el error si ya hay compras. La agencia elige hotel y vuelos de las listas.</td></tr>
+          <tr><td><code>package-lifecycle.cy.js</code></td><td>Archiva una oferta vendida, el historial sigue, y la vuelve a publicar.</td></tr>
+          <tr><td><code>admin-users.cy.js</code></td><td>Agencia, vendedor, venta, cuenta bloqueada y cambio de permisos. Consultas y cuatro reportes. Comprador y agencia ven Sin permiso y reciben 403.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cols">
+      <article class="card">
+        <h3>En la máquina</h3>
+        <p>Con el Compose arriba, desde <code>frontend/</code>: <code>npm run e2e:open</code> muestra los clics y <code>npm run e2e:run</code> los corre sin ventana.</p>
+      </article>
+      <article class="card">
+        <h3>En GitHub</h3>
+        <p>Job <code>e2e</code>, Node 24, <code>npm ci</code>, Compose con espera de 180 segundos y <code>npm run e2e:run -- --browser electron</code>. Electron es un navegador. Si falla, imprime los logs y hace <code>down</code>.</p>
+      </article>
+    </div>
+  </div>
+
+  <h3 class="subhead" id="entrega-pipeline" data-label="Hasta Azure">Del pull request a Azure</h3>
+  <figure>
+    <div class="fig">
+      <svg viewBox="0 0 980 250" role="img" aria-label="El PR dispara controles. El deploy manual publica la imagen y levanta la VM.">
+        <defs><marker id="mk-ship" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+        <rect class="acc" x="16" y="80" width="140" height="70" rx="4"/><text class="b" x="86" y="110" text-anchor="middle">PR o push</text><text class="s" x="86" y="130" text-anchor="middle">dev o main</text>
+        <line class="ln" x1="156" y1="115" x2="190" y2="115" marker-end="url(#mk-ship)"/>
+        <rect class="box" x="192" y="24" width="250" height="184" rx="4"/>
+        <text class="b" x="208" y="48">En paralelo</text>
+        <text class="s" x="208" y="74">Backend: build, ktlint, tests, Sonar</text>
+        <text class="s" x="208" y="96">Vuelos: lo mismo</text>
+        <text class="s" x="208" y="118">Frontend: lint, vitest, build</text>
+        <text class="s" x="208" y="140">Cucumber y Cypress, servicios reales</text>
+        <text class="s" x="208" y="162">actionlint y check-ci.rb</text>
+        <text class="s" x="208" y="190">Un PR no publica nada</text>
+        <line class="ln" x1="442" y1="115" x2="500" y2="115" marker-end="url(#mk-ship)"/>
+        <rect class="ok" x="502" y="70" width="160" height="90" rx="4"/><text class="b" x="582" y="104" text-anchor="middle">Deploy manual</text><text class="s" x="582" y="126" text-anchor="middle">repite esos controles</text>
+        <line class="ln" x1="662" y1="115" x2="720" y2="70" marker-end="url(#mk-ship)"/>
+        <rect class="acc" x="722" y="24" width="236" height="78" rx="4"/><text class="b" x="840" y="52" text-anchor="middle">Imagen con el SHA</text><text class="s" x="840" y="74" text-anchor="middle">GHCR en el deploy · Hub y GHCR en main</text>
+        <line class="ln" x1="840" y1="102" x2="840" y2="140" marker-end="url(#mk-ship)"/>
+        <rect class="box" x="722" y="142" width="236" height="66" rx="4"/><text class="b" x="840" y="168" text-anchor="middle">VM en Azure</text><text class="s" x="840" y="188" text-anchor="middle">pull, up, health del backend</text>
+      </svg>
+    </div>
+    <figcaption>Un push a <code>main</code> publica la imagen en Docker Hub y en GitHub, con la etiqueta <code>latest</code> y el id del commit. El deploy de la demo publica en GitHub la imagen que acaba de pasar las pruebas, prende la máquina y no compila ahí. <code>stop</code> la apaga sin esperar tests. Hasta que el PR #24 se mergee, el <code>latest</code> de main sigue siendo la versión anterior.</figcaption>
+  </figure>
+  <dl class="gloss">
+    <div><dt>SHA</dt><dd>El identificador del commit. La imagen se etiqueta con ese id para saber qué código corre.</dd></div>
+    <div><dt>GHCR</dt><dd>GitHub Container Registry. Ahí publica el deploy de la demo y también el push a main.</dd></div>
+    <div><dt>Docker Hub</dt><dd>El otro registro. Recibe imágenes cuando el push es a <code>main</code>, junto con GHCR.</dd></div>
+    <div><dt>Quality Gate</dt><dd>El veredicto de Sonar. En esta entrega la espera de ese veredicto está en <code>main</code>.</dd></div>
+  </dl>
+
+  <h3 class="subhead" id="entrega-docker" data-label="Docker y Sonar">La imagen y el control de calidad</h3>
+  <div class="cols">
+    <article class="card">
+      <h3>Docker</h3>
+      <p>Tres Dockerfiles en dos etapas: se compila en una imagen y se corre en otra más chica. <code>docker compose up --build -d --wait</code> levanta pantalla, API, vuelos, las dos bases y las herramientas para mirar. Hay un Compose de producción para la máquina, uno que usa las imágenes ya publicadas sin compilar, y dos aislados para Cucumber y Cypress.</p>
+    </article>
+    <article class="card">
+      <h3>Sonar</h3>
+      <p>Mide backend y vuelos, con la cobertura de JaCoCo. En <code>main</code> el job espera hasta 300 segundos el veredicto. En <code>dev</code> y en los pull requests el análisis corre y GitHub muestra el resultado: el plan gratuito no deja esperar ese veredicto fuera de la rama principal. Falta marcar esos checks como obligatorios para que bloqueen el merge.</p>
+    </article>
+  </div>
+
+  <h3 class="subhead" id="entrega-proceso" data-label="Proceso">Proceso, dicho derecho</h3>
+  <div class="edge"><span class="tag">Lo que no hay que adornar</span><p>No hay issues en el repo: el plan quedó en los PR y en <code>docs/</code>. La CI revisó cada PR. Una aprobación humana registrada en el #24 todavía no figura. El deploy manual con estos workflows está escrito; si en Actions hay una corrida verde, esa es la evidencia, y si no la hay, se dice que quedó por ejecutar.</p></div>
+</section>
+
+<section id="demo" data-part="defensa" data-short="La demo">
+  <div class="sec-top">
+    <span class="num">09</span>
+    <div class="sec-head">
+      <span class="kicker">Cómo contarlo · Paso 9 de 10</span>
+      <h2>El orden para mostrarlo, con la ruta de cada clic</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Primero Swagger: login público, Authorize con el token, y el grupo que vende asientos. Después comprador, agencia y administrador. Al final, el 403 con el token del comprador sobre <code>GET /admin/reports</code>.</p>
+    <ul>
+      <li><b>Hace</b> nombrar la ruta en cada clic, sin abrir el código.</li>
+      <li><b>Se conecta con</b> la app en el 8090 y Swagger en el 8080.</li>
+      <li><b>No hace</b> falta recorrer las 42 rutas. Con estos cinco minutos se ve el sistema.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">El hilo</span>Empiezo por el contrato, no por la pantalla. Muestro que Authorize lleva el rol. Después el mismo rol en la app, nombrando la ruta de cada clic. Cierro con un 403: el menú esconde y la API autoriza. La venta del asiento no se ve en Swagger porque no es una ruta de esta API.</p>
+  </div>
+  <p class="bridge">La historia es una sola. Si te perdés, el índice de la izquierda tiene cada minuto. Cada minuto tiene qué abrir, qué decir y qué código esperar.</p>
+
+  <h3 class="subhead" id="demo-antes" data-label="Antes de entrar">Antes de entrar</h3>
+  <div class="prose"><p>Con <code>docker compose ps</code> en healthy, dejá abiertas la app en <a href="http://localhost:8090">localhost:8090</a> y Swagger en <a href="http://localhost:8080/swagger-ui/index.html">localhost:8080/swagger-ui/index.html</a>.</p></div>
+
+  <h3 class="subhead" id="demo-guion" data-label="El guion">El guion, minuto a minuto</h3>
+  <ol class="flow">
+    <li><div>
+      <div class="flow-top"><h3 id="demo-swagger" data-label="Min 1 · Swagger">Swagger, con Authorize</h3><span class="mins">2 min</span></div>
+      <p><span class="cue">Abrís</span><a href="http://localhost:8080/swagger-ui/index.html">swagger-ui</a>. Señalás el título <b>CTV - Backend API</b> y la primera oración de la descripción: los asientos viven en otro servicio y esas rutas no aparecen acá.</p>
+      <p><span class="cue">Decís</span>“Cada bloque es un <code>@Tag</code> y cada fila un <code>@Operation</code>. Auth Services no tiene candado: es público. El resto pide el esquema <code>bearer-jwt</code>.”</p>
+      <p><span class="cue">Hacés</span><b>Auth Services → POST /auth/login → Iniciar sesión</b>. Try it out, cuerpo <code>{"username":"buyer","password":"buyer123"}</code>, Execute. En el 200 señalás <code>token</code> y <code>user.role</code> en <code>BUYER</code>. Copiás el token, <b>Authorize</b>, lo pegás sin la palabra Bearer.</p>
+      <p><span class="cue">Si queda un respiro</span>Abrís <b>Purchase Services → POST /purchases → Comprar paquete</b> y leés el summary: es la única ruta pública que vende asientos. No ejecutes la compra todavía: la vas a hacer en la app, para que se vea el ticket.</p>
+    </div></li>
+    <li><div>
+      <div class="flow-top"><h3 id="demo-buyer" data-label="Min 2 · Comprador">Comprador</h3><span class="mins">3 min</span></div>
+      <p><span class="cue">Abrís</span>La app con <code>buyer</code> / <code>buyer123</code>. El login es <code>POST /auth/login</code> y la respuesta ya trae <code>token</code> y <code>user</code>. <code>GET /users/me</code> no es el login: la pantalla lo manda al recargar o al volver a la pestaña, para releer el rol.</p>
+      <p><span class="cue">Decís en /trips</span>“Filtrar cambia la URL del navegador, y esa URL es <code>GET /packages</code>. Van <code>origin</code>, <code>destination</code>, y si no es la primera página, <code>page</code>. El orden por defecto es <code>name,asc</code>. El backend corta la página en Postgres. Esta búsqueda no llama a vuelos: si el otro servicio está caído, el listado igual sale.”</p>
+      <p><span class="cue">En el detalle</span>“<code>GET /packages/{id}</code> trae hotel y reseñas, y pide ida y vuelta. Si vuelos no responde, el paquete igual vuelve.” Marcás favorito y decís: “<code>POST /favorites</code> con <code>{"packageId": …}</code>. No reserva asiento.”</p>
+      <p><span class="cue">La compra</span>Elegí uno que no diga ya comprado. “<code>POST /purchases</code> manda solo el <code>packageId</code>. Por adentro vende la ida y la vuelta. Si la vuelta no tiene lugar, cancela la ida y responde 400. Si sale bien, 201.” En <code>/purchases</code>: “Esto es <code>GET /purchases/me</code>. El precio es el que se pagó. El botón de reseña sale de <code>GET /purchases/me/packages/{packageId}</code>, que responde true o false.”</p>
+    </div></li>
+    <li><div>
+      <div class="flow-top"><h3 id="demo-agency" data-label="Min 3 · Agencia">Agencia</h3><span class="mins">2 min</span></div>
+      <p><span class="cue">Abrís</span><code>agency</code> / <code>agency123</code>, Despegar. Si seguís en Swagger, reemplazá el token: otro login y Authorize de nuevo. Si no, alcanza la app.</p>
+      <p><span class="cue">Decís al crear</span>“<code>POST /packages</code> con <code>name</code>, <code>hotelId</code>, <code>outboundFlightId</code>, <code>returnFlightId</code> y <code>price</code>. No mando <code>agencyId</code>: el backend usa la agencia de la sesión. Antes de guardar, pide los dos vuelos para cerrar origen, destino y hotel. Si no cierran, 400. El alta responde 201 y lo deja publicado.”</p>
+      <p><span class="cue">En ventas</span>“<code>/agency/sales</code> es <code>GET /purchases/agency</code>. Solo ve las de Despegar. Un comprador en esta ruta recibe 403.” Si te preguntan por borrar: “<code>DELETE /packages/{id}</code> solo si no hay compras, reseñas ni favoritos. Si los hay, 400. Para retirar una oferta vendida se archiva, no se borra.”</p>
+    </div></li>
+    <li><div>
+      <div class="flow-top"><h3 id="demo-admin" data-label="Min 4 · Admin">Administrador</h3><span class="mins">3 min</span></div>
+      <p><span class="cue">Abrís</span><code>vferreyra</code> / <code>vferreyra</code>. En Swagger, el grupo que nombrás al pasar: Hotel Services, Flight Services, Package Services, Administrative reports.</p>
+      <p><span class="cue">Decís</span>“Un hotel es <code>POST /hotels</code> con <code>name</code>, <code>cityCode</code> y <code>photoUrl</code>, y responde 201. Un vuelo es <code>POST /flights</code>: el backend no lo guarda, lo reenvía. Si vuelos no responde, 503, y este alta tiene corte pero no reintento. Un paquete para Despegar es el mismo <code>POST /packages</code>, ahora sí con <code>agencyId</code>.”</p>
+      <p><span class="cue">Reportes y archivo</span>“<code>/admin/reports</code> es un solo <code>GET /admin/reports</code>. El JSON trae <code>topBuyers</code>, <code>topAgencies</code>, <code>topDestinations</code> y <code>topRatedDestinations</code>, como máximo cinco filas, calculadas en nuestra base. No llama a vuelos.” Archivás y decís: “<code>PUT /packages/{id}/status</code> con <code>{"active":false}</code>. Sale del catálogo y rechaza compras. <code>GET /purchases/me</code> sigue mostrando el ticket.”</p>
+    </div></li>
+    <li><div>
+      <div class="flow-top"><h3 id="demo-permiso" data-label="Min 5 · Permiso">El permiso y lo que no se ve</h3><span class="mins">2 min</span></div>
+      <p><span class="cue">En la app</span>Volvés a <code>buyer</code> y abrís <code>/admin</code>. “La pantalla dice Sin permiso. Eso esconde el menú. La autorización está en la API.”</p>
+      <p><span class="cue">En Swagger</span>Authorize con el token de <code>buyer</code>. Abrís <b>Administrative reports → GET /admin/reports</b>, Try it out, Execute. “El token es válido y el rol no alcanza: 403, no 401. <code>SecurityConfig</code> exige ADMIN en <code>/admin/**</code>. El cuerpo trae <code>httpCode: 403</code>.” Si te piden el otro caso: sin token, o con la cuenta apagada, es 401.</p>
+      <p><span class="cue">Lo que no está en la lista</span>“Vender el asiento es <code>POST /flights/{id}/sales</code> en el servicio interno, y cancelarlo es <code>DELETE /flights/sales/{id}</code>. No tienen puerto público y no salen en este Swagger. La ruta pública es <code>POST /purchases</code>.” Si queda tiempo, Zipkin en el 9411: la traza entra al backend y sigue a vuelos.</p>
+    </div></li>
+  </ol>
+
+  <h3 class="subhead" id="demo-frase" data-label="Frase de la demo">La frase que une la demo</h3>
+  <div class="say"><span class="tag">Decila al cerrar el recorrido</span><p>La pantalla nunca habla con vuelos. Habla con CTV - Backend API. El único endpoint que vende asientos es <code>POST /purchases</code>: por adentro hace <code>POST /flights/{id}/sales</code> de la ida y de la vuelta, y si la vuelta falla, <code>DELETE /flights/sales/{id}</code> de la ida. Esas dos rutas no están en Swagger. Si la cancelación también falla, puede quedar un asiento vendido sin compra: no hay una transacción única entre las dos bases.</p></div>
+</section>
+
+<section id="cerrar" data-part="defensa" data-short="El cierre">
+  <div class="sec-top">
+    <span class="num">10</span>
+    <div class="sec-head">
+      <span class="kicker">Cómo contarlo · Paso 10 de 10</span>
+      <h2>La frase final, y en qué archivo abrir cada pregunta</h2>
+    </div>
+  </div>
+  <div class="glance">
+    <p><span>En una mirada</span>Si queda una sola respiración, el párrafo de abajo alcanza: qué se vende, por qué hay dos bases, cómo se salva la compra, qué hace el admin y cómo ese mismo commit llega a Azure.</p>
+    <ul>
+      <li><b>Hace</b> cerrar sin abrir una tabla.</li>
+      <li><b>Se conecta con</b> el archivo que hay que abrir si piden el detalle.</li>
+      <li><b>No hace</b> falta repetir los diez pasos. La frase los resume.</li>
+    </ul>
+  </div>
+  <div class="local-slot"></div>
+  <div class="say"><span class="tag">Decilo así</span>
+    <p><span class="cue">Si queda una respiración</span>Leé el párrafo de abajo, una vez. Si la pregunta es de Swagger, no abras el código: el grupo y la operación ya lo dicen. Si piden el archivo, la tabla de acá nombra uno solo.</p>
+  </div>
+  <p class="bridge">Leé el párrafo una vez en voz alta antes de entrar. Las respuestas de una línea están al final, abiertas.</p>
+
+  <h3 class="subhead" id="cerrar-frase" data-label="La frase">Si te piden que lo cuentes</h3>
+  <div class="say"><span class="tag">El párrafo</span><p>Compra Tu Viaje vende paquetes de agencias. El negocio tiene su propia API y su propia base. Los asientos viven en otro servicio, con otra base, a propósito. Si la vuelta no se puede vender, se cancela la ida. El último asiento se reserva bloqueando la fila. El historial guarda una copia de lo pagado. El admin gestiona personas, agencias y ofertas, y archivar retira una oferta vendida sin borrar la historia. Los datos de demo se cargan una sola vez. Las mismas pruebas del pull request son las que exige el deploy, y la máquina en Azure levanta la imagen de ese commit.</p></div>
+
+  <h3 class="subhead" id="cerrar-codigo" data-label="El código">Si preguntan, abrís</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Si preguntan</th><th scope="col">Abrís</th></tr></thead>
+      <tbody>
+        <tr><td>El contrato que muestra Swagger</td><td><code>OpenApiConfig</code> y el <code>@Tag</code> / <code>@Operation</code> del controller. El JSON crudo es <code>/v3/api-docs</code>.</td></tr>
+        <tr><td>La compra y cómo se deshace la ida</td><td><code>PurchaseService.purchase</code>. En Swagger, Purchase Services → Comprar paquete.</td></tr>
+        <tr><td>El último asiento</td><td><code>FlightService.sell</code> y <code>FlightRepository.findForUpdate</code></td></tr>
+        <tr><td>Caída de vuelos</td><td><code>FlightsClient</code> y <code>application.properties</code></td></tr>
+        <tr><td>Roles y token vivo</td><td><code>SecurityConfig</code>, <code>JwtAuthenticationFilter</code>, <code>CustomUserDetailsService</code></td></tr>
+        <tr><td>Archivar</td><td><code>TravelPackageService.setActive</code></td></tr>
+        <tr><td>Los datos de demo</td><td><code>DemoDataSeeder</code> y la migración <code>V5</code></td></tr>
+        <tr><td>Reportes</td><td><code>AdminReportRepository</code></td></tr>
+        <tr><td>Pantallas</td><td><code>frontend/src/router/AppRouter.tsx</code> y <code>adminRoutes.tsx</code></td></tr>
+        <tr><td>Las pruebas y Azure</td><td><code>.github/workflows/deploy.yml</code></td></tr>
+        <tr><td>Integración con Postgres</td><td><code>PostgresQueriesTest</code> y <code>FlightLifecyclePostgresTest</code>. El resto de la integración está en <code>tests/integration</code>.</td></tr>
+        <tr><td>Cucumber</td><td><code>acceptance-tests/features/critical-flows.feature</code> y el compose de esa carpeta. La definición oral está en <a href="#entrega-cucumber">Cucumber</a>.</td></tr>
+        <tr><td>La interfaz</td><td><code>frontend/cypress/e2e/</code> y <code>docker-compose.e2e.yml</code>. La definición oral está en <a href="#entrega-interfaz">Interfaz</a>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="subhead" id="cerrar-cuentas" data-label="Cuentas">Otras cuentas y el orden</h3>
+  <div class="cols">
+    <article class="card">
+      <h3>El orden de la demo</h3>
+      <p>Está en <a href="#demo-guion">el guion</a>: Swagger y login, comprador, agencia, admin, y el 403. Cada paso nombra el endpoint. El catálogo para leer cualquier ruta está en <a href="#swagger">Swagger</a>.</p>
+    </article>
+    <article class="card">
+      <h3>Otras cuentas</h3>
+      <p><code>facosta</code> y <code>adisanto</code> también son admin, con la contraseña igual al usuario. Hay más agencias: <code>agency2</code>, <code>agency3</code>, <code>agency4</code>, misma contraseña <code>agency123</code>. Grafana es <code>admin</code> / <code>admin</code>. La VM, si está prendida, está en <code>http://64.236.199.81:8090</code>.</p>
+    </article>
+  </div>
+
+  <h3 class="subhead" id="cerrar-faq" data-label="Una línea">Si queda un minuto</h3>
+  <details open>
+    <summary>Respuestas de una línea</summary>
+    <div class="ans">
+      <p><b>¿Por qué dos bases?</b> Porque el vuelo no es una tabla nuestra. El paquete referencia el id y cada servicio migra su esquema.</p>
+      <p><b>¿La compra es una sola transacción?</b> La parte local sí. Entre los dos servicios, si la vuelta falla se cancela la ida. El asiento se bloquea en su propia base.</p>
+      <p><b>¿El menú es la seguridad?</b> El menú esconde. La API responde 403, y un usuario deshabilitado recibe 401 en el pedido siguiente.</p>
+      <p><b>¿Los datos de demo borran lo que hicimos?</b> Se cargan una vez y después conservan lo que hicieron en la app.</p>
+      <p><b>¿Dónde están las imágenes?</b> En Docker Hub y en GitHub cuando se pushea a main. La máquina de Azure descarga desde GitHub la imagen de ese commit.</p>
+      <p><b>¿Sonar frena todos los pull requests?</b> El análisis corre. La espera del veredicto está en main. El botón de merge todavía no está bloqueado.</p>
+      <p><b>¿Cucumber prueba la pantalla?</b> Cucumber prueba 13 reglas contra las dos APIs, en Docker, sin navegador. La pantalla la recorre Cypress, 15 tests, en los puertos 18090, 18080 y 18081. Spring y la base los cubre la integración; el último asiento, con Postgres real.</p>
+      <p><b>¿Swagger pide login?</b> La pantalla no. <code>/swagger-ui/**</code> es público. Las operaciones, salvo Auth Services, piden el token en Authorize.</p>
+      <p><b>¿Dónde está la venta del asiento?</b> No en esta lista. <code>POST /flights/{id}/sales</code> en el servicio interno, disparado solo por <code>POST /purchases</code>.</p>
+      <p><b>¿Qué es un 409?</b> Un choque con datos que hay que conservar. El caso claro: borrar un hotel que un paquete usa. Un paquete archivado o una reseña repetida es 400, no 409.</p>
+      <p><b>¿401 o 403?</b> Sin token, token vencido, cuenta apagada o agencia inactiva: 401. Token válido y rol corto: 403. El menú esconde; la API autoriza.</p>
+    </div>
+  </details>
+</section>
+</main>
+</div>
+<script>
+(function () {
+  var partNames = { dominio: "Dominio", arquitectura: "Arquitectura", logica: "Lógica", esquemas: "Esquemas", infra: "Infraestructura", api: "La API", publicacion: "CI, Docker y Azure", defensa: "Cómo contarlo" };
+  var tocTree = document.getElementById("toc-tree");
+  var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
+  var blocks = [];
+  var targets = [];
+  var locked = false;
+  var lockTimer = 0;
+  var lastId = "";
+  var currentPart = "";
+
+  function setOpen(block, open) {
+    block.classList.toggle("is-open", open);
+    block.querySelector(".tog").setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function openOnly(block) {
+    blocks.forEach(function (item) { setOpen(item, item === block); });
+  }
+
+  sections.forEach(function (section, index) {
+    var part = section.getAttribute("data-part");
+    if (part !== currentPart) {
+      currentPart = part;
+      var label = document.createElement("div");
+      label.className = "toc-group";
+      label.textContent = partNames[part] || part;
+      tocTree.appendChild(label);
+    }
+
+    var block = document.createElement("div");
+    block.className = "toc-block";
+    block.setAttribute("data-section", section.id);
+    var tog = document.createElement("button");
+    tog.type = "button";
+    tog.className = "tog";
+    tog.setAttribute("aria-expanded", "false");
+    var num = document.createElement("span");
+    num.textContent = String(index + 1);
+    tog.appendChild(num);
+    tog.appendChild(document.createTextNode(section.getAttribute("data-short") || "Paso"));
+    var sub = document.createElement("div");
+    sub.className = "toc-sub";
+    sub.id = "sub-" + section.id;
+    tog.setAttribute("aria-controls", sub.id);
+
+    function addLink(id, text) {
+      var a = document.createElement("a");
+      a.href = "#" + id;
+      a.setAttribute("data-target", id);
+      a.textContent = text;
+      sub.appendChild(a);
+      targets.push({ id: id, link: a, section: section, block: block });
+    }
+
+    addLink(section.id, "Resumen");
+    var headings = section.querySelectorAll("h3[id]");
+    Array.prototype.forEach.call(headings, function (heading) {
+      addLink(heading.id, heading.getAttribute("data-label") || heading.textContent.trim());
+    });
+
+    tog.addEventListener("click", function () {
+      var opening = !block.classList.contains("is-open");
+      if (opening) openOnly(block);
+      else setOpen(block, false);
+      locked = true;
+      window.clearTimeout(lockTimer);
+      lockTimer = window.setTimeout(function () { locked = false; }, 900);
+    });
+
+    block.appendChild(tog);
+    block.appendChild(sub);
+    tocTree.appendChild(block);
+    blocks.push(block);
+
+    var slot = section.querySelector(".local-slot");
+    if (slot && headings.length) {
+      var bar = document.createElement("div");
+      bar.className = "localbar";
+      var cap = document.createElement("span");
+      cap.className = "localcap";
+      cap.textContent = "Temas";
+      var nav = document.createElement("nav");
+      nav.className = "local";
+      nav.setAttribute("aria-label", "Temas de este paso");
+      Array.prototype.forEach.call(headings, function (heading) {
+        var a = document.createElement("a");
+        a.href = "#" + heading.id;
+        a.setAttribute("data-target", heading.id);
+        a.textContent = heading.getAttribute("data-label") || heading.textContent.trim();
+        nav.appendChild(a);
+      });
+      bar.appendChild(cap);
+      bar.appendChild(nav);
+      slot.replaceWith(bar);
+    } else if (slot) {
+      slot.remove();
+    }
+
+    var step = document.createElement("nav");
+    step.className = "stepnav";
+    step.setAttribute("aria-label", "Paso anterior y siguiente");
+    if (index > 0) step.appendChild(stepLink(sections[index - 1], "prev", "Anterior"));
+    if (index < sections.length - 1) step.appendChild(stepLink(sections[index + 1], "next", "Siguiente"));
+    section.appendChild(step);
+  });
+
+  function stepLink(target, klass, small) {
+    var a = document.createElement("a");
+    a.href = "#" + target.id;
+    a.className = klass;
+    var smallEl = document.createElement("small");
+    smallEl.textContent = small + " · Paso " + (sections.indexOf(target) + 1);
+    a.appendChild(smallEl);
+    a.appendChild(document.createTextNode(target.getAttribute("data-short") || target.id));
+    return a;
+  }
+
+  document.getElementById("toc-static").hidden = true;
+
+  function visible(el) {
+    return !!(el && el.getClientRects().length);
+  }
+
+  function setHere(id) {
+    document.querySelectorAll("[data-target]").forEach(function (link) {
+      var on = link.getAttribute("data-target") === id;
+      link.classList.toggle("is-here", on);
+      if (on) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
+  function reveal(link) {
+    var scroller = document.getElementById("toc-scroll");
+    var linkRect = link.getBoundingClientRect();
+    var box = scroller.getBoundingClientRect();
+    if (linkRect.top < box.top) scroller.scrollTop -= box.top - linkRect.top + 8;
+    else if (linkRect.bottom > box.bottom) scroller.scrollTop += linkRect.bottom - box.bottom + 8;
+  }
+
+  function mark() {
+    var scrolled = document.documentElement.scrollTop || document.body.scrollTop;
+    var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    document.getElementById("readbar").style.width = (height > 0 ? (scrolled / height) * 100 : 0) + "%";
+    var line = window.matchMedia("(max-width: 1080px)").matches ? 150 : 130;
+    var current = null;
+    targets.forEach(function (target) {
+      var el = document.getElementById(target.id);
+      if (!visible(el)) return;
+      if (el.getBoundingClientRect().top <= line) current = target;
+    });
+    if (!current) current = targets[0];
+    if (!current || current.id === lastId) return;
+    lastId = current.id;
+    if (!locked) openOnly(current.block);
+    blocks.forEach(function (block) { block.classList.toggle("is-current", block === current.block); });
+    setHere(current.id);
+    var stepNo = sections.indexOf(current.section) + 1;
+    var here = "Paso " + stepNo + " de " + sections.length + " · " + current.section.getAttribute("data-short");
+    document.getElementById("toc-now").textContent = here;
+    document.getElementById("top-here").textContent = here;
+    reveal(current.link);
+  }
+
+  document.addEventListener("scroll", mark, { passive: true });
+  window.addEventListener("hashchange", function () {
+    locked = false;
+    lastId = "";
+    mark();
+  });
+
+  var toc = document.getElementById("toc");
+  var scrim = document.getElementById("scrim");
+  var openBtn = document.getElementById("open-toc");
+  function setDrawer(open, focus) {
+    toc.classList.toggle("is-open", open);
+    scrim.hidden = !open;
+    openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    document.body.classList.toggle("nav-open", open);
+    if (focus === false) return;
+    if (open) document.getElementById("toc-close").focus();
+    else openBtn.focus();
+  }
+  openBtn.addEventListener("click", function () { setDrawer(!toc.classList.contains("is-open")); });
+  document.getElementById("toc-close").addEventListener("click", function () { setDrawer(false); });
+  scrim.addEventListener("click", function () { setDrawer(false); });
+  toc.addEventListener("click", function (event) {
+    if (event.target.closest("a")) setDrawer(false, false);
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && toc.classList.contains("is-open")) setDrawer(false);
+  });
+
+  function syncTheme() {
+    var dark = document.documentElement.getAttribute("data-theme") === "dark";
+    document.querySelectorAll(".theme").forEach(function (button) {
+      button.textContent = dark ? "Tema claro" : "Tema oscuro";
+      button.setAttribute("aria-pressed", dark ? "true" : "false");
+    });
+  }
+  document.querySelectorAll(".theme").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("ctv-theme", next); } catch (err) {}
+      syncTheme();
+    });
+  });
+  syncTheme();
+
+  var filter = document.getElementById("epfilter");
+  var count = document.getElementById("epcount");
+  var empty = document.getElementById("epempty");
+  function applyFilter() {
+    var q = filter.value.trim().toLowerCase();
+    var shown = 0;
+    var total = 0;
+    document.querySelectorAll(".ep-group").forEach(function (group) {
+      var rows = group.querySelectorAll("tbody tr");
+      var intro = group.querySelector(".prose");
+      var heading = group.querySelector("h3");
+      var blob = ((intro && intro.textContent) || "") + " " + ((heading && heading.textContent) || "") + " " + ((heading && heading.getAttribute("data-label")) || "");
+      var groupMatch = q.length > 0 && blob.toLowerCase().indexOf(q) !== -1;
+      var visibleRows = 0;
+      Array.prototype.forEach.call(rows, function (row) {
+        total += 1;
+        var match = q.length === 0 || row.textContent.toLowerCase().indexOf(q) !== -1;
+        row.hidden = !match;
+        if (match) {
+          visibleRows += 1;
+          shown += 1;
+        }
+      });
+      if (q.length > 0 && groupMatch && visibleRows === 0) {
+        Array.prototype.forEach.call(rows, function (row) {
+          row.hidden = false;
+          shown += 1;
+        });
+        visibleRows = rows.length;
+      }
+      var table = group.querySelector(".tablewrap");
+      if (table) table.hidden = q.length > 0 && visibleRows === 0;
+      if (intro) intro.hidden = q.length > 0 && visibleRows === 0;
+      if (heading) heading.hidden = q.length > 0 && visibleRows === 0 && !groupMatch;
+      group.hidden = false;
+    });
+    count.textContent = q.length === 0 ? total + " endpoints" : shown + " de " + total;
+    empty.hidden = shown !== 0;
+    lastId = "";
+    mark();
+  }
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest("a[data-target]");
+    if (!link || !filter.value) return;
+    filter.value = "";
+    applyFilter();
+  });
+  filter.addEventListener("input", applyFilter);
+  applyFilter();
+  mark();
+})();
+</script>
+</body>
+</html>
