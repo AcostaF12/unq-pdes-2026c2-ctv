@@ -155,7 +155,7 @@ jobs:
             COMPOSE
             }
             release_compose pull
-            release_compose up -d --no-build
+            release_compose --profile monitoring up -d --no-build
 
       - name: Health check
         run: |

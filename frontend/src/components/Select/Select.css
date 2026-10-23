@@ -11,3 +11,10 @@
   background-repeat: no-repeat;
   padding-right: var(--space-5);
 }
+
+.field__select--list {
+  height: auto;
+  padding: 4px;
+  font-size: 14px;
+  background-image: none;
+}

@@ -37,7 +37,7 @@ export function AgencySales({ admin = false }: { admin?: boolean }) {
   }
 
   return (
-    <section className="page">
+    <section className="page history-page">
       {admin ? <Link className="catalog__back" to="/admin">← Administración</Link> : null}
       <HeroScene
         compact
@@ -45,31 +45,41 @@ export function AgencySales({ admin = false }: { admin?: boolean }) {
         title={admin ? 'Ventas de todas las agencias' : 'Ventas de la agencia'}
         subtitle={admin ? 'Consultá compradores, agencias y el detalle de cada venta.' : 'Seguí cada compra de tus paquetes.'}
       />
-      <form className="history-filters" onSubmit={applyFilters}>
-        <Input
-          label="Usuario comprador"
-          value={draft.buyerUsername}
-          onChange={(event) => setDraft({ ...draft, buyerUsername: event.target.value })}
-        />
-        <Input
-          label="Paquete"
-          value={draft.packageName}
-          onChange={(event) => setDraft({ ...draft, packageName: event.target.value })}
-        />
-        <Input
-          label="Desde"
-          type="date"
-          max={draft.to || undefined}
-          value={draft.from}
-          onChange={(event) => setDraft({ ...draft, from: event.target.value })}
-        />
-        <Input
-          label="Hasta"
-          type="date"
-          min={draft.from || undefined}
-          value={draft.to}
-          onChange={(event) => setDraft({ ...draft, to: event.target.value })}
-        />
+      <form className="history-filters" aria-label="Filtros de ventas" onSubmit={applyFilters}>
+        <header className="history-filters__header">
+          <h2 className="history-filters__title">Filtros</h2>
+          <p className="history-filters__hint">Buscá por comprador, paquete o fechas.</p>
+        </header>
+        <div className="history-filters__fields">
+          <div className="history-filters__group">
+            <Input
+              label="Usuario comprador"
+              value={draft.buyerUsername}
+              onChange={(event) => setDraft({ ...draft, buyerUsername: event.target.value })}
+            />
+            <Input
+              label="Paquete"
+              value={draft.packageName}
+              onChange={(event) => setDraft({ ...draft, packageName: event.target.value })}
+            />
+          </div>
+          <div className="history-filters__group">
+            <Input
+              label="Desde"
+              type="date"
+              max={draft.to || undefined}
+              value={draft.from}
+              onChange={(event) => setDraft({ ...draft, from: event.target.value })}
+            />
+            <Input
+              label="Hasta"
+              type="date"
+              min={draft.from || undefined}
+              value={draft.to}
+              onChange={(event) => setDraft({ ...draft, to: event.target.value })}
+            />
+          </div>
+        </div>
         <div className="history-filters__actions">
           <Button type="submit">Filtrar ventas</Button>
         </div>

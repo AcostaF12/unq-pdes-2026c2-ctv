@@ -7,6 +7,32 @@
   gap: var(--space-4);
 }
 
+.hotels__grid--fade-a {
+  animation: hotels-grid-fade var(--dur-base) var(--ease-out);
+}
+
+.hotels__grid--fade-b {
+  animation: hotels-grid-fade-alt var(--dur-base) var(--ease-out);
+}
+
+@keyframes hotels-grid-fade {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hotels-grid-fade-alt {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .hotels__new {
   font-family: var(--font-display);
   font-size: 14px;

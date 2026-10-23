@@ -19,14 +19,20 @@ import unq.pdes.backend.controller.dtos.requests.FavoriteRequestDto
 import unq.pdes.backend.service.FavoriteService
 import unq.pdes.backend.service.ReviewService
 
-@Tag(name = "Favorite Services", description = "Favoritos del comprador.")
+@Tag(name = "Favorite Services", description = "Paquetes marcados por el comprador. No reservan lugar ni crean una compra.")
 @RestController
 @RequestMapping("/favorites")
 class FavoriteController(
     private val favoriteService: FavoriteService,
     private val reviewService: ReviewService,
 ) {
-    @Operation(summary = "Mis favoritos", description = "Lista los paquetes favoritos del comprador.")
+    @Operation(
+        summary = "Mis favoritos",
+        description =
+            "Lista los paquetes marcados por el usuario del token, con el resumen de reseñas.\n\n" +
+                "No pagina y no reserva lugar.\n\n" +
+                "**Quién:** el usuario autenticado. Agregar y quitar es solo comprador",
+    )
     @GetMapping
     fun mine(
         @AuthenticationPrincipal principal: UserDetails,
@@ -36,7 +42,14 @@ class FavoriteController(
         return ResponseEntity.ok(favorites.map { FavoriteDto.fromModel(it, summaries[it.travelPackage.id]) })
     }
 
-    @Operation(summary = "Agregar favorito", description = "Guarda un paquete como favorito.")
+    @Operation(
+        summary = "Agregar favorito",
+        description =
+            "Marca un paquete. No descuenta asientos.\n\n" +
+                "**Quién:** comprador\n" +
+                "**201** favorito guardado\n" +
+                "**400** ya estaba marcado",
+    )
     @PostMapping
     fun add(
         @AuthenticationPrincipal principal: UserDetails,
@@ -46,7 +59,14 @@ class FavoriteController(
         return ResponseEntity.status(HttpStatus.CREATED).body(FavoriteDto.fromModel(favorite))
     }
 
-    @Operation(summary = "Quitar favorito", description = "Elimina un paquete de favoritos.")
+    @Operation(
+        summary = "Quitar favorito",
+        description =
+            "Saca el paquete de favoritos. No borra la oferta ni las compras.\n\n" +
+                "**Quién:** comprador\n" +
+                "**204** favorito quitado\n" +
+                "**404** no estaba marcado",
+    )
     @DeleteMapping("/{packageId}")
     fun remove(
         @AuthenticationPrincipal principal: UserDetails,

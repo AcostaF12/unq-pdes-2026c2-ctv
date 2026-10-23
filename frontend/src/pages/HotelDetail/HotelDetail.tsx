@@ -10,6 +10,7 @@ import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { RelatedPackages } from '../../components/RelatedPackages/RelatedPackages'
 import { queryKeys } from '../../query/keys'
+import '../Packages/packages.css'
 import './HotelDetail.css'
 
 export function HotelDetail() {
@@ -98,24 +99,18 @@ export function HotelDetail() {
 
   return (
     <article className="page hotel-detail">
-      <Link className="hotel-detail__back" to="/hotels">
+      <Link className="hotel-detail__back reveal" to="/hotels" style={{ ['--i' as string]: 0 }}>
         ← Hoteles
       </Link>
-      <HotelPhoto
-        src={hotel.photoUrl}
-        alt={hotel.name}
-        cityCode={hotel.city.code}
-        size="large"
-      />
-      <div className="page__header">
-        <div>
-          <h1 className="page__title">{hotel.name}</h1>
-          <p className="hotel-detail__meta">
-            {hotel.city.name} · {hotel.city.code}
-          </p>
-        </div>
+      <header className="hotel-detail__hero reveal" style={{ ['--i' as string]: 1 }}>
+        <HotelPhoto
+          src={hotel.photoUrl}
+          alt=""
+          cityCode={hotel.city.code}
+          size="large"
+        />
         {isAdmin ? (
-          <div className="page__actions">
+          <div className="hotel-detail__actions">
             <Link className="hotel-detail__edit" to={`/hotels/${hotel.id}/edit`}>
               Editar
             </Link>
@@ -129,17 +124,23 @@ export function HotelDetail() {
             </Button>
           </div>
         ) : null}
-      </div>
+        <div className="hotel-detail__identity">
+          <p className="hotel-detail__city">{hotel.city.name}</p>
+          <h1 className="page__title">{hotel.name}</h1>
+        </div>
+      </header>
       {actionError ? (
         <p className="hotel-detail__error" role="alert">
           {actionError}
         </p>
       ) : null}
-      <RelatedPackages
-        title="Paquetes en este hotel"
-        filters={{ hotel: hotel.name }}
-        seeAllTo={`/trips?hotel=${encodeURIComponent(hotel.name)}`}
-      />
+      <div className="reveal" style={{ ['--i' as string]: 2 }}>
+        <RelatedPackages
+          title="Paquetes en este hotel"
+          filters={{ hotel: hotel.name }}
+          seeAllTo={`/trips?hotel=${encodeURIComponent(hotel.name)}`}
+        />
+      </div>
     </article>
   )
 }

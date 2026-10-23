@@ -43,8 +43,29 @@
 }
 
 .catalog__filters-submit {
-  min-height: 52px;
+  min-height: 44px;
   width: 100%;
+  padding: 10px 18px;
+}
+
+.catalog__filters .field__label {
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+.catalog__filters .field__input {
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--color-bg);
+}
+
+.catalog__filters-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .catalog__grid > li {
@@ -52,11 +73,14 @@
 }
 
 .catalog__grid {
-  transition: opacity var(--dur-base) var(--ease-out);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
 }
 
 .catalog__grid--stale {
   opacity: 0.55;
+  transform: scale(0.985);
   pointer-events: none;
 }
 
@@ -326,21 +350,69 @@
 .package-reviews {
   display: flex;
   flex-direction: column;
+  gap: var(--space-4);
+}
+
+.package-reviews__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .package-reviews h2 {
-  font-size: 22px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.package-reviews__meta,
+.package-reviews__empty,
+.package-reviews__note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.package-reviews__empty {
+  padding: var(--space-3) 0 var(--space-2);
+}
+
+.package-reviews__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.package-reviews__form {
+  margin: 0;
+  padding: var(--space-4) 0 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .review-item {
   display: flex;
   gap: var(--space-3);
   align-items: flex-start;
-  background: var(--color-surface);
-  border: var(--border-width) solid var(--color-line);
-  padding: var(--space-3);
-  border-radius: var(--radius);
+  padding: 16px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  border-radius: 0;
+}
+
+.review-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .review-item__head {
@@ -379,8 +451,23 @@
 
 .catalog__quick {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+  padding: 2px 2px 4px;
+}
+
+.catalog__quick .chip--toggle {
+  flex: 0 0 auto;
+  border-width: 1px;
+  padding: 7px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--color-bg);
 }
 
 .chip {
@@ -603,10 +690,6 @@
   color: var(--color-primary);
 }
 
-.package-detail__hero .photo-carousel__img {
-  animation: fade-in 600ms var(--ease-out) backwards;
-}
-
 .flight-card {
   position: relative;
   transition:
@@ -615,8 +698,8 @@
 }
 
 .flight-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hard-sm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .flight-card__meta {
@@ -645,10 +728,9 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-4);
-  background: var(--color-surface);
-  border: var(--border-width) solid var(--color-line);
-  padding: var(--space-4);
-  border-radius: var(--radius);
+  padding: var(--space-1) 0 0;
+  background: transparent;
+  border: 0;
 }
 
 .review-summary__score {
@@ -660,9 +742,10 @@
 
 .review-summary__score strong {
   font-family: var(--font-display);
-  font-size: 56px;
+  font-size: 40px;
   line-height: 1;
-  color: var(--color-primary);
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
   font-weight: 700;
 }
 
@@ -691,11 +774,11 @@
 }
 
 .review-summary__track {
-  height: 12px;
-  background: var(--color-bg);
-  border: 2px solid var(--color-line);
+  height: 4px;
+  background: var(--color-secondary);
+  border: 0;
   overflow: hidden;
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
 }
 
 .review-summary__fill {
@@ -716,11 +799,14 @@
 .review-item__avatar {
   display: grid;
   place-items: center;
-  flex: 0 0 36px;
-  height: 36px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
   font-family: var(--font-display);
-  color: var(--color-surface);
-  background: var(--color-ink);
+  color: var(--color-brand);
+  background: var(--color-secondary);
+  border-radius: 50%;
   font-weight: 700;
 }
 
@@ -732,11 +818,19 @@
 }
 
 .review-item__score {
-  padding: 1px 8px;
+  padding: 0;
+  color: var(--color-brand);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.review-item__comment {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--color-ink);
-  background: var(--color-secondary);
-  border: 2px solid var(--color-line);
-  border-radius: var(--radius);
 }
 
 .score-picker {
@@ -875,7 +969,7 @@ li.catalog__card h2 {
 }
 
 .catalog__filters-submit {
-  min-height: 50px;
+  min-height: 44px;
   border-radius: var(--radius-pill);
 }
 
@@ -899,7 +993,9 @@ li.catalog__card h2 {
 }
 
 .chip--active,
-.chip--active:hover {
+.chip--active:hover,
+.catalog__quick .chip--toggle.chip--active,
+.catalog__quick .chip--toggle.chip--active:hover {
   color: #fff;
   background: var(--color-brand);
   border-color: var(--color-brand);
@@ -909,6 +1005,8 @@ li.catalog__card h2 {
   color: var(--color-brand);
   background: var(--color-secondary);
   border-color: transparent;
+  animation: pop-in 420ms var(--ease-spring) backwards;
+  animation-delay: calc(min(var(--i, 0), 12) * 45ms);
 }
 
 .chip__remove {
@@ -1022,15 +1120,13 @@ li.catalog__card h2 {
 }
 
 .review-item__avatar {
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-brand), #5b8cff);
+  background: var(--color-secondary);
 }
 
 .review-item__score {
   color: var(--color-brand);
-  background: var(--color-secondary);
+  background: transparent;
   border: 0;
-  border-radius: var(--radius-pill);
 }
 
 .score-picker legend {

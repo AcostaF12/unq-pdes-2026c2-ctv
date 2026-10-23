@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listCities } from '../../api/cities'
@@ -20,6 +20,12 @@ export function Hotels() {
   const { isAdmin } = useAuth()
   const [cityCode, setCityCode] = useState('')
   const [nameQuery, setNameQuery] = useState('')
+  const [fadeTick, setFadeTick] = useState(0)
+  const seenCityCode = useRef(cityCode)
+  if (seenCityCode.current !== cityCode) {
+    seenCityCode.current = cityCode
+    setFadeTick((tick) => tick + 1)
+  }
 
   const hotelsQuery = useQuery({
     queryKey: queryKeys.hotels.all,
@@ -131,7 +137,13 @@ export function Hotels() {
           }
         />
       ) : (
-        <ul className="hotels__grid">
+        <ul
+          className={
+            fadeTick === 0
+              ? 'hotels__grid'
+              : `hotels__grid ${fadeTick % 2 === 0 ? 'hotels__grid--fade-a' : 'hotels__grid--fade-b'}`
+          }
+        >
           {visibleHotels.map((hotel, index) => (
             <li key={hotel.id} className="reveal" style={{ ['--i' as string]: index }}>
               <HotelCard hotel={hotel} />

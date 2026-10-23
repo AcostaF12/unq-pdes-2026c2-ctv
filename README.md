@@ -12,22 +12,36 @@ Necesitás Docker Desktop instalado y abierto. Desde la raíz del repositorio:
 docker compose up --build -d --wait
 ```
 
-La primera ejecución tarda porque descarga imágenes y compila los servicios. Cuando termine de arrancar, abrí [Compra tu Viaje](http://localhost:8090).
+El mismo arranque, desde la raíz, con Node instalado:
 
-El entorno incluye el frontend, el backend, el servicio de vuelos, dos bases PostgreSQL y las herramientas de monitoreo.
+```bash
+npm start
+```
+
+También vale `npm run up`. La primera ejecución tarda porque descarga imágenes y compila los servicios. El comando espera a que los chequeos de salud pasen. Cuando termine, abrí [Compra tu Viaje](http://localhost:8090). El recorrido de un clic, de la pantalla a las dos bases, está en [flujo de la aplicación](docs/flujo-de-la-aplicacion.md).
+
+Por defecto levanta el frontend, el backend, el servicio de vuelos y las dos bases PostgreSQL. Grafana, Prometheus, Zipkin, Elasticsearch, Logstash y Kibana quedan fuera; para incluirlos:
+
+```bash
+npm run start:monitoring
+```
+
+Sin el monitoreo pueden aparecer avisos de conexión a Logstash y Zipkin; la app sigue funcionando.
 
 Para ver el estado y seguir los logs del backend:
 
 ```bash
-docker compose ps
-docker compose logs -f backend
+npm run ps
+npm run logs
 ```
 
-Para apagarlo:
+Para apagarlo, sin borrar los datos:
 
 ```bash
-docker compose down
+npm run down
 ```
+
+`npm run logs` sigue todos los servicios. Para ver solo el backend: `docker compose logs -f backend`.
 
 Este comando conserva los volúmenes de Docker. Sin embargo, el backend reinicia sus datos de ejemplo al arrancar con el perfil `dev`. No uses este entorno para guardar datos que quieras conservar.
 
@@ -72,10 +86,10 @@ Sin el monitoreo levantado pueden aparecer avisos de conexión a Logstash y Zipk
 | Aplicación | http://localhost:8090 |
 | API del backend | http://localhost:8080 |
 | Swagger del backend | http://localhost:8080/swagger-ui/index.html |
-| Prometheus, métricas | http://localhost:9090 |
-| Grafana, paneles de métricas | http://localhost:3001 |
-| Zipkin, trazas de solicitudes | http://localhost:9411 |
-| Kibana, consulta de logs | http://localhost:5601 |
+| Prometheus, métricas (`start:monitoring`) | http://localhost:9090 |
+| Grafana, paneles de métricas (`start:monitoring`) | http://localhost:3001 |
+| Zipkin, trazas de solicitudes (`start:monitoring`) | http://localhost:9411 |
+| Kibana, consulta de logs (`start:monitoring`) | http://localhost:5601 |
 
 La aplicación carga estas cuentas de ejemplo:
 

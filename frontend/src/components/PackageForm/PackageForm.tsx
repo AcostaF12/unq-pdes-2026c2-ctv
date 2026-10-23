@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getApiErrorMessage } from '../../api/errors'
-import { listHotels } from '../../api/hotels'
+import { listHotels, type Hotel } from '../../api/hotels'
 import type { Agency, TravelPackage, TravelPackagePayload } from '../../api/packages'
 import { queryKeys } from '../../query/keys'
 import { Button } from '../Button/Button'
@@ -23,6 +23,26 @@ interface PackageFormProps {
   agencies?: Agency[]
   initialPackage?: TravelPackage
   onCancel?: () => void
+}
+
+function hotelsByCity(hotels: Hotel[]): { label: string; hotels: Hotel[] }[] {
+  const groups = new Map<string, { label: string; hotels: Hotel[] }>()
+  const sorted = [...hotels].sort(
+    (left, right) =>
+      left.city.name.localeCompare(right.city.name, 'es') || left.name.localeCompare(right.name, 'es'),
+  )
+  for (const hotel of sorted) {
+    const current = groups.get(hotel.city.code)
+    if (current) {
+      current.hotels.push(hotel)
+      continue
+    }
+    groups.set(hotel.city.code, {
+      label: `${hotel.city.name} (${hotel.city.code})`,
+      hotels: [hotel],
+    })
+  }
+  return [...groups.values()]
 }
 
 function initialValues(initialPackage: TravelPackage | undefined): PackageFormValues {
@@ -99,34 +119,55 @@ export function PackageForm({
       noValidate
       onSubmit={handleSubmit((values) => onSubmit(toPackagePayload(values, withAgency)))}
     >
-      <h2>{title}</h2>
-      <Input label="Nombre" error={errors.name?.message} {...register('name')} />
-      {withAgency ? (
-        <Select label="Agencia" error={errors.agencyId?.message} {...register('agencyId')}>
-          <option value="">Elegí una agencia</option>
-          {agencies.map((agency) => (
-            <option key={agency.id} value={agency.id}>
-              {agency.name}
-            </option>
-          ))}
-        </Select>
-      ) : null}
-      <Select
-        label="Hotel"
-        error={errors.hotelId?.message}
-        {...hotelField}
-        onChange={(event) => {
-          void hotelField.onChange(event)
-          selectFlights({ outboundFlightId: '', returnFlightId: '' })
-        }}
-      >
-        <option value="">Elegí un hotel</option>
-        {hotels.map((hotel) => (
-          <option key={hotel.id} value={hotel.id}>
-            {hotel.name} ({hotel.city.code})
-          </option>
-        ))}
-      </Select>
+      <header className="package-form__header">
+        <h2>{title}</h2>
+        <p className="package-form__hint">
+          El hotel abre los vuelos. Si hay una sola vuelta, queda marcada.
+        </p>
+      </header>
+      <div className="package-form__grid">
+        <Input label="Nombre" error={errors.name?.message} {...register('name')} />
+        <Input
+          label="Precio"
+          type="number"
+          min={1}
+          step="0.01"
+          error={errors.price?.message}
+          {...register('price')}
+        />
+        {withAgency ? (
+          <Select label="Agencia" error={errors.agencyId?.message} {...register('agencyId')}>
+            <option value="">Elegí una agencia</option>
+            {agencies.map((agency) => (
+              <option key={agency.id} value={agency.id}>
+                {agency.name}
+              </option>
+            ))}
+          </Select>
+        ) : null}
+        <div className={withAgency ? undefined : 'package-form__span'}>
+          <Select
+            label="Hotel"
+            error={errors.hotelId?.message}
+            {...hotelField}
+            onChange={(event) => {
+              void hotelField.onChange(event)
+              selectFlights({ outboundFlightId: '', returnFlightId: '' })
+            }}
+          >
+            <option value="">Elegí un hotel</option>
+            {hotelsByCity(hotels).map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.hotels.map((hotel) => (
+                  <option key={hotel.id} value={hotel.id}>
+                    {hotel.name} ({hotel.city.code})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
+        </div>
+      </div>
       <FlightPicker
         destinationCode={selectedHotel?.city.code ?? null}
         outboundFlightId={outboundFlightId}
@@ -135,14 +176,6 @@ export function PackageForm({
         outboundError={errors.outboundFlightId?.message}
         returnError={errors.returnFlightId?.message}
       />
-      <Input
-        label="Precio"
-        type="number"
-        min={1}
-        step="0.01"
-        error={errors.price?.message}
-        {...register('price')}
-      />
 
       {serverError ? (
         <p className="package-form__error" role="alert">
@@ -150,7 +183,7 @@ export function PackageForm({
         </p>
       ) : null}
 
-      <div className="page__actions">
+      <div className="page__actions package-form__actions">
         <Button type="submit" loading={submitting}>
           {submitLabel}
         </Button>

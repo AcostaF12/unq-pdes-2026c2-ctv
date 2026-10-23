@@ -17,13 +17,19 @@ import unq.pdes.backend.controller.dtos.requests.ChangePasswordRequestDto
 import unq.pdes.backend.controller.dtos.requests.UpdateProfileRequestDto
 import unq.pdes.backend.service.UserService
 
-@Tag(name = "User Services", description = "Consulta y actualización del usuario autenticado.")
+@Tag(name = "User Services", description = "Datos de la persona del token. Cualquier rol autenticado. No cambia el rol ni la agencia.")
 @RestController
 @RequestMapping("/users")
 class UserController(
     private val userService: UserService,
 ) {
-    @Operation(summary = "Usuario actual", description = "Retorna los datos del usuario autenticado (según el token JWT).")
+    @Operation(
+        summary = "Usuario actual",
+        description =
+            "Devuelve nombre, usuario y rol de quien está autenticado.\n\n" +
+                "No trae la contraseña. La pantalla lo usa para armar el menú.\n\n" +
+                "**Quién:** cualquier usuario autenticado",
+    )
     @GetMapping("/me")
     fun me(
         @AuthenticationPrincipal principal: UserDetails,
@@ -32,7 +38,13 @@ class UserController(
         return ResponseEntity.ok(UserDto.fromModel(user))
     }
 
-    @Operation(summary = "Actualizar perfil", description = "Actualiza nombre y apellido del usuario autenticado.")
+    @Operation(
+        summary = "Actualizar perfil",
+        description =
+            "Cambia el nombre y el apellido.\n\n" +
+                "No toca el usuario, el rol ni la contraseña.\n\n" +
+                "**Quién:** cualquier usuario autenticado",
+    )
     @PatchMapping("/me")
     fun updateMe(
         @AuthenticationPrincipal principal: UserDetails,
@@ -44,7 +56,12 @@ class UserController(
 
     @Operation(
         summary = "Cambiar contraseña",
-        description = "Cambia la contraseña del usuario autenticado validando la actual.",
+        description =
+            "Reemplaza la contraseña después de comprobar la actual.\n\n" +
+                "La nueva tiene al menos 6 caracteres.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**204** contraseña cambiada\n" +
+                "**400** la actual no coincide",
     )
     @PutMapping("/me/password")
     fun changePassword(

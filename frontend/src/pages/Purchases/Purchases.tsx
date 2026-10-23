@@ -123,62 +123,74 @@ export function Purchases() {
   }
 
   return (
-    <section className="page">
+    <section className="page history-page">
       <HeroScene
         compact
         eyebrow="Tu historial"
         title="Mis compras"
         subtitle="Todos tus viajes y comprobantes en un solo lugar."
       />
-      <form className="history-filters" onSubmit={applyFilters}>
-        <Input
-          label="Paquete"
-          value={draft.packageName}
-          onChange={(event) => update('packageName', event.target.value)}
-        />
-        <Select
-          label="Destino"
-          value={draft.destination}
-          onChange={(event) => update('destination', event.target.value)}
-        >
-          <option value="">Todos</option>
-          {cities.map((city) => (
-            <option key={city.code} value={city.code}>
-              {city.name}
-            </option>
-          ))}
-        </Select>
-        <Input
-          label="Desde"
-          type="date"
-          max={draft.to || undefined}
-          value={draft.from}
-          onChange={(event) => update('from', event.target.value)}
-        />
-        <Input
-          label="Hasta"
-          type="date"
-          min={draft.from || undefined}
-          value={draft.to}
-          onChange={(event) => update('to', event.target.value)}
-        />
-        <Input
-          label="Precio mínimo"
-          type="number"
-          min="0"
-          inputMode="decimal"
-          value={draft.minPrice}
-          onChange={(event) => update('minPrice', event.target.value)}
-        />
-        <Input
-          label="Precio máximo"
-          type="number"
-          min="0"
-          inputMode="decimal"
-          value={draft.maxPrice}
-          onChange={(event) => update('maxPrice', event.target.value)}
-          error={formError}
-        />
+      <form className="history-filters" aria-label="Filtros de compras" onSubmit={applyFilters}>
+        <header className="history-filters__header">
+          <h2 className="history-filters__title">Filtros</h2>
+          <p className="history-filters__hint">Buscá por paquete, destino, fechas o precio.</p>
+        </header>
+        <div className="history-filters__fields">
+          <div className="history-filters__group">
+            <Input
+              label="Paquete"
+              value={draft.packageName}
+              onChange={(event) => update('packageName', event.target.value)}
+            />
+            <Select
+              label="Destino"
+              value={draft.destination}
+              onChange={(event) => update('destination', event.target.value)}
+            >
+              <option value="">Todos</option>
+              {cities.map((city) => (
+                <option key={city.code} value={city.code}>
+                  {city.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="history-filters__group">
+            <Input
+              label="Desde"
+              type="date"
+              max={draft.to || undefined}
+              value={draft.from}
+              onChange={(event) => update('from', event.target.value)}
+            />
+            <Input
+              label="Hasta"
+              type="date"
+              min={draft.from || undefined}
+              value={draft.to}
+              onChange={(event) => update('to', event.target.value)}
+            />
+          </div>
+          <div className="history-filters__group">
+            <Input
+              label="Precio mínimo"
+              type="number"
+              min="0"
+              inputMode="decimal"
+              value={draft.minPrice}
+              onChange={(event) => update('minPrice', event.target.value)}
+            />
+            <Input
+              label="Precio máximo"
+              type="number"
+              min="0"
+              inputMode="decimal"
+              value={draft.maxPrice}
+              onChange={(event) => update('maxPrice', event.target.value)}
+              error={formError}
+            />
+          </div>
+        </div>
         <div className="history-filters__actions">
           <Button type="submit">Filtrar compras</Button>
           {hasFilters ? (

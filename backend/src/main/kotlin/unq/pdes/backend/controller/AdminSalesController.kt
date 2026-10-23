@@ -13,14 +13,23 @@ import unq.pdes.backend.controller.dtos.models.PurchaseHistoryPageDto
 import unq.pdes.backend.service.PurchaseService
 import java.time.LocalDate
 
-@Tag(name = "Administración de ventas")
+@Tag(
+    name = "Administración de ventas",
+    description = "Historial de compras de todas las agencias. Solo admin. El precio es el abonado, no el actual del paquete.",
+)
 @RestController
 @RequestMapping("/admin/sales")
 @PreAuthorize("hasRole('ADMIN')")
 class AdminSalesController(
     private val purchaseService: PurchaseService,
 ) {
-    @Operation(summary = "Ventas de todas las agencias", description = "Historial paginado con filtros de comprador, paquete y fechas.")
+    @Operation(
+        summary = "Ventas de todas las agencias",
+        description =
+            "Historial de todas las agencias, de a una página. La página 0 es la primera.\n\n" +
+                "Filtra por comprador, paquete y fechas. El precio es el abonado, no el de hoy.\n\n" +
+                "**Quién:** admin",
+    )
     @GetMapping
     fun list(
         @AuthenticationPrincipal principal: UserDetails,
