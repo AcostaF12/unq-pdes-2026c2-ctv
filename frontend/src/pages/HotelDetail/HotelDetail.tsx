@@ -125,7 +125,9 @@ export function HotelDetail() {
           </div>
         ) : null}
         <div className="hotel-detail__identity">
-          <p className="hotel-detail__city">{hotel.city.name}</p>
+          <p className="hotel-detail__city">
+            {hotel.city.name} · {hotel.city.code}
+          </p>
           <h1 className="page__title">{hotel.name}</h1>
         </div>
       </header>
