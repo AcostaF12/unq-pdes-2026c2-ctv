@@ -66,7 +66,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Imágenes publicadas solo en GitHub Container Registry; se quitó Docker Hub ([#27](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/27)).
 - README consolidado con configuración, arquitectura de Docker, pruebas y CI/CD ([#28](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/28)).
 - Primer deploy en verde con el workflow nuevo, que repite todos los controles antes de publicar y desplegar ([corrida 44223522482](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44223522482)).
-- Documentación en español y `.env.example` con las variables de configuración.
+- Documentación en español y `.env.example` con las variables de configuración ([#35](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/35)).
 
 **Pendiente:**
 
