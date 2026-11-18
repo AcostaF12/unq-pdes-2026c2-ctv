@@ -41,14 +41,13 @@ class DataBootstrap(
                     if (key !in keyed) {
                         // Adopt an unambiguous legacy fixture without replacing stock or dates.
                         val legacy =
-                            existing
-                                .filter {
-                                    it.seedKey == null &&
-                                        it.origin == candidate.origin &&
-                                        it.destination == candidate.destination &&
-                                        it.airline == candidate.airline &&
-                                        it.departureTime == candidate.departureTime
-                                }.singleOrNull()
+                            existing.singleOrNull {
+                                it.seedKey == null &&
+                                    it.origin == candidate.origin &&
+                                    it.destination == candidate.destination &&
+                                    it.airline == candidate.airline &&
+                                    it.departureTime == candidate.departureTime
+                            }
                         val resolved = legacy?.id?.let { flightRepository.findForUpdate(it) } ?: candidate
                         changed += resolved.apply { seedKey = key }
                     }
