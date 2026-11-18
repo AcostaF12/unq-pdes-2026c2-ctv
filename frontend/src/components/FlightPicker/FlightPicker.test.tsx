@@ -147,7 +147,7 @@ describe('FlightPicker', () => {
       destination: 'PAR', origin: 'BUE', date: '2026-12-01',
     }))
     await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toEqual([
-      'Elegí un vuelo de ida', 'Aerolíneas Test · 2026-12-01 08:30 · BUE → PAR · 40 lugares',
+      'Elegí un vuelo de ida', flightChoiceLabel(outboundToParis),
     ]))
 
     await user.selectOptions(screen.getByLabelText('Origen de ida'), '')
@@ -159,9 +159,9 @@ describe('FlightPicker', () => {
   it.each(['Origen de ida', 'Fecha de ida'])('clears both selected flights when %s changes', async (label) => {
     const user = userEvent.setup()
     renderPicker('PAR')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
 
     if (label === 'Origen de ida') {
@@ -183,9 +183,9 @@ describe('FlightPicker', () => {
       && (!params?.date || flight.flightDate === params.date),
     ))
     renderPicker('PAR')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-11' } })
 
@@ -197,7 +197,7 @@ describe('FlightPicker', () => {
     expect(await screen.findByRole('option', { name: 'No hay vuelos de regreso para esa ruta' })).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '' } })
-    expect(await screen.findByRole('option', { name: describeFlight(returnFromParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })).toBeInTheDocument()
   })
 
   it('shows city loading errors without blocking unfiltered flight selection', async () => {
@@ -206,6 +206,6 @@ describe('FlightPicker', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar las ciudades')
     expect(screen.getByLabelText('Origen de ida')).toBeDisabled()
-    expect(await screen.findByRole('option', { name: describeFlight(outboundToParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })).toBeInTheDocument()
   })
 })
