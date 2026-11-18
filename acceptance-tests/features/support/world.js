@@ -7,6 +7,7 @@ class CtvWorld {
     this.buyerToken = null
     this.currentUsername = null
     this.package = null
+    this.purchase = null
     this.packagePrice = null
     this.outboundFlight = null
     this.returnFlight = null

@@ -339,6 +339,39 @@ Given('compró el paquete nuevo', async function () {
     body: { packageId: this.package.id },
   })
   assert.equal(response.status, 201, JSON.stringify(response.body))
+  this.purchase = response.body
+})
+
+When('cancela la compra del paquete nuevo', async function () {
+  assert.ok(this.purchase, 'There is no purchase to cancel.')
+  this.response = await backendRequest(`/purchases/${this.purchase.id}`, {
+    method: 'DELETE',
+    token: this.token,
+  })
+})
+
+Then('la cancelación responde con status {int}', function (status) {
+  assert.equal(this.response.status, status, JSON.stringify(this.response.body))
+})
+
+Then('ambos vuelos recuperan la disponibilidad registrada', async function () {
+  const [outbound, returnFlight] = await Promise.all([
+    flightsRequest(`/flights/${this.outboundFlight.id}`),
+    flightsRequest(`/flights/${this.returnFlight.id}`),
+  ])
+  assert.equal(outbound.status, 200)
+  assert.equal(returnFlight.status, 200)
+  assert.equal(outbound.body.availability, this.originalOutboundAvailability)
+  assert.equal(returnFlight.body.availability, this.originalReturnAvailability)
+})
+
+Then('la compra figura en su historial con estado {string}', async function (status) {
+  const response = await backendRequest('/purchases/me', { token: this.token })
+  assert.equal(response.status, 200)
+  const purchase = response.body.content.find((candidate) => candidate.id === this.purchase.id)
+  assert.ok(purchase, 'The cancelled purchase was not found in the buyer history.')
+  assert.equal(purchase.status, status)
+  assert.ok(purchase.cancelledAt, 'The cancelled purchase has no cancellation date.')
 })
 
 Given('publicó una reseña del paquete nuevo', async function () {
