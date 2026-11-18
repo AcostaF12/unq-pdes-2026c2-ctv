@@ -63,7 +63,7 @@ En PR y push a `dev` o `main`, GitHub ejecuta los controles aplicables. Los CI d
 
 Los jobs de publicación se omiten en los PR. Es intencional: abrir un PR no publica imágenes ni despliega en Azure.
 
-En push a `main`, los workflows de los módulos publican en Docker Hub y GHCR después de sus controles. Agregamos `docker-compose.hub.yml` para usar las imágenes publicadas sin compilar. La publicación requiere credenciales de Docker Hub y todavía debe verificarse para esta versión.
+En push a `main`, los workflows de los módulos publican en GHCR después de sus controles, con `latest` y el SHA del commit. La publicación usa el `GITHUB_TOKEN` del workflow.
 
 El deploy manual reutiliza los workflows de pruebas. Su secuencia es:
 

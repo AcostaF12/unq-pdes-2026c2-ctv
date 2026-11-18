@@ -53,7 +53,7 @@ Al terminar: `docker compose -f docker-compose.e2e.yml down`. Las bases temporal
 | Interfaz/e2e | Las siete suites Cypress contra servicios y bases reales |
 | Git, issues y revisión | PR vinculado a los issues y revisión de otra persona |
 | CI, Sonar y Quality Gate | Ejecución remota verde asociada al SHA entregado |
-| Docker y entrega continua | Imágenes SHA publicadas en Docker Hub y arranque desde Compose Hub |
+| Docker y entrega continua | Imágenes SHA publicadas en GHCR y arranque desde el overlay `docker-compose.prod.yml` |
 
 Los resultados locales no acreditan aprobación remota de Sonar ni publicación de imágenes. Adjuntar esas ejecuciones al PR después de integrar los cambios.
 
