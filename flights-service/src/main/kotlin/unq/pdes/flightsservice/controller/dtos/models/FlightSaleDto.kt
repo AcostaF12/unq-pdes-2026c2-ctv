@@ -8,12 +8,11 @@ data class FlightSaleDto(
     val passengerName: String,
 ) {
     companion object {
-        fun fromModel(sale: FlightSale): FlightSaleDto {
-            return FlightSaleDto(
+        fun fromModel(sale: FlightSale): FlightSaleDto =
+            FlightSaleDto(
                 id = sale.id,
                 flightId = sale.flight.id,
                 passengerName = sale.passengerName,
             )
-        }
     }
 }

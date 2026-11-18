@@ -1,0 +1,389 @@
+.purchase-detail__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.purchase-detail__sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.pass {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  background: var(--color-surface);
+  border: var(--border-width-lg) solid var(--color-line);
+  box-shadow: var(--shadow-hard);
+  border-radius: var(--radius);
+}
+
+.pass__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.pass__cities {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pass__cities > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.pass__cities strong {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.pass__cities span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.pass__plane {
+  flex: 1;
+  text-align: center;
+  font-size: 28px;
+  line-height: 0.8;
+  border-bottom: 2px dashed var(--color-line);
+  padding-bottom: 8px;
+  animation: pass-plane-bob 2.4s ease-in-out infinite;
+}
+
+.itinerary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.itinerary__leg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: var(--radius);
+}
+
+.itinerary__label {
+  align-self: flex-start;
+  margin-bottom: var(--space-1);
+  padding: 1px 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--color-surface);
+  background: var(--color-ink);
+  font-weight: 700;
+}
+
+.itinerary__route {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.itinerary__when {
+  font-weight: 600;
+}
+
+.itinerary__meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.pass__nights {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.pass__stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3);
+  background: var(--color-secondary);
+  border-left: 2px dashed var(--color-line);
+  text-align: center;
+}
+
+.pass__stub::before,
+.pass__stub::after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  width: 20px;
+  height: 20px;
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-line);
+  border-radius: 50%;
+}
+
+.pass__stub::before {
+  top: -12px;
+}
+
+.pass__stub::after {
+  bottom: -12px;
+}
+
+.pass__barcode {
+  width: 120px;
+  height: 50px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-ink) 0 2px,
+    transparent 2px 4px,
+    var(--color-ink) 4px 5px,
+    transparent 5px 8px,
+    var(--color-ink) 8px 11px,
+    transparent 11px 13px
+  );
+}
+
+.pass__stamp {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--color-primary);
+  border: 3px solid var(--color-primary);
+  padding: 2px 8px;
+  background: var(--color-surface);
+  transform: rotate(-8deg);
+  animation: pass-stamp-in 480ms var(--ease-spring) 500ms backwards;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+.purchase-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-line);
+  box-shadow: var(--shadow-hard-sm);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+}
+
+.detail-card h2 {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+}
+
+.detail-card__strong {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.detail-card--hotel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.detail-card--hotel .hotel-photo {
+  height: 120px;
+}
+
+.detail-card__hotel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.purchase-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.empty-state__cta--ghost {
+  color: var(--color-ink);
+  background: transparent;
+}
+
+.empty-state__cta--ghost:hover {
+  color: var(--color-surface);
+}
+
+@keyframes pass-stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(2.4);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+
+@keyframes pass-plane-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (min-width: 720px) {
+  .itinerary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .purchase-detail__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .pass {
+    grid-template-columns: 1fr;
+  }
+
+  .pass__stub {
+    flex-direction: row;
+    justify-content: space-between;
+    border-left: none;
+    border-top: 2px dashed var(--color-line);
+  }
+
+  .pass__stub::before,
+  .pass__stub::after {
+    top: -12px;
+    bottom: auto;
+    left: auto;
+  }
+
+  .pass__stub::before {
+    left: -12px;
+  }
+
+  .pass__stub::after {
+    right: -12px;
+  }
+
+  .pass__barcode {
+    width: 70px;
+    height: 36px;
+  }
+}
+
+@media print {
+  .app-shell__header,
+  .purchase-detail__actions,
+  .purchase-detail__back,
+  .toast-region {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .reveal,
+  .page-transition {
+    animation: none !important;
+  }
+}
+
+/* ---- Modern theme refinements ---- */
+.pass {
+  border-radius: 24px;
+}
+
+.pass__stub {
+  border-radius: 0 24px 24px 0;
+  background: linear-gradient(160deg, var(--color-secondary), #cfe0ff);
+}
+
+.pass__stub::before,
+.pass__stub::after {
+  border: 0;
+  background: var(--color-bg);
+  box-shadow: inset 0 1px 3px rgb(20 34 74 / 0.14);
+}
+
+.pass__cities strong {
+  color: var(--color-brand);
+}
+
+.itinerary__leg {
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+}
+
+.itinerary__label {
+  color: #fff;
+  background: var(--color-brand);
+  border-radius: var(--radius-pill);
+  padding: 2px 12px;
+}
+
+.itinerary__route {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.itinerary__meta {
+  font-family: var(--font-body);
+  color: var(--color-muted);
+}
+
+.pass__nights {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.pass__stamp {
+  color: var(--color-success);
+  border-color: var(--color-success);
+  border-radius: 8px;
+}
+
+.detail-card h2 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.detail-card {
+  border-radius: 20px;
+}
+
+@media (max-width: 640px) {
+  .pass__stub {
+    border-radius: 0 0 24px 24px;
+  }
+}

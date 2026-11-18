@@ -1,22 +1,36 @@
 :root {
-  --color-bg: #efe7d8; /* arena */
-  --color-surface: #faf6ec; /* blanco calido, cards/inputs */
-  --color-ink: #1c2b45; /* marino profundo: texto, bordes */
-  --color-primary: #d9541f; /* terracota: acciones principales */
-  --color-primary-hover: #b8430f;
-  --color-secondary: #e3a72b; /* mostaza: detalles/hover secundarios */
-  --color-error: #b23a2e; /* rojo oxido */
-  --color-error-bg: #f4dcd6;
+  /* Surfaces and text */
+  --color-bg: #f3f6fc; /* cool off-white page background */
+  --color-surface: #ffffff; /* cards, inputs, panels */
+  --color-ink: #14224a; /* deep navy: text and dark surfaces */
+  --color-muted: #66749a; /* secondary text */
+  --color-line: #e1e7f3; /* hairline borders */
 
-  --border-width: 3px;
-  --border-width-lg: 4px;
-  --shadow-offset: 6px;
-  --shadow-hard: var(--shadow-offset) var(--shadow-offset) 0 0 var(--color-ink);
-  --shadow-hard-sm: 4px 4px 0 0 var(--color-ink);
+  /* Brand */
+  --color-brand: #1f5eff; /* blue: header accents, links, focus */
+  --color-brand-dark: #0b2f8a;
+  --color-primary: #ff6b00; /* orange: calls to action and prices */
+  --color-primary-hover: #e05f00;
+  --color-secondary: #e6eeff; /* soft blue tint: badges, stubs, hovers */
+  --color-focus: #1f5eff;
 
-  --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --color-error: #c4372b;
+  --color-error-bg: #fdecea;
+  --color-success: #12805c;
+
+  /* Hairlines instead of heavy borders */
+  --border-width: 1px;
+  --border-width-lg: 1px;
+
+  /* Soft elevations (names kept from the previous system) */
+  --shadow-offset: 0;
+  --shadow-sm: 0 1px 2px rgb(20 34 74 / 0.06), 0 2px 8px rgb(20 34 74 / 0.06);
+  --shadow-hard-sm: var(--shadow-sm);
+  --shadow-hard: 0 4px 12px rgb(20 34 74 / 0.08), 0 18px 40px rgb(20 34 74 / 0.12);
+
+  --font-display: 'Space Grotesk', system-ui, 'Segoe UI', sans-serif;
   --font-body: 'Space Grotesk', system-ui, 'Segoe UI', sans-serif;
-  --font-mono: 'Space Mono', ui-monospace, Consolas, monospace;
+  --font-mono: 'Space Grotesk', system-ui, 'Segoe UI', sans-serif;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -25,5 +39,7 @@
   --space-5: 32px;
   --space-6: 48px;
 
-  --radius: 0px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
 }

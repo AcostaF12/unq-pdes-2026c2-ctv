@@ -1,0 +1,107 @@
+.toast-region {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  max-width: min(92vw, 380px);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-line);
+  box-shadow: var(--shadow-hard-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  pointer-events: auto;
+  animation: toast-in 380ms var(--ease-spring) both;
+  border-radius: var(--radius-sm);
+}
+
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  height: 22px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--color-ink);
+  background: var(--color-secondary);
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+.toast--error {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.toast--error .toast__icon {
+  color: var(--color-surface);
+  background: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.toast__message {
+  flex: 1;
+}
+
+.toast__close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-region {
+    right: var(--space-3);
+    left: var(--space-3);
+    bottom: var(--space-3);
+    max-width: none;
+    align-items: stretch;
+  }
+}
+
+/* ---- Modern theme refinements ---- */
+.toast {
+  border-radius: 14px;
+  border: 0;
+  box-shadow: var(--shadow-hard);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.toast__icon {
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--color-success);
+}
+
+.toast--error .toast__icon {
+  background: var(--color-error);
+}

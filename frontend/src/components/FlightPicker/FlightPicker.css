@@ -1,0 +1,42 @@
+.flight-picker {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.flight-picker__error {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: var(--border-width) solid var(--color-error);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.flight-picker__filters {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.flight-picker__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 14px;
+}
+
+.flight-picker .field {
+  min-width: 0;
+}
+
+@media (min-width: 880px) {
+  .flight-picker {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .flight-picker__filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

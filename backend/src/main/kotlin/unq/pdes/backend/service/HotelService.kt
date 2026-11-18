@@ -11,39 +11,49 @@ class HotelService(
     private val hotelRepository: HotelRepository,
     private val cityService: CityService,
 ) {
+    @Transactional(readOnly = true)
+    fun findAll(): List<Hotel> = hotelRepository.findAll()
 
     @Transactional(readOnly = true)
-    fun findAll(): List<Hotel> {
-        return hotelRepository.findAll()
-    }
-
-    @Transactional(readOnly = true)
-    fun findById(id: Long): Hotel {
-        return hotelRepository.findById(id)
+    fun findById(id: Long): Hotel =
+        hotelRepository
+            .findById(id)
             .orElseThrow { EntityNotFoundException("There is no Hotel with id: $id.") }
-    }
 
     @Transactional
-    fun create(name: String, cityCode: String, photoUrl: String): Hotel {
+    fun create(
+        name: String,
+        cityCode: String,
+        photoUrl: String,
+    ): Hotel {
         val city = cityService.findByCode(cityCode)
-        val hotel = Hotel.Builder()
-            .name(name)
-            .city(city)
-            .photoUrl(photoUrl)
-            .build()
+        val hotel =
+            Hotel
+                .Builder()
+                .name(name)
+                .city(city)
+                .photoUrl(photoUrl)
+                .build()
         return hotelRepository.save(hotel)
     }
 
     @Transactional
-    fun update(id: Long, name: String, cityCode: String, photoUrl: String): Hotel {
+    fun update(
+        id: Long,
+        name: String,
+        cityCode: String,
+        photoUrl: String,
+    ): Hotel {
         findById(id)
         val city = cityService.findByCode(cityCode)
-        val hotel = Hotel.Builder()
-            .id(id)
-            .name(name)
-            .city(city)
-            .photoUrl(photoUrl)
-            .build()
+        val hotel =
+            Hotel
+                .Builder()
+                .id(id)
+                .name(name)
+                .city(city)
+                .photoUrl(photoUrl)
+                .build()
         return hotelRepository.save(hotel)
     }
 
@@ -54,7 +64,5 @@ class HotelService(
     }
 
     @Transactional
-    fun save(hotel: Hotel): Hotel {
-        return hotelRepository.save(hotel)
-    }
+    fun save(hotel: Hotel): Hotel = hotelRepository.save(hotel)
 }

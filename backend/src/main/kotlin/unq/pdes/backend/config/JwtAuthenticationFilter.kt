@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -17,7 +18,6 @@ class JwtAuthenticationFilter(
     private val jwtService: JwtService,
     private val userDetailsService: UserDetailsService,
 ) : OncePerRequestFilter() {
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -25,8 +25,9 @@ class JwtAuthenticationFilter(
     ) {
         val token = resolveToken(request)
         if (token != null && isNotAuthenticated()) {
-            authenticateWithToken(token, request)
+            authenticateWithToken(token, request, response)
         }
+        if (response.isCommitted) return
         filterChain.doFilter(request, response)
     }
 
@@ -35,13 +36,25 @@ class JwtAuthenticationFilter(
         return if (header.startsWith(BEARER_PREFIX)) header.removePrefix(BEARER_PREFIX) else null
     }
 
-    private fun isNotAuthenticated(): Boolean {
-        return SecurityContextHolder.getContext().authentication == null
-    }
+    private fun isNotAuthenticated(): Boolean = SecurityContextHolder.getContext().authentication == null
 
-    private fun authenticateWithToken(token: String, request: HttpServletRequest) {
+    private fun authenticateWithToken(
+        token: String,
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) {
         val username = runCatching { jwtService.extractUsername(token) }.getOrNull() ?: return
-        val userDetails = userDetailsService.loadUserByUsername(username)
+        val userDetails =
+            try {
+                userDetailsService.loadUserByUsername(username)
+            } catch (_: UsernameNotFoundException) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                return
+            }
+        if (!userDetails.isEnabled) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            return
+        }
         if (jwtService.isValid(token, userDetails)) {
             SecurityContextHolder.getContext().authentication = buildAuthentication(userDetails, request)
         }
@@ -50,11 +63,10 @@ class JwtAuthenticationFilter(
     private fun buildAuthentication(
         userDetails: UserDetails,
         request: HttpServletRequest,
-    ): UsernamePasswordAuthenticationToken {
-        return UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities).apply {
+    ): UsernamePasswordAuthenticationToken =
+        UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities).apply {
             details = WebAuthenticationDetailsSource().buildDetails(request)
         }
-    }
 
     companion object {
         private const val AUTHORIZATION_HEADER = "Authorization"

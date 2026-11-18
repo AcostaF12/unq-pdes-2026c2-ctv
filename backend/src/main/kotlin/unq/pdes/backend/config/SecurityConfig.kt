@@ -19,13 +19,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
 ) {
-
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
-    fun authenticationManager(configuration: AuthenticationConfiguration): AuthenticationManager =
-        configuration.authenticationManager
+    fun authenticationManager(configuration: AuthenticationConfiguration): AuthenticationManager = configuration.authenticationManager
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -36,17 +34,24 @@ class SecurityConfig(
             it.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
             it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             it.requestMatchers("/auth/**", "/error").permitAll()
+            it.requestMatchers("/admin/**").hasRole("ADMIN")
 
             it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
             it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole("ADMIN")
 
-            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasRole("AGENCY")
-            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasRole("AGENCY")
-            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
+            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
+            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
             it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
 
+            it.requestMatchers(HttpMethod.POST, "/flights").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.POST, "/agencies/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.PUT, "/agencies/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.DELETE, "/agencies/**").hasRole("ADMIN")
+
             it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole("AGENCY")
 
             it.requestMatchers(HttpMethod.POST, "/favorites").hasRole("BUYER")

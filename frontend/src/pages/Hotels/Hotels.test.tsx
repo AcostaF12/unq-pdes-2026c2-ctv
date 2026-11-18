@@ -109,4 +109,20 @@ describe('Hotels page', () => {
     await screen.findByText('Gran Hotel Buenos Aires')
     expect(screen.queryByRole('link', { name: /nuevo hotel/i })).not.toBeInTheDocument()
   })
+
+  it('filters hotels by name and combines it with the city filter', async () => {
+    const user = userEvent.setup()
+    mockedListHotels.mockResolvedValueOnce(hotels)
+    renderHotels()
+
+    await screen.findByText('Gran Hotel Buenos Aires')
+    await user.type(screen.getByLabelText('Buscar por nombre'), 'palacio')
+
+    expect(screen.queryByText('Gran Hotel Buenos Aires')).not.toBeInTheDocument()
+    expect(screen.getByText('Hotel Palacio de París')).toBeInTheDocument()
+    expect(screen.getByText('hotel')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Filtrar por ciudad'), 'BUE')
+    expect(screen.getByText('Ningún hotel coincide con esa búsqueda.')).toBeInTheDocument()
+  })
 })

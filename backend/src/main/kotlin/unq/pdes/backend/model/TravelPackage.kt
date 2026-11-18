@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -14,10 +15,16 @@ import java.math.BigDecimal
 @Entity
 @Table(
     name = "packages",
+    indexes = [
+        Index(name = "idx_packages_price", columnList = "price"),
+        Index(name = "idx_packages_route_price", columnList = "origin_city_code, destination_city_code, price"),
+        Index(name = "idx_packages_destination_price", columnList = "destination_city_code, price"),
+    ],
     uniqueConstraints = [UniqueConstraint(columnNames = ["agency_id", "name"])],
 )
-class TravelPackage private constructor(builder: Builder) {
-
+class TravelPackage private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -50,19 +57,20 @@ class TravelPackage private constructor(builder: Builder) {
     @Column(nullable = false, precision = 12, scale = 2)
     var price: BigDecimal = builder.price!!
 
-    override fun equals(other: Any?): Boolean {
-        return (other is TravelPackage) && id == other.id
-    }
+    @Column(nullable = false)
+    var active: Boolean = builder.active
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun equals(other: Any?): Boolean = (other is TravelPackage) && id == other.id
 
-    override fun toString(): String {
-        return "TravelPackage(id=$id, name='$name', agency=${agency.id}, hotel=${hotel.id}, price=$price)"
-    }
+    override fun hashCode(): Int = id.hashCode()
+
+    override fun toString(): String = "TravelPackage(id=$id, name='$name', agency=${agency.id}, hotel=${hotel.id}, price=$price)"
 
     class Builder {
+        var active: Boolean = true
+
+        fun active(active: Boolean) = apply { this.active = active }
+
         var id: Long? = null
         var agency: Agency? = null
         var hotel: Hotel? = null
@@ -73,43 +81,52 @@ class TravelPackage private constructor(builder: Builder) {
         var returnFlightId: Long? = null
         var price: BigDecimal? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun agency(agency: Agency) = apply {
-            this.agency = agency
-        }
+        fun agency(agency: Agency) =
+            apply {
+                this.agency = agency
+            }
 
-        fun hotel(hotel: Hotel) = apply {
-            this.hotel = hotel
-        }
+        fun hotel(hotel: Hotel) =
+            apply {
+                this.hotel = hotel
+            }
 
-        fun origin(origin: City) = apply {
-            this.origin = origin
-        }
+        fun origin(origin: City) =
+            apply {
+                this.origin = origin
+            }
 
-        fun destination(destination: City) = apply {
-            this.destination = destination
-        }
+        fun destination(destination: City) =
+            apply {
+                this.destination = destination
+            }
 
-        fun name(name: String) = apply {
-            require(name.isNotBlank()) { "The package must have a name." }
-            this.name = name
-        }
+        fun name(name: String) =
+            apply {
+                require(name.isNotBlank()) { "The package must have a name." }
+                this.name = name
+            }
 
-        fun outboundFlightId(outboundFlightId: Long) = apply {
-            this.outboundFlightId = outboundFlightId
-        }
+        fun outboundFlightId(outboundFlightId: Long) =
+            apply {
+                this.outboundFlightId = outboundFlightId
+            }
 
-        fun returnFlightId(returnFlightId: Long) = apply {
-            this.returnFlightId = returnFlightId
-        }
+        fun returnFlightId(returnFlightId: Long) =
+            apply {
+                this.returnFlightId = returnFlightId
+            }
 
-        fun price(price: BigDecimal) = apply {
-            require(price.signum() > 0) { "The package price must be greater than zero." }
-            this.price = price
-        }
+        fun price(price: BigDecimal) =
+            apply {
+                require(price.signum() > 0) { "The package price must be greater than zero." }
+                this.price = price
+            }
 
         fun build(): TravelPackage {
             requireNotNull(agency) { "The package must belong to an agency." }

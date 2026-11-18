@@ -11,13 +11,20 @@ class AuthService(
     private val userService: UserService,
     private val jwtService: JwtService,
 ) {
-
-    fun register(username: String, password: String, firstName: String, lastName: String): Pair<String, User> {
+    fun register(
+        username: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+    ): Pair<String, User> {
         val user = userService.register(username, password, firstName, lastName)
         return jwtService.generateToken(user) to user
     }
 
-    fun login(username: String, password: String): Pair<String, User> {
+    fun login(
+        username: String,
+        password: String,
+    ): Pair<String, User> {
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(username, password))
         val user = userService.findByUsername(username)
         return jwtService.generateToken(user) to user

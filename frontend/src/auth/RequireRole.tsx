@@ -23,3 +23,15 @@ export function RequireAgency({ children }: { children: ReactNode }) {
 
   return children
 }
+
+export function RequireBuyerOrAgency({ children }: { children: ReactNode }) {
+  const { isBuyer, isAgency } = useAuth()
+
+  if (!isBuyer && !isAgency) {
+    return (
+      <EmptyState title="Sin permiso" message="Esta sección es solo para compradores y agencias." />
+    )
+  }
+
+  return children
+}

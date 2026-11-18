@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from 'react'
-import { photosForCity } from '../../data/cityPhotos'
+import { photosForCity, responsiveSrcSet } from '../../data/cityPhotos'
 import './PhotoCarousel.css'
 
 interface PhotoCarouselProps {
@@ -101,6 +101,8 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
       <img
         className="photo-carousel__img"
         src={currentSrc}
+        srcSet={responsiveSrcSet(currentSrc)}
+        sizes="(min-width: 1100px) 1100px, 100vw"
         alt={`${alt} — foto ${index + 1} de ${photos.length}`}
         decoding="async"
         onError={() => {

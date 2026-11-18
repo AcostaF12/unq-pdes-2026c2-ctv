@@ -11,7 +11,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class CorsConfig(
     @Value("\${cors.allowed-origin-patterns}") private val allowedOriginPatterns: String,
 ) {
-
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
@@ -26,7 +25,5 @@ class CorsConfig(
         return source
     }
 
-    private fun split(value: String): List<String> {
-        return value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-    }
+    private fun split(value: String): List<String> = value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 }

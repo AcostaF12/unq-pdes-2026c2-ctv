@@ -1,17 +1,16 @@
 package unq.pdes.backend.tests.unit.external
 
 import jakarta.persistence.EntityNotFoundException
-import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalTime
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest
@@ -21,11 +20,15 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
+import unq.pdes.backend.external.flights.ExternalDemoReservationDto
+import unq.pdes.backend.external.flights.ExternalFlightRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
+import java.io.IOException
+import java.time.LocalDate
+import java.time.LocalTime
 
 class FlightsClientTest {
-
     private lateinit var server: MockRestServiceServer
     private lateinit var client: FlightsClient
 
@@ -37,8 +40,41 @@ class FlightsClientTest {
     }
 
     @Test
+    fun `demo client discovers actual ids and sends the typed idempotent reservation contract`() {
+        val key = "ctv-demo-v1:PAR:0:0"
+        server
+            .expect(requestTo("http://flights/internal/demo/flights"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(
+                withSuccess(
+                    """
+                    [{"id":900,"airline":"Demo","flightDate":"2026-12-01","departureTime":"08:00:00",
+                    "origin":"BUE","destination":"PAR","capacity":180,"availability":100,"seedKey":"$key"}]
+                    """.trimIndent(),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        server
+            .expect(requestTo("http://flights/internal/demo/reservations"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(
+                content().json(
+                    """
+                    {"reservations":[{"key":"ctv-demo-v1:buyer:trip:0","flightId":900,"passengerName":"Buyer Demo"}]}
+                    """.trimIndent(),
+                ),
+            ).andRespond(withStatus(HttpStatus.NO_CONTENT))
+        val catalog = client.seedCatalog()
+        assertEquals(900L, catalog.single().id)
+        assertEquals(key, catalog.single().seedKey)
+        client.reserveDemoSeats(listOf(ExternalDemoReservationDto("ctv-demo-v1:buyer:trip:0", 900, "Buyer Demo")))
+        server.verify()
+    }
+
+    @Test
     fun `01 - findById should map the flight payload`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andExpect(method(HttpMethod.GET))
             .andRespond(
                 withSuccess(
@@ -71,106 +107,125 @@ class FlightsClientTest {
 
     @Test
     fun `02 - findById should throw EntityNotFoundException on 404`() {
-        server.expect(requestTo("http://flights/flights/999"))
+        server
+            .expect(requestTo("http://flights/flights/999"))
             .andRespond(
-                withResourceNotFound().body(
-                    """{"httpCode":404,"httpStatus":"NOT_FOUND","errorData":{"description":"There is no Flight with id: 999."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withResourceNotFound()
+                    .body(
+                        """{"httpCode":404,"httpStatus":"NOT_FOUND","errorData":{"description":"There is no Flight with id: 999."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(999L)
+            }
 
         assertEquals("There is no Flight with id: 999.", exception.message)
     }
 
     @Test
     fun `03 - findById should throw EntityNotFoundException when the body is empty`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("There is no Flight with id: 7.", exception.message)
     }
 
     @Test
     fun `04 - findById should use status text when the error body has no description`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withResourceNotFound().body("{}").contentType(MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Not Found", exception.message)
     }
 
     @Test
     fun `05 - findById should ignore a truncated description in the error body`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withResourceNotFound().body("""{"errorData":{"description":"broken}}""")
+                withResourceNotFound()
+                    .body("""{"errorData":{"description":"broken}}""")
                     .contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Not Found", exception.message)
     }
 
     @Test
     fun `06 - findById should map 4xx errors to IllegalArgumentException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withBadRequest().body(
-                    """{"errorData":{"description":"Invalid flight id."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withBadRequest()
+                    .body(
+                        """{"errorData":{"description":"Invalid flight id."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Invalid flight id.", exception.message)
     }
 
     @Test
     fun `07 - findById should map 5xx errors to FlightsServiceUnavailableException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withServerError().body(
-                    """{"errorData":{"description":"Flights exploded."}}""",
-                ).contentType(MediaType.APPLICATION_JSON),
+                withServerError()
+                    .body(
+                        """{"errorData":{"description":"Flights exploded."}}""",
+                    ).contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Flights exploded.", exception.message)
     }
 
     @Test
     fun `08 - findById should map connectivity errors to FlightsServiceUnavailableException`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(withException(IOException("I/O error")))
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("Flights service is unavailable.", exception.message)
     }
 
     @Test
     fun `09 - sell should map the sale payload`() {
-        server.expect(requestTo("http://flights/flights/1/sales"))
+        server
+            .expect(requestTo("http://flights/flights/1/sales"))
             .andExpect(method(HttpMethod.POST))
             .andRespond(
                 withSuccess(
@@ -189,19 +244,22 @@ class FlightsClientTest {
 
     @Test
     fun `10 - sell should throw when the body is empty`() {
-        server.expect(requestTo("http://flights/flights/1/sales"))
+        server
+            .expect(requestTo("http://flights/flights/1/sales"))
             .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
 
-        val exception = assertThrows(FlightsServiceUnavailableException::class.java) {
-            client.sell(1L, "Bruno Buyer")
-        }
+        val exception =
+            assertThrows(FlightsServiceUnavailableException::class.java) {
+                client.sell(1L, "Bruno Buyer")
+            }
 
         assertEquals("Could not sell a seat for flight 1.", exception.message)
     }
 
     @Test
     fun `11 - cancelSale should call the flights service`() {
-        server.expect(requestTo("http://flights/flights/sales/10"))
+        server
+            .expect(requestTo("http://flights/flights/sales/10"))
             .andExpect(method(HttpMethod.DELETE))
             .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
@@ -212,16 +270,176 @@ class FlightsClientTest {
 
     @Test
     fun `12 - findById should use the fallback message when description is blank`() {
-        server.expect(requestTo("http://flights/flights/7"))
+        server
+            .expect(requestTo("http://flights/flights/7"))
             .andRespond(
-                withResourceNotFound().body("""{"errorData":{"description":""}}""")
+                withResourceNotFound()
+                    .body("""{"errorData":{"description":""}}""")
                     .contentType(MediaType.APPLICATION_JSON),
             )
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            client.findById(7L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                client.findById(7L)
+            }
 
         assertEquals("There is no Flight with id: 7.", exception.message)
+    }
+
+    @Test
+    fun `13 - search should send every filter as a query parameter and map the flights`() {
+        server
+            .expect(requestTo("http://flights/flights?origin=BUE&destination=PAR&date=2026-12-01"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(withSuccess("[$FLIGHT_JSON]", MediaType.APPLICATION_JSON))
+
+        val flights = client.search("BUE", "PAR", LocalDate.of(2026, 12, 1))
+
+        assertEquals(1, flights.size)
+        assertEquals(7L, flights.first().id)
+        assertEquals("PAR", flights.first().destination)
+        server.verify()
+    }
+
+    @Test
+    fun `14 - search should omit the filters that are absent`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON))
+
+        assertTrue(client.search(null, null, null).isEmpty())
+        server.verify()
+    }
+
+    @Test
+    fun `15 - search should return an empty list when the body is empty`() {
+        server
+            .expect(requestTo("http://flights/flights?origin=BUE"))
+            .andRespond(withSuccess("", MediaType.APPLICATION_JSON))
+
+        assertTrue(client.search("BUE", null, null).isEmpty())
+    }
+
+    @Test
+    fun `16 - search should map 4xx errors to IllegalArgumentException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withBadRequest()
+                    .body("""{"errorData":{"description":"Invalid date."}}""")
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(IllegalArgumentException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Invalid date.", exception.message)
+    }
+
+    @Test
+    fun `17 - search should map 5xx errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withServerError().body("""{"errorData":{"description":"Flights exploded."}}""").contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Flights exploded.", exception.message)
+    }
+
+    @Test
+    fun `18 - search should map connectivity errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withException(IOException("I/O error")))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.search(null, null, null) }
+
+        assertEquals("Flights service is unavailable.", exception.message)
+    }
+
+    @Test
+    fun `19 - create should post the flight and map the created payload`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(
+                content().json(
+                    """{"airline":"Aerolineas Argentinas","origin":"BUE","destination":"PAR","capacity":180,"availability":42}""",
+                ),
+            ).andRespond(withStatus(HttpStatus.CREATED).body(FLIGHT_JSON).contentType(MediaType.APPLICATION_JSON))
+
+        val flight = client.create(newFlight())
+
+        assertEquals(7L, flight.id)
+        assertEquals(LocalTime.of(8, 0), flight.departureTime)
+        server.verify()
+    }
+
+    @Test
+    fun `20 - create should throw when the body is empty`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withStatus(HttpStatus.CREATED).body("").contentType(MediaType.APPLICATION_JSON))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Could not create the flight.", exception.message)
+    }
+
+    @Test
+    fun `21 - create should map 4xx errors to IllegalArgumentException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withBadRequest()
+                    .body("""{"errorData":{"description":"Availability cannot exceed capacity."}}""")
+                    .contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(IllegalArgumentException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Availability cannot exceed capacity.", exception.message)
+    }
+
+    @Test
+    fun `22 - create should map 5xx errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(
+                withServerError().body("""{"errorData":{"description":"Flights exploded."}}""").contentType(MediaType.APPLICATION_JSON),
+            )
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Flights exploded.", exception.message)
+    }
+
+    @Test
+    fun `23 - create should map connectivity errors to FlightsServiceUnavailableException`() {
+        server
+            .expect(requestTo("http://flights/flights"))
+            .andRespond(withException(IOException("I/O error")))
+
+        val exception = assertThrows(FlightsServiceUnavailableException::class.java) { client.create(newFlight()) }
+
+        assertEquals("Flights service is unavailable.", exception.message)
+    }
+
+    private fun newFlight() =
+        ExternalFlightRequestDto(
+            airline = "Aerolineas Argentinas",
+            flightDate = LocalDate.of(2026, 12, 1),
+            departureTime = LocalTime.of(8, 0),
+            origin = "BUE",
+            destination = "PAR",
+            capacity = 180,
+            availability = 42,
+        )
+
+    private companion object {
+        const val FLIGHT_JSON =
+            """{"id":7,"airline":"Aerolineas Argentinas","flightDate":"2026-12-01","departureTime":"08:00:00","origin":"BUE","destination":"PAR","capacity":180,"availability":42}"""
     }
 }

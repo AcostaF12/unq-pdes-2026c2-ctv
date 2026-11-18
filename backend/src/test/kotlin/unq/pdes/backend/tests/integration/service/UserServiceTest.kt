@@ -19,7 +19,6 @@ import unq.pdes.backend.service.UserService
 
 @SpringBootTest
 class UserServiceTest {
-
     @Autowired
     private lateinit var userService: UserService
 
@@ -71,9 +70,10 @@ class UserServiceTest {
     fun `04 - registering a taken username should throw IllegalArgumentException`() {
         userService.register("jdoe", "secret", "John", "Doe")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            userService.register("jdoe", "other", "Jane", "Doe")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                userService.register("jdoe", "other", "Jane", "Doe")
+            }
 
         assertEquals("The username 'jdoe' is already taken.", exception.message)
     }
@@ -89,9 +89,10 @@ class UserServiceTest {
 
     @Test
     fun `06 - findByUsername should throw EntityNotFoundException when not found`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            userService.findByUsername("ghost")
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                userService.findByUsername("ghost")
+            }
 
         assertEquals("There is no user with username: ghost.", exception.message)
     }
@@ -122,9 +123,10 @@ class UserServiceTest {
     fun `09 - changePassword should reject an incorrect current password`() {
         userService.register("jdoe", "secret", "John", "Doe")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            userService.changePassword("jdoe", "wrong", "secret2")
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                userService.changePassword("jdoe", "wrong", "secret2")
+            }
 
         assertEquals("The current password is incorrect.", exception.message)
     }

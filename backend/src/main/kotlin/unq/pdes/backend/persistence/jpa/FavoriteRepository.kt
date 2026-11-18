@@ -4,12 +4,17 @@ import org.springframework.data.jpa.repository.JpaRepository
 import unq.pdes.backend.model.Favorite
 
 interface FavoriteRepository : JpaRepository<Favorite, Long> {
-
     fun findByBuyerId(buyerId: Long): List<Favorite>
 
-    fun findByBuyerIdAndTravelPackageId(buyerId: Long, travelPackageId: Long): Favorite?
+    fun findByBuyerIdAndTravelPackageId(
+        buyerId: Long,
+        travelPackageId: Long,
+    ): Favorite?
 
-    fun existsByBuyerIdAndTravelPackageId(buyerId: Long, travelPackageId: Long): Boolean
+    fun existsByBuyerIdAndTravelPackageId(
+        buyerId: Long,
+        travelPackageId: Long,
+    ): Boolean
 
     fun existsByTravelPackageId(travelPackageId: Long): Boolean
 }

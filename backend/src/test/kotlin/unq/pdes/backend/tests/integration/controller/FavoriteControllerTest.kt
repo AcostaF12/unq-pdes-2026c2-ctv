@@ -25,7 +25,6 @@ import unq.pdes.backend.helpers.service.DataServiceH2
 @SpringBootTest
 @WithMockUser(username = "buyer", roles = ["BUYER"])
 class FavoriteControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -42,9 +41,11 @@ class FavoriteControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
     }
 
     @AfterEach
@@ -57,11 +58,13 @@ class FavoriteControllerTest {
         factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
         mvc.perform(
-            post("/favorites").contentType(MediaType.APPLICATION_JSON)
+            post("/favorites")
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
         )
 
-        mvc.perform(get("/favorites"))
+        mvc
+            .perform(get("/favorites"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].travelPackage.name").value("París Romántico"))
@@ -72,11 +75,12 @@ class FavoriteControllerTest {
         factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/favorites").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
-        )
-            .andExpect(status().isCreated)
+        mvc
+            .perform(
+                post("/favorites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.packageId").value(travelPackage.id))
             .andExpect(jsonPath("$.travelPackage.name").value("París Romántico"))
     }
@@ -86,14 +90,17 @@ class FavoriteControllerTest {
         factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
         mvc.perform(
-            post("/favorites").contentType(MediaType.APPLICATION_JSON)
+            post("/favorites")
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
         )
 
-        mvc.perform(delete("/favorites/{packageId}", travelPackage.id))
+        mvc
+            .perform(delete("/favorites/{packageId}", travelPackage.id))
             .andExpect(status().isNoContent)
 
-        mvc.perform(get("/favorites"))
+        mvc
+            .perform(get("/favorites"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(0))
     }
@@ -104,10 +111,11 @@ class FavoriteControllerTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/favorites").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
-        )
-            .andExpect(status().isForbidden)
+        mvc
+            .perform(
+                post("/favorites")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(FavoriteRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isForbidden)
     }
 }

@@ -1,6 +1,6 @@
 .empty-state {
   background: var(--color-surface);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-5);
   display: flex;
@@ -10,6 +10,7 @@
   width: min(100%, 520px);
   margin-inline: auto;
   text-align: center;
+  border-radius: var(--radius);
 }
 
 .empty-state--error {
@@ -44,20 +45,17 @@
   right: 18%;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--color-primary);
   border: 2px solid var(--color-primary);
   padding: 3px 8px;
   transform: rotate(-8deg);
   background: var(--color-surface);
+  border-radius: var(--radius-sm);
 }
 
 .empty-state__eyebrow {
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
   color: var(--color-primary);
 }
 
@@ -69,7 +67,6 @@
   color: var(--color-ink);
   font-size: 22px;
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .empty-state__message {
@@ -96,14 +93,14 @@
   display: inline-block;
   font-family: var(--font-display);
   font-size: 14px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   text-decoration: none;
   color: var(--color-surface);
   background: var(--color-primary);
-  border: var(--border-width) solid var(--color-ink);
+  border: var(--border-width) solid var(--color-line);
   box-shadow: var(--shadow-hard-sm);
   padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-weight: 700;
 }
 
 .empty-state__cta:hover {
@@ -111,7 +108,7 @@
 }
 
 .empty-state__cta:active {
-  transform: translate(4px, 4px);
+  transform: translateY(1px);
   box-shadow: none;
 }
 
@@ -134,4 +131,38 @@
   .empty-state__cta:active {
     transform: none;
   }
+}
+
+/* ---- Modern theme refinements ---- */
+.empty-state {
+  border-radius: 24px;
+  padding: var(--space-6) var(--space-5);
+}
+
+.empty-state__eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.empty-state__stamp {
+  font-family: var(--font-body);
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.empty-state__cta {
+  border: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 16px rgb(255 107 0 / 0.28);
+  font-weight: 700;
+}
+
+.empty-state__cta:hover {
+  transform: translateY(-2px);
+}
+
+.empty-state--error .btn {
+  background: var(--color-primary);
+  color: #fff;
 }

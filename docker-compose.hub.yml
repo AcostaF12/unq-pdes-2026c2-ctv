@@ -1,0 +1,87 @@
+# Levanta todo el stack con las imágenes publicadas en Docker Hub, sin compilar nada:
+#
+#   docker compose -f docker-compose.hub.yml up -d --wait
+#
+# El namespace de Docker Hub se puede cambiar con DOCKERHUB_NAMESPACE y la etiqueta
+# con CTV_IMAGE_TAG (por defecto "latest"; también existe una etiqueta por commit SHA).
+# El resto de los servicios (bases, Zipkin, Prometheus, Grafana, ELK) se heredan de
+# docker-compose.yml, así que los puertos y credenciales son los mismos.
+name: ctv-hub
+
+services:
+  backend-postgres:
+    extends:
+      file: docker-compose.yml
+      service: backend-postgres
+
+  flights-postgres:
+    extends:
+      file: docker-compose.yml
+      service: flights-postgres
+
+  flights-service:
+    extends:
+      file: docker-compose.yml
+      service: flights-service
+    build: !reset null
+    pull_policy: always
+    image: ${DOCKERHUB_NAMESPACE:-acostaf12}/ctv-flights-service:${CTV_IMAGE_TAG:-latest}
+
+  backend:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    build: !reset null
+    pull_policy: always
+    image: ${DOCKERHUB_NAMESPACE:-acostaf12}/ctv-backend:${CTV_IMAGE_TAG:-latest}
+
+  frontend:
+    extends:
+      file: docker-compose.yml
+      service: frontend
+    build: !reset null
+    pull_policy: always
+    image: ${DOCKERHUB_NAMESPACE:-acostaf12}/ctv-frontend:${CTV_IMAGE_TAG:-latest}
+
+  zipkin:
+    extends:
+      file: docker-compose.yml
+      service: zipkin
+
+  prometheus:
+    extends:
+      file: docker-compose.yml
+      service: prometheus
+
+  grafana:
+    extends:
+      file: docker-compose.yml
+      service: grafana
+
+  elasticsearch:
+    extends:
+      file: docker-compose.yml
+      service: elasticsearch
+
+  logstash:
+    extends:
+      file: docker-compose.yml
+      service: logstash
+
+  kibana:
+    extends:
+      file: docker-compose.yml
+      service: kibana
+
+networks:
+  backend-net:
+  flights-net:
+  frontend-net:
+  logging-net:
+  tracing-net:
+
+volumes:
+  backend_postgres_data:
+  flights_postgres_data:
+  grafana_data:
+  elasticsearch_data:

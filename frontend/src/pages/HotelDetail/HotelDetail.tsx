@@ -8,6 +8,7 @@ import { Button } from '../../components/Button/Button'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { RelatedPackages } from '../../components/RelatedPackages/RelatedPackages'
 import { queryKeys } from '../../query/keys'
 import './HotelDetail.css'
 
@@ -134,6 +135,11 @@ export function HotelDetail() {
           {actionError}
         </p>
       ) : null}
+      <RelatedPackages
+        title="Paquetes en este hotel"
+        filters={{ hotel: hotel.name }}
+        seeAllTo={`/trips?hotel=${encodeURIComponent(hotel.name)}`}
+      />
     </article>
   )
 }

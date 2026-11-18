@@ -17,18 +17,23 @@ import org.springframework.web.bind.annotation.RestController
 import unq.pdes.backend.controller.dtos.models.FavoriteDto
 import unq.pdes.backend.controller.dtos.requests.FavoriteRequestDto
 import unq.pdes.backend.service.FavoriteService
+import unq.pdes.backend.service.ReviewService
 
 @Tag(name = "Favorite Services", description = "Favoritos del comprador.")
 @RestController
 @RequestMapping("/favorites")
 class FavoriteController(
     private val favoriteService: FavoriteService,
+    private val reviewService: ReviewService,
 ) {
-
     @Operation(summary = "Mis favoritos", description = "Lista los paquetes favoritos del comprador.")
     @GetMapping
-    fun mine(@AuthenticationPrincipal principal: UserDetails): ResponseEntity<List<FavoriteDto>> {
-        return ResponseEntity.ok(favoriteService.findMine(principal.username).map { FavoriteDto.fromModel(it) })
+    fun mine(
+        @AuthenticationPrincipal principal: UserDetails,
+    ): ResponseEntity<List<FavoriteDto>> {
+        val favorites = favoriteService.findMine(principal.username)
+        val summaries = reviewService.summarize(favorites.mapNotNull { it.travelPackage.id })
+        return ResponseEntity.ok(favorites.map { FavoriteDto.fromModel(it, summaries[it.travelPackage.id]) })
     }
 
     @Operation(summary = "Agregar favorito", description = "Guarda un paquete como favorito.")

@@ -17,10 +17,7 @@ import unq.pdes.backend.service.CityService
 class CityController(
     private val cityService: CityService,
 ) {
-
     @Operation(summary = "Listar ciudades", description = "Retorna todas las ciudades disponibles.")
     @GetMapping
-    fun all(): ResponseEntity<List<CityDto>> {
-        return ResponseEntity.ok(cityService.findAll().map { CityDto.fromModel(it) })
-    }
+    fun all(): ResponseEntity<List<CityDto>> = ResponseEntity.ok(cityService.findAll().map { CityDto.fromModel(it) })
 }

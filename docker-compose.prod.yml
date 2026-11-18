@@ -4,12 +4,15 @@ services:
     image: ghcr.io/acostaf12/ctv-flights-service:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # This Compose overlay is used by the demo VM. Production defaults to seed disabled.
+      SEED_ENABLED: ${SEED_ENABLED:-true}
 
   backend:
     build: !reset null
     image: ghcr.io/acostaf12/ctv-backend:latest
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SEED_ENABLED: ${SEED_ENABLED:-true}
       CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
 
   frontend:

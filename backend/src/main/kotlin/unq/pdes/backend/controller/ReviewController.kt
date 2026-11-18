@@ -23,12 +23,11 @@ import unq.pdes.backend.service.ReviewService
 class ReviewController(
     private val reviewService: ReviewService,
 ) {
-
     @Operation(summary = "Reseñas de un paquete", description = "Lista las reseñas asociadas a un paquete.")
     @GetMapping("/package/{packageId}")
-    fun byPackage(@PathVariable packageId: Long): ResponseEntity<List<ReviewDto>> {
-        return ResponseEntity.ok(reviewService.findByPackageId(packageId).map { ReviewDto.fromModel(it) })
-    }
+    fun byPackage(
+        @PathVariable packageId: Long,
+    ): ResponseEntity<List<ReviewDto>> = ResponseEntity.ok(reviewService.findByPackageId(packageId).map { ReviewDto.fromModel(it) })
 
     @Operation(summary = "Crear reseña", description = "Publica una reseña de un paquete comprado.")
     @PostMapping

@@ -5,6 +5,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: backend_dev
+    ports:
+      - "${BACKEND_DB_PORT:-5433}:5432"
     volumes:
       - backend_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,6 +23,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: flights_dev
+    ports:
+      - "${FLIGHTS_DB_PORT:-5434}:5432"
     volumes:
       - flights_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -56,6 +60,7 @@ services:
       start_period: 40s
     networks:
       - flights-net
+      - tracing-net
 
   backend:
     build: ./backend
@@ -88,14 +93,14 @@ services:
     networks:
       - backend-net
       - flights-net
+      - tracing-net
 
   zipkin:
     image: openzipkin/zipkin:latest
     ports:
       - "9411:9411"
     networks:
-      - backend-net
-      - flights-net
+      - tracing-net
 
   frontend:
     build: ./frontend
@@ -186,6 +191,7 @@ networks:
   flights-net:
   frontend-net:
   logging-net:
+  tracing-net:
 
 volumes:
   backend_postgres_data:

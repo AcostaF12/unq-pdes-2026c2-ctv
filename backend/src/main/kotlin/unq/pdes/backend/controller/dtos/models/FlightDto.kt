@@ -15,8 +15,8 @@ data class FlightDto(
     val availability: Int,
 ) {
     companion object {
-        fun fromExternal(flight: ExternalFlightDto): FlightDto {
-            return FlightDto(
+        fun fromExternal(flight: ExternalFlightDto): FlightDto =
+            FlightDto(
                 id = flight.id,
                 airline = flight.airline,
                 flightDate = flight.flightDate,
@@ -26,6 +26,5 @@ data class FlightDto(
                 capacity = flight.capacity,
                 availability = flight.availability,
             )
-        }
     }
 }

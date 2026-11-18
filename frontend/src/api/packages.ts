@@ -5,6 +5,7 @@ import type { Hotel } from './hotels'
 export interface Agency {
   id: number
   name: string
+  active?: boolean
 }
 
 export interface Flight {
@@ -36,6 +37,9 @@ export interface TravelPackage {
   destination: City
   outboundFlightId: number
   returnFlightId: number
+  averageScore?: number | null
+  reviewCount?: number
+  active?: boolean
 }
 
 export interface TravelPackageDetail extends TravelPackage {
@@ -51,14 +55,45 @@ export interface TravelPackagePayload {
   outboundFlightId: number
   returnFlightId: number
   price: number
+  agencyId?: number
 }
 
-export async function searchPackages(params?: {
+export interface PackageSearchParams {
   name?: string
   origin?: string
   destination?: string
-}): Promise<TravelPackage[]> {
-  const { data } = await apiClient.get<TravelPackage[]>('/packages', { params })
+  minPrice?: number
+  maxPrice?: number
+  agencyId?: number
+  hotel?: string
+  minRating?: number
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface PagedResult<T> {
+  content: T[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+}
+
+export async function searchPackages(params?: PackageSearchParams): Promise<PagedResult<TravelPackage>> {
+  const { data } = await apiClient.get<PagedResult<TravelPackage>>('/packages', { params })
+  return data
+}
+
+export async function searchAdminPackages(
+  params?: PackageSearchParams & { active?: boolean },
+): Promise<PagedResult<TravelPackage>> {
+  const { data } = await apiClient.get<PagedResult<TravelPackage>>('/admin/packages', { params })
+  return data
+}
+
+export async function setPackageActive(id: number, active: boolean): Promise<TravelPackage> {
+  const { data } = await apiClient.put<TravelPackage>(`/packages/${id}/status`, { active })
   return data
 }
 
@@ -74,6 +109,11 @@ export async function getPackage(id: number): Promise<TravelPackageDetail> {
 
 export async function createPackage(payload: TravelPackagePayload): Promise<TravelPackage> {
   const { data } = await apiClient.post<TravelPackage>('/packages', payload)
+  return data
+}
+
+export async function updatePackage(id: number, payload: TravelPackagePayload): Promise<TravelPackage> {
+  const { data } = await apiClient.put<TravelPackage>(`/packages/${id}`, payload)
   return data
 }
 

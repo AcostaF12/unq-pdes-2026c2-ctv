@@ -28,7 +28,6 @@ import unq.pdes.backend.service.PurchaseService
 
 @SpringBootTest
 class PurchaseControllerTest {
-
     @Autowired
     private lateinit var webApplicationContext: WebApplicationContext
 
@@ -51,12 +50,16 @@ class PurchaseControllerTest {
 
     @BeforeEach
     fun setUp() {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply<DefaultMockMvcBuilder>(springSecurity())
-            .build()
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        mvc =
+            MockMvcBuilders
+                .webAppContextSetup(webApplicationContext)
+                .apply<DefaultMockMvcBuilder>(springSecurity())
+                .build()
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
     }
 
@@ -71,13 +74,16 @@ class PurchaseControllerTest {
         factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/purchases").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
-        )
-            .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.packageName").value("París Romántico"))
-            .andExpect(jsonPath("$.agency.name").value("Despegar"))
+        mvc
+            .perform(
+                post("/purchases")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.buyer.username").value("buyer"))
+            .andExpect(jsonPath("$.travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$.travelPackage.agency.name").value("Despegar"))
+            .andExpect(jsonPath("$.travelPackage.hotel.name").value("Some hotel name"))
     }
 
     @Test
@@ -87,10 +93,14 @@ class PurchaseControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(get("/purchases/me"))
+        mvc
+            .perform(get("/purchases/me"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].packageName").value("París Romántico"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
+            .andExpect(jsonPath("$.content[0].travelPackage.hotel.name").value("Some hotel name"))
     }
 
     @Test
@@ -101,10 +111,65 @@ class PurchaseControllerTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        mvc.perform(get("/purchases/agency"))
+        mvc
+            .perform(get("/purchases/agency"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(1))
-            .andExpect(jsonPath("$[0].packageName").value("París Romántico"))
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].buyer.username").value("buyer"))
+            .andExpect(jsonPath("$.content[0].buyer.firstName").value("Bruno"))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `02a - GET purchases me should return only the requested page`() {
+        val buyer = factory.buyerNamed("buyer")
+        val first = factory.packageNamed("París Romántico")
+        val second = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, first.id!!)
+        purchaseService.purchase(buyer.username, second.id!!)
+
+        mvc
+            .perform(get("/purchases/me").param("page", "0").param("size", "1"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(2))
+            .andExpect(jsonPath("$.size").value(1))
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `02b - GET purchased package check should return whether package was bought`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        mvc
+            .perform(get("/purchases/me/packages/${travelPackage.id}"))
+            .andExpect(status().isOk)
+            .andExpect(
+                org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                    .content()
+                    .string("true"),
+            )
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `03a - GET agency sales should filter by buyer and package`() {
+        factory.agencyUserNamed("agency")
+        val buyer = factory.buyerNamed("buyer")
+        val matching = factory.packageNamed("París Romántico")
+        val other = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        purchaseService.purchase(buyer.username, matching.id!!)
+        purchaseService.purchase(buyer.username, other.id!!)
+
+        mvc
+            .perform(get("/purchases/agency").param("buyerUsername", "buyer").param("packageName", "románt"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.content[0].travelPackage.name").value("París Romántico"))
     }
 
     @Test
@@ -113,10 +178,31 @@ class PurchaseControllerTest {
         factory.agencyUserNamed("agency")
         val travelPackage = factory.packageNamed("París Romántico")
 
-        mvc.perform(
-            post("/purchases").contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
-        )
+        mvc
+            .perform(
+                post("/purchases")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(PurchaseRequestDto(travelPackage.id!!))),
+            ).andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockUser(username = "agency", roles = ["AGENCY"])
+    fun `05 - GET purchases me as agency should return 403`() {
+        factory.agencyUserNamed("agency")
+
+        mvc
+            .perform(get("/purchases/me"))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockUser(username = "buyer", roles = ["BUYER"])
+    fun `06 - GET purchases agency as buyer should return 403`() {
+        factory.buyerNamed("buyer")
+
+        mvc
+            .perform(get("/purchases/agency"))
             .andExpect(status().isForbidden)
     }
 }

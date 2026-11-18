@@ -16,8 +16,9 @@ import unq.pdes.backend.model.user.User
     name = "reviews",
     uniqueConstraints = [UniqueConstraint(columnNames = ["buyer_id", "package_id"])],
 )
-class Review private constructor(builder: Builder) {
-
+class Review private constructor(
+    builder: Builder,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = builder.id
@@ -36,17 +37,11 @@ class Review private constructor(builder: Builder) {
     @Column(columnDefinition = "text")
     var comment: String? = builder.comment
 
-    override fun equals(other: Any?): Boolean {
-        return (other is Review) && id == other.id
-    }
+    override fun equals(other: Any?): Boolean = (other is Review) && id == other.id
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Review(id=$id, buyer=${buyer.id}, package=${travelPackage.id}, score=$score)"
-    }
+    override fun toString(): String = "Review(id=$id, buyer=${buyer.id}, package=${travelPackage.id}, score=$score)"
 
     class Builder {
         var id: Long? = null
@@ -55,26 +50,31 @@ class Review private constructor(builder: Builder) {
         var score: Int? = null
         var comment: String? = null
 
-        fun id(id: Long?) = apply {
-            this.id = id
-        }
+        fun id(id: Long?) =
+            apply {
+                this.id = id
+            }
 
-        fun buyer(buyer: User) = apply {
-            this.buyer = buyer
-        }
+        fun buyer(buyer: User) =
+            apply {
+                this.buyer = buyer
+            }
 
-        fun travelPackage(travelPackage: TravelPackage) = apply {
-            this.travelPackage = travelPackage
-        }
+        fun travelPackage(travelPackage: TravelPackage) =
+            apply {
+                this.travelPackage = travelPackage
+            }
 
-        fun score(score: Int) = apply {
-            require(score in 0..10) { "The score must be between 0 and 10." }
-            this.score = score
-        }
+        fun score(score: Int) =
+            apply {
+                require(score in 0..10) { "The score must be between 0 and 10." }
+                this.score = score
+            }
 
-        fun comment(comment: String?) = apply {
-            this.comment = comment
-        }
+        fun comment(comment: String?) =
+            apply {
+                this.comment = comment
+            }
 
         fun build(): Review {
             requireNotNull(buyer) { "The review must have a buyer." }

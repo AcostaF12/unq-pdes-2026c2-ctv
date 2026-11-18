@@ -1,0 +1,40 @@
+.admin-query-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  border: var(--border-width) solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.admin-report-list {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.admin-query-scroll:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.admin-query-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-query-table caption,
+.admin-query-table th,
+.admin-query-table td {
+  padding: var(--space-3);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.admin-query-table caption {
+  text-align: left;
+  font-weight: 700;
+}
+
+.admin-query-table td {
+  border-top: 1px solid var(--color-line);
+  white-space: pre-wrap;
+}

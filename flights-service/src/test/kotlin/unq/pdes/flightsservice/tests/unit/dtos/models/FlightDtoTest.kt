@@ -12,9 +12,9 @@ import java.time.LocalTime
 
 @TestInstance(PER_CLASS)
 class FlightDtoTest {
-
-    private fun sampleFlight(id: Long?): Flight {
-        return Flight.Builder()
+    private fun sampleFlight(id: Long?): Flight =
+        Flight
+            .Builder()
             .id(id)
             .airline("Aerolineas Argentinas")
             .flightDate(LocalDate.of(2026, 12, 1))
@@ -24,7 +24,6 @@ class FlightDtoTest {
             .capacity(180)
             .availability(120)
             .build()
-    }
 
     @Test
     fun `01 - should convert from model to dto`() {

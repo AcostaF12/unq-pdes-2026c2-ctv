@@ -7,7 +7,6 @@ import unq.pdes.backend.helpers.persistence.DataRepositoryH2
 class DataServiceH2(
     private val dataRepositoryH2: DataRepositoryH2,
 ) {
-
     fun deleteAll() {
         dataRepositoryH2.deleteAll()
     }

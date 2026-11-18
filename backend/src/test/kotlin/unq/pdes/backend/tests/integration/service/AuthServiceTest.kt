@@ -14,7 +14,6 @@ import unq.pdes.backend.service.AuthService
 
 @SpringBootTest
 class AuthServiceTest {
-
     @Autowired
     private lateinit var authService: AuthService
 

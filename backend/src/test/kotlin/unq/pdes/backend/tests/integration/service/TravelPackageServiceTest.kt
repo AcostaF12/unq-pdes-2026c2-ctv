@@ -1,9 +1,6 @@
 package unq.pdes.backend.tests.integration.service
 
 import jakarta.persistence.EntityNotFoundException
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalTime
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -13,6 +10,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import unq.pdes.backend.external.flights.ExternalFlightDto
@@ -22,13 +21,16 @@ import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
 import unq.pdes.backend.model.Review
 import unq.pdes.backend.persistence.jpa.ReviewRepository
+import unq.pdes.backend.search.TravelPackageSearchCriteria
 import unq.pdes.backend.service.FavoriteService
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.TravelPackageService
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalTime
 
 @SpringBootTest
 class TravelPackageServiceTest {
-
     @Autowired
     private lateinit var travelPackageService: TravelPackageService
 
@@ -66,9 +68,15 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val travelPackage = travelPackageService.create(
-            "agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"),
-        )
+        val travelPackage =
+            travelPackageService.create(
+                "agency",
+                "París Romántico",
+                hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1500.00"),
+            )
 
         assertNotNull(travelPackage.id)
         assertEquals("BUE", travelPackage.origin.code)
@@ -83,9 +91,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The return flight origin must match the outbound destination.", exception.message)
     }
@@ -97,9 +106,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelNamed("Hotel en Buenos Aires")
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The hotel must be located in the destination city.", exception.message)
     }
@@ -109,17 +119,47 @@ class TravelPackageServiceTest {
         factory.packageNamed("París Romántico", destinationCode = "PAR", destinationCity = "Paris")
         factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
 
-        val result = travelPackageService.search(null, null, "LON")
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from(null, null, "LON", null, null),
+                PageRequest.of(0, 20),
+            )
 
-        assertEquals(1, result.size)
-        assertEquals("Londres Clásico", result.first().name)
+        assertEquals(1, result.totalElements)
+        assertEquals("Londres Clásico", result.content.first().name)
+    }
+
+    @Test
+    fun `04a - search should filter by an inclusive price range together with other filters`() {
+        factory.packageNamed("Paris Economic", price = BigDecimal("900.00"))
+        factory.packageNamed("Paris Romantic", price = BigDecimal("1500.00"))
+        factory.packageNamed("Paris Premium", price = BigDecimal("2100.00"))
+
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from("Paris", "BUE", "PAR", BigDecimal("900.00"), BigDecimal("1500.00")),
+                PageRequest.of(0, 20, Sort.by("price")),
+            )
+
+        assertEquals(listOf("Paris Economic", "Paris Romantic"), result.content.map { it.name })
+    }
+
+    @Test
+    fun `04b - search should reject an inverted price range`() {
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                TravelPackageSearchCriteria.from(null, null, null, BigDecimal("1500.00"), BigDecimal("900.00"))
+            }
+
+        assertEquals("The minimum price cannot be greater than the maximum price.", exception.message)
     }
 
     @Test
     fun `05 - findById should throw when the package does not exist`() {
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            travelPackageService.findById(999L)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.findById(999L)
+            }
 
         assertEquals("There is no TravelPackage with id: 999.", exception.message)
     }
@@ -131,11 +171,18 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         val hotelId = travelPackage.hotel.id!!
 
-        val exception = assertThrows(AccessDeniedException::class.java) {
-            travelPackageService.update(
-                "other", travelPackage.id!!, "Nuevo", hotelId, 1L, 2L, BigDecimal("1600.00"),
-            )
-        }
+        val exception =
+            assertThrows(AccessDeniedException::class.java) {
+                travelPackageService.update(
+                    "other",
+                    travelPackage.id!!,
+                    "Nuevo",
+                    hotelId,
+                    1L,
+                    2L,
+                    BigDecimal("1600.00"),
+                )
+            }
 
         assertEquals("Only the owning agency can modify this package.", exception.message)
     }
@@ -147,9 +194,10 @@ class TravelPackageServiceTest {
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
         factory.agencyUserNamed("agency")
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
         assertEquals("The return flight destination must match the outbound origin.", exception.message)
     }
@@ -161,9 +209,10 @@ class TravelPackageServiceTest {
         factory.agencyUserNamed("agency")
         travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"))
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"))
+            }
 
         assertEquals("The agency already has a package named 'París Romántico'.", exception.message)
     }
@@ -174,11 +223,12 @@ class TravelPackageServiceTest {
         factory.cityWith("BUE", "Buenos Aires")
         val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
 
-        val exception = assertThrows(AccessDeniedException::class.java) {
-            travelPackageService.create("buyer", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
-        }
+        val exception =
+            assertThrows(AccessDeniedException::class.java) {
+                travelPackageService.create("buyer", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
 
-        assertEquals("Only agency users can manage packages.", exception.message)
+        assertEquals("Only agency or admin users can manage packages.", exception.message)
     }
 
     @Test
@@ -196,9 +246,13 @@ class TravelPackageServiceTest {
     fun `11 - search should treat blank filters as absent`() {
         factory.packageNamed("París Romántico")
 
-        val result = travelPackageService.search("  ", "  ", "  ")
+        val result =
+            travelPackageService.search(
+                TravelPackageSearchCriteria.from("  ", "  ", "  ", null, null),
+                PageRequest.of(0, 20),
+            )
 
-        assertEquals(1, result.size)
+        assertEquals(1, result.totalElements)
     }
 
     @Test
@@ -209,18 +263,32 @@ class TravelPackageServiceTest {
         val first = travelPackageService.create("agency", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
         val second = travelPackageService.create("agency", "París Express", hotel.id!!, 1L, 2L, BigDecimal("1200.00"))
 
-        val updated = travelPackageService.update(
-            "agency", first.id!!, "París Premium", hotel.id!!, 1L, 2L, BigDecimal("1800.00"),
-        )
+        val updated =
+            travelPackageService.update(
+                "agency",
+                first.id!!,
+                "París Premium",
+                hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+            )
 
         assertEquals("París Premium", updated.name)
         assertEquals(BigDecimal("1800.00"), updated.price)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.update(
-                "agency", second.id!!, "París Premium", hotel.id!!, 1L, 2L, BigDecimal("1200.00"),
-            )
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "agency",
+                    second.id!!,
+                    "París Premium",
+                    hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1200.00"),
+                )
+            }
         assertEquals("The agency already has a package named 'París Premium'.", exception.message)
     }
 
@@ -231,9 +299,10 @@ class TravelPackageServiceTest {
 
         travelPackageService.deleteById("agency", travelPackage.id!!)
 
-        val exception = assertThrows(EntityNotFoundException::class.java) {
-            travelPackageService.findById(travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.findById(travelPackage.id!!)
+            }
         assertEquals("There is no TravelPackage with id: ${travelPackage.id}.", exception.message)
     }
 
@@ -245,9 +314,10 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         purchaseService.purchase(buyer.username, travelPackage.id!!)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that already has purchases.", exception.message)
     }
@@ -259,9 +329,10 @@ class TravelPackageServiceTest {
         val travelPackage = factory.packageNamed("París Romántico")
         favoriteService.add(buyer.username, travelPackage.id!!)
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that is marked as favorite.", exception.message)
     }
@@ -272,7 +343,8 @@ class TravelPackageServiceTest {
         val buyer = factory.buyerNamed("buyer")
         val travelPackage = factory.packageNamed("París Romántico")
         reviewRepository.save(
-            Review.Builder()
+            Review
+                .Builder()
                 .buyer(buyer)
                 .travelPackage(travelPackage)
                 .score(9)
@@ -280,18 +352,291 @@ class TravelPackageServiceTest {
                 .build(),
         )
 
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            travelPackageService.deleteById("agency", travelPackage.id!!)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("agency", travelPackage.id!!)
+            }
 
         assertEquals("Cannot delete a package that already has reviews.", exception.message)
     }
 
+    @Test
+    fun `17 - search should paginate results`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("200.00"))
+        factory.packageNamed("Paris C", price = BigDecimal("300.00"))
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val firstPage = travelPackageService.search(emptyCriteria, PageRequest.of(0, 2, Sort.by("price")))
+
+        assertEquals(3, firstPage.totalElements)
+        assertEquals(2, firstPage.totalPages)
+        assertEquals(listOf("Paris A", "Paris B"), firstPage.content.map { it.name })
+
+        val secondPage = travelPackageService.search(emptyCriteria, PageRequest.of(1, 2, Sort.by("price")))
+
+        assertEquals(listOf("Paris C"), secondPage.content.map { it.name })
+    }
+
+    @Test
+    fun `18 - search should sort by price descending`() {
+        factory.packageNamed("Paris A", price = BigDecimal("100.00"))
+        factory.packageNamed("Paris B", price = BigDecimal("300.00"))
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val result =
+            travelPackageService.search(
+                emptyCriteria,
+                PageRequest.of(0, 20, Sort.by(Sort.Order.desc("price"))),
+            )
+
+        assertEquals(listOf("Paris B", "Paris A"), result.content.map { it.name })
+    }
+
+    @Test
+    fun `19 - search should cap the page size`() {
+        factory.packageNamed("Paris A")
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val result = travelPackageService.search(emptyCriteria, PageRequest.of(0, 500))
+
+        assertEquals(50, result.pageable.pageSize)
+    }
+
+    @Test
+    fun `20 - search should reject sorting by a non whitelisted property`() {
+        val emptyCriteria = TravelPackageSearchCriteria.from(null, null, null, null, null)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.search(emptyCriteria, PageRequest.of(0, 20, Sort.by("agency.id")))
+            }
+
+        assertEquals("Cannot sort packages by 'agency.id'.", exception.message)
+    }
+
     private fun stubSales() {
-        Mockito.`when`(flightsClient.sell(1L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(1L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(10L, 1L, "Bruno Buyer"))
-        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer"))
+        Mockito
+            .`when`(flightsClient.sell(2L, "Bruno Buyer"))
             .thenReturn(ExternalFlightSaleDto(11L, 2L, "Bruno Buyer"))
+    }
+
+    @Test
+    fun `21 - admin should create a package for the given agency`() {
+        factory.adminNamed("admin")
+        val agency = factory.agencyNamed("Almundo")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+
+        val travelPackage =
+            travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"), agency.id)
+
+        assertEquals(agency.id, travelPackage.agency.id)
+        assertEquals("BUE", travelPackage.origin.code)
+    }
+
+    @Test
+    fun `22 - admin should not create a package without an agency`() {
+        factory.adminNamed("admin")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"))
+            }
+
+        assertEquals("An agency is required to manage packages as admin.", exception.message)
+    }
+
+    @Test
+    fun `23 - admin should not create a package for an unknown agency`() {
+        factory.adminNamed("admin")
+
+        val exception =
+            assertThrows(EntityNotFoundException::class.java) {
+                travelPackageService.create("admin", "París Romántico", 1L, 1L, 2L, BigDecimal("1500.00"), 999L)
+            }
+
+        assertEquals("There is no Agency with id: 999.", exception.message)
+    }
+
+    @Test
+    fun `24 - admin should keep the unique name per agency rule`() {
+        factory.adminNamed("admin")
+        val agency = factory.agencyNamed("Almundo")
+        factory.cityWith("BUE", "Buenos Aires")
+        val hotel = factory.hotelIn(factory.cityWith("PAR", "Paris"))
+        travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1500.00"), agency.id)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.create("admin", "París Romántico", hotel.id!!, 1L, 2L, BigDecimal("1600.00"), agency.id)
+            }
+
+        assertEquals("The agency already has a package named 'París Romántico'.", exception.message)
+    }
+
+    @Test
+    fun `25 - admin should update a package of any agency and move it to the given agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        val almundo = factory.agencyNamed("Almundo")
+
+        val updated =
+            travelPackageService.update(
+                "admin",
+                travelPackage.id!!,
+                "París Premium",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                almundo.id,
+            )
+
+        assertEquals("París Premium", updated.name)
+        assertEquals(almundo.id, updated.agency.id)
+    }
+
+    @Test
+    fun `26 - admin should not update a package without an agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "admin",
+                    travelPackage.id!!,
+                    "París Premium",
+                    travelPackage.hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1800.00"),
+                )
+            }
+
+        assertEquals("An agency is required to manage packages as admin.", exception.message)
+    }
+
+    @Test
+    fun `27 - agency should ignore the agencyId when updating its own package`() {
+        factory.agencyUserNamed("agency")
+        val travelPackage = factory.packageNamed("París Romántico")
+        val other = factory.agencyNamed("Almundo")
+
+        val updated =
+            travelPackageService.update(
+                "agency",
+                travelPackage.id!!,
+                "París Premium",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                other.id,
+            )
+
+        assertEquals(travelPackage.agency.id, updated.agency.id)
+    }
+
+    @Test
+    fun `28 - admin should delete a package of any agency`() {
+        factory.adminNamed("admin")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Almundo")
+
+        travelPackageService.deleteById("admin", travelPackage.id!!)
+
+        assertThrows(EntityNotFoundException::class.java) { travelPackageService.findById(travelPackage.id!!) }
+    }
+
+    @Test
+    fun `29 - admin should not delete a package with purchases`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.deleteById("admin", travelPackage.id!!)
+            }
+
+        assertEquals("Cannot delete a package that already has purchases.", exception.message)
+    }
+
+    @Test
+    fun `31 - admin should not move a package with purchases to another agency`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        val almundo = factory.agencyNamed("Almundo")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                travelPackageService.update(
+                    "admin",
+                    travelPackage.id!!,
+                    "París Romántico",
+                    travelPackage.hotel.id!!,
+                    1L,
+                    2L,
+                    BigDecimal("1800.00"),
+                    almundo.id,
+                )
+            }
+
+        assertEquals("Cannot move a package that already has purchases to another agency.", exception.message)
+    }
+
+    @Test
+    fun `32 - admin should update a package with purchases while keeping its agency`() {
+        stubSales()
+        factory.adminNamed("admin")
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico", agencyName = "Despegar")
+        purchaseService.purchase(buyer.username, travelPackage.id!!)
+
+        val updated =
+            travelPackageService.update(
+                "admin",
+                travelPackage.id!!,
+                "París Romántico",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1800.00"),
+                travelPackage.agency.id,
+            )
+
+        assertEquals(travelPackage.agency.id, updated.agency.id)
+        assertEquals(0, BigDecimal("1800.00").compareTo(updated.price))
+    }
+
+    @Test
+    fun `30 - buyers cannot update or delete packages`() {
+        factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+
+        assertThrows(AccessDeniedException::class.java) {
+            travelPackageService.update(
+                "buyer",
+                travelPackage.id!!,
+                "Nuevo",
+                travelPackage.hotel.id!!,
+                1L,
+                2L,
+                BigDecimal("1600.00"),
+            )
+        }
+        assertThrows(AccessDeniedException::class.java) { travelPackageService.deleteById("buyer", travelPackage.id!!) }
     }
 
     private fun stubRoundTrip(
@@ -306,8 +651,12 @@ class TravelPackageServiceTest {
         Mockito.`when`(flightsClient.findById(returnId)).thenReturn(flight(returnId, returnOrigin, returnDestination))
     }
 
-    private fun flight(id: Long, origin: String, destination: String): ExternalFlightDto {
-        return ExternalFlightDto(
+    private fun flight(
+        id: Long,
+        origin: String,
+        destination: String,
+    ): ExternalFlightDto =
+        ExternalFlightDto(
             id = id,
             airline = "Aerolineas Argentinas",
             flightDate = LocalDate.of(2026, 12, 1),
@@ -317,5 +666,4 @@ class TravelPackageServiceTest {
             capacity = 180,
             availability = 180,
         )
-    }
 }

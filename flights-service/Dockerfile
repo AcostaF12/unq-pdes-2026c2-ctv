@@ -1,4 +1,3 @@
-# --- Build stage ---
 FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 
@@ -10,7 +9,6 @@ RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 COPY src ./src
 RUN ./gradlew bootJar --no-daemon
 
-# --- Runtime stage ---
 FROM eclipse-temurin:25-jre AS runtime
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*

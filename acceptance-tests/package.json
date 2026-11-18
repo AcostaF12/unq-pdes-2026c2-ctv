@@ -1,0 +1,13 @@
+{
+  "name": "ctv-acceptance-tests",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node node_modules/@cucumber/cucumber/bin/cucumber.js",
+    "test:critical": "node node_modules/@cucumber/cucumber/bin/cucumber.js --tags '@critical'"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0"
+  }
+}

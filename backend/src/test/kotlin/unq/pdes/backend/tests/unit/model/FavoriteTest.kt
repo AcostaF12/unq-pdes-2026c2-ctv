@@ -1,6 +1,5 @@
 package unq.pdes.backend.tests.unit.model
 
-import java.math.BigDecimal
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -15,25 +14,49 @@ import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.model.user.User
+import java.math.BigDecimal
 
 @TestInstance(PER_CLASS)
 class FavoriteTest {
-
-    private val buyer = User.Builder()
-        .id(1L).username("buyer").password("secret").role(Role.BUYER).firstName("Bruno").lastName("Buyer").build()
+    private val buyer =
+        User
+            .Builder()
+            .id(1L)
+            .username("buyer")
+            .password("secret")
+            .role(Role.BUYER)
+            .firstName("Bruno")
+            .lastName("Buyer")
+            .build()
 
     private val paris = City("PAR", "Paris")
-    private val travelPackage = TravelPackage.Builder()
-        .id(1L)
-        .agency(Agency.Builder().id(1L).name("Despegar").build())
-        .hotel(Hotel.Builder().id(1L).name("Hotel").city(paris).photoUrl("https://x.demo/h.jpg").build())
-        .origin(City("BUE", "Buenos Aires"))
-        .destination(paris)
-        .name("Paquete").outboundFlightId(1L).returnFlightId(2L).price(BigDecimal("1000.00")).build()
+    private val travelPackage =
+        TravelPackage
+            .Builder()
+            .id(1L)
+            .agency(
+                Agency
+                    .Builder()
+                    .id(1L)
+                    .name("Despegar")
+                    .build(),
+            ).hotel(
+                Hotel
+                    .Builder()
+                    .id(1L)
+                    .name("Hotel")
+                    .city(paris)
+                    .photoUrl("https://x.demo/h.jpg")
+                    .build(),
+            ).origin(City("BUE", "Buenos Aires"))
+            .destination(paris)
+            .name("Paquete")
+            .outboundFlightId(1L)
+            .returnFlightId(2L)
+            .price(BigDecimal("1000.00"))
+            .build()
 
-    private fun validBuilder(): Favorite.Builder {
-        return Favorite.Builder().buyer(buyer).travelPackage(travelPackage)
-    }
+    private fun validBuilder(): Favorite.Builder = Favorite.Builder().buyer(buyer).travelPackage(travelPackage)
 
     @Test
     fun `01 - builder should create a valid favorite`() {
@@ -46,18 +69,20 @@ class FavoriteTest {
 
     @Test
     fun `02 - building without buyer should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Favorite.Builder().travelPackage(travelPackage).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Favorite.Builder().travelPackage(travelPackage).build()
+            }
 
         assertEquals("The favorite must have a buyer.", exception.message)
     }
 
     @Test
     fun `03 - building without package should throw IllegalArgumentException`() {
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            Favorite.Builder().buyer(buyer).build()
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                Favorite.Builder().buyer(buyer).build()
+            }
 
         assertEquals("The favorite must reference a package.", exception.message)
     }
@@ -84,6 +109,12 @@ class FavoriteTest {
 
     @Test
     fun `08 - toString should contain the buyer and package`() {
-        assertTrue(validBuilder().id(1L).build().toString().contains("buyer=1"))
+        assertTrue(
+            validBuilder()
+                .id(1L)
+                .build()
+                .toString()
+                .contains("buyer=1"),
+        )
     }
 }

@@ -6,15 +6,17 @@ import { ErrorPage } from '../pages/Error/ErrorPage'
 import { AppShell } from '../components/AppShell/AppShell'
 import { RequireAuth } from '../auth/RequireAuth'
 import { RequireAdmin } from '../auth/RequireAdmin'
-import { RequireAgency, RequireBuyer } from '../auth/RequireRole'
+import { RequireAgency, RequireBuyer, RequireBuyerOrAgency } from '../auth/RequireRole'
 import { RequireGuest } from '../auth/RequireGuest'
 import { HOME_PATH } from './paths'
+import { adminRoute } from './adminRoutes'
 import { lazyPage } from './lazyPage'
 
 const PackageList = lazyPage(() => import('../pages/Packages/PackageList'), 'PackageList')
 const PackageDetail = lazyPage(() => import('../pages/Packages/PackageDetail'), 'PackageDetail')
 const Favorites = lazyPage(() => import('../pages/Favorites/Favorites'), 'Favorites')
 const Purchases = lazyPage(() => import('../pages/Purchases/Purchases'), 'Purchases')
+const PurchaseDetail = lazyPage(() => import('../pages/Purchases/PurchaseDetail'), 'PurchaseDetail')
 const AgencyPackages = lazyPage(() => import('../pages/Agency/AgencyPackages'), 'AgencyPackages')
 const AgencySales = lazyPage(() => import('../pages/Purchases/AgencySales'), 'AgencySales')
 const Hotels = lazyPage(() => import('../pages/Hotels/Hotels'), 'Hotels')
@@ -70,6 +72,14 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: 'purchases/:id',
+            element: (
+              <RequireBuyerOrAgency>
+                <PurchaseDetail />
+              </RequireBuyerOrAgency>
+            ),
+          },
+          {
             path: 'agency',
             element: (
               <RequireAgency>
@@ -103,6 +113,7 @@ const router = createBrowserRouter([
               </RequireAdmin>
             ),
           },
+          adminRoute,
           { path: 'profile', element: <Profile /> },
         ],
       },
