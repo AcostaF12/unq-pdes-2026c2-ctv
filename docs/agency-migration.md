@@ -8,4 +8,4 @@ Para revertir una versión de la aplicación, se puede volver al código anterio
 
 No se incluye un `DROP COLUMN`: eliminaría el estado registrado y no es necesario para volver a una versión anterior.
 
-La desactivación bloquea solicitudes nuevas. No cancela compras que ya estaban en ejecución. El perfil local `dev` sigue recreando los datos demo al arrancar; para comprobar conservación de datos entre versiones se debe usar una base persistente sin ese reinicio.
+La desactivación bloquea solicitudes nuevas. No cancela compras que ya estaban en ejecución. El perfil local `dev` conserva los datos entre reinicios: la seed se carga una sola vez y no recrea los datos de demo al arrancar.

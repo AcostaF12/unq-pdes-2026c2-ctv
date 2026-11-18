@@ -22,7 +22,17 @@ Devuelve `201` con la venta registrada y descuenta un asiento. Rechaza con `400`
 
 La ruta anterior `POST /flights/{id}/sales`, con `passengerName` en el cuerpo, sigue disponible. Ambas usan la misma operación de venta.
 
-## Tests
+## Cancelar una venta
+
+`DELETE /flights/sales/{id}` anula la venta y devuelve el asiento al vuelo. Responde `204`; si la venta no existe, `404`. El backend la usa al cancelar una compra y para compensar una venta de ida cuando falla la de vuelta.
+
+## Otras rutas
+
+- `GET /flights/{id}`: un vuelo por ID.
+- `POST /flights`: alta de un vuelo (el backend la expone solo al administrador).
+- `/internal/demo/*`: catálogo y reservas de la seed de demo. Solo se habilitan con la seed y no se publican desde el backend.
+
+## Pruebas
 
 Desde esta carpeta, con Java 25: `bash gradlew test ktlintCheck`.
 

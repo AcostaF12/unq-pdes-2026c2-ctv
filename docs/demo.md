@@ -5,10 +5,10 @@ Recorrido de unos 8 minutos. Cada paso indica qué mostrar y qué decir.
 ## Antes de empezar
 
 ```bash
-docker compose up --build -d --wait
+docker compose --profile monitoring up --build -d --wait
 ```
 
-Con todo `healthy`, abrir estas pestañas:
+El perfil `monitoring` suma Grafana, Zipkin y Kibana. Con todo `healthy`, abrir estas pestañas:
 
 | Pestaña | URL |
 |---------|-----|
@@ -18,7 +18,7 @@ Con todo `healthy`, abrir estas pestañas:
 | Zipkin | http://localhost:9411 |
 | Kibana | http://localhost:5601 |
 
-Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volver a levantar.
+Para volver a los datos iniciales entre ensayos: `docker compose --profile monitoring down -v` y volver a levantar.
 
 ## 1. Comprador (`buyer` / `buyer123`)
 
@@ -28,6 +28,7 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 4. **Favoritos.** Marcar un paquete y verlo en `/favorites`.
 5. **Compra.** Comprar un paquete que no diga "Ya comprado". El backend reserva los asientos de ida y de vuelta en `flights-service`, un servicio aparte con su propia base. Si falla la segunda reserva, cancela la primera.
 6. **Mis compras** (`/purchases`). La compra aparece con el precio abonado. El historial guarda una copia de lo que se pagó, así que no cambia si el paquete se edita después.
+7. **Cancelar compra** desde el detalle de la compra. Queda en el historial con la marca "Cancelada" y los asientos vuelven a los vuelos.
 
 ## 2. Agencia (`agency` / `agency123`)
 
@@ -51,9 +52,9 @@ Para volver a los datos iniciales entre ensayos: `docker compose down -v` y volv
 
 ## 5. Calidad
 
-- **Tests.** Suites de backend, vuelos y frontend, 13 escenarios de aceptación con Cucumber y 10 tests end-to-end con Cypress. Consultar los logs de CI para los resultados de la versión presentada.
+- **Tests.** Suites de backend, vuelos y frontend, 14 escenarios de aceptación con Cucumber, 15 tests end-to-end con Cypress en siete suites y 4 escenarios de carga con k6 ([resultados](load-tests.md#resultados)). Consultar los logs de CI para los resultados de la versión presentada.
 - **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
-- **Ejecutar las pruebas.** Ver la sección *Testing* del README.
+- **Ejecutar las pruebas.** Ver la sección *Pruebas* del README.
 
 ## Extensión del recorrido: usuarios y ciclo de vida
 

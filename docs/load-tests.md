@@ -1,23 +1,23 @@
-# Load Tests
+# Tests de carga
 
 Tests de carga y stress de la API del backend, escritos con [k6](https://grafana.com/docs/k6/latest/). Los scripts están en [`load-tests/`](../load-tests) y se corren desde GitHub Actions con el workflow **Load Tests**.
 
-## Tool
+## Herramienta
 
 Usamos k6 porque es liviano: es un único binario, los escenarios se escriben en JavaScript y los umbrales (`thresholds`) hacen fallar la corrida si no se cumplen, así que el resultado es un sí o un no y no hace falta interpretar gráficos. Los scripts solo usan módulos propios de k6, sin dependencias externas.
 
-## Where the load comes from
+## De dónde sale la carga
 
-La carga se genera desde un runner de GitHub Actions (`ubuntu-24.04`), no desde una máquina del equipo. El workflow tiene dos targets:
+La carga se genera desde un runner de GitHub Actions (`ubuntu-24.04`), no desde una máquina del equipo. El workflow tiene dos destinos (`target`):
 
-| Target | Qué se mide | Cuidado con |
+| Destino (`target`) | Qué se mide | Cuidado con |
 |--------|-------------|-------------|
 | `runner` | La aplicación levantada con `docker compose up` en el mismo runner | Sirve para validar que los escenarios funcionan. Los números no son representativos: k6 y la aplicación comparten la misma máquina |
 | `vm` | La VM de Azure de la demo (`http://<VM_HOST>:8080`) | Los números incluyen la latencia de internet entre GitHub y Azure, y la VM es de la serie B: si se quedó sin créditos de CPU, rinde menos |
 
 La carga es moderada a propósito: la VM tiene 2 vCPU y cada corrida dura entre 1 y 3 minutos.
 
-## How to run
+## Cómo correrlos
 
 ### Desde GitHub Actions
 
@@ -45,9 +45,9 @@ docker run --rm -v "$PWD/load-tests:/scripts" -w /scripts \
   -e BASE_URL=http://host.docker.internal:8080 grafana/k6:2.4.0 run catalog-load.js
 ```
 
-`BASE_URL` define el target (por defecto `http://localhost:8080`). `catalog-load` y `login-load` aceptan `VUS` y `DURATION` para una prueba corta, por ejemplo `-e VUS=1 -e DURATION=10s`; `catalog-spike` acepta `BASE_VUS`, `PEAK_VUS` y `TIME_SCALE` (factor sobre las duraciones), por ejemplo `-e BASE_VUS=1 -e PEAK_VUS=4 -e TIME_SCALE=0.125` para unos 20 s. Las credenciales de demo se pueden cambiar con `BUYER_USER`, `BUYER_PASSWORD`, `ADMIN_USER` y `ADMIN_PASSWORD`.
+`BASE_URL` define el destino (por defecto `http://localhost:8080`). `catalog-load` y `login-load` aceptan `VUS` y `DURATION` para una prueba corta, por ejemplo `-e VUS=1 -e DURATION=10s`; `catalog-spike` acepta `BASE_VUS`, `PEAK_VUS` y `TIME_SCALE` (factor sobre las duraciones), por ejemplo `-e BASE_VUS=1 -e PEAK_VUS=4 -e TIME_SCALE=0.125` para unos 20 s. Las credenciales de demo se pueden cambiar con `BUYER_USER`, `BUYER_PASSWORD`, `ADMIN_USER` y `ADMIN_PASSWORD`.
 
-## Scenarios
+## Escenarios
 
 | Escenario | Objetivo | Carga | Umbrales | Qué prueba |
 |-----------|----------|-------|----------|------------|
@@ -64,11 +64,11 @@ En `teardown()` deja la demo como estaba: busca las compras de la corrida en `GE
 
 En la VM solo quedan, de cada corrida, los 30 compradores de prueba y los dos vuelos. Las compras canceladas siguen en los historiales con estado `CANCELLED`, pero no cuentan en los reportes Top 5 ni ocupan lugares, y el paquete archivado no se ve en el catálogo.
 
-## Results
+## Resultados
 
 Completar después de cada corrida contra la VM.
 
-| Fecha | Target | Escenario | Requests | p95 | Errores | Resultado | Corrida |
+| Fecha | Destino | Escenario | Pedidos | p95 | Errores | Resultado | Corrida |
 |-------|--------|-----------|----------|-----|---------|-----------|---------|
 | 18/11/2026 | `vm` | `catalog-load` | 2229 (18,4/s) | 106,6 ms | 0 % | Pasó | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
 | 18/11/2026 | `vm` | `login-load` | 660 (10,8/s) | 280,3 ms | 0 % | Pasó | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
@@ -79,6 +79,6 @@ La corrida fue contra la versión de `main` `9b82daa`, desplegada con "Deploy De
 
 Lectura de los resultados:
 
-- **Catálogo y spike:** el p95 se mantuvo por debajo de 110 ms incluso con 50 usuarios simultáneos. La búsqueda paginada en PostgreSQL no se degradó con el pico.
+- **Catálogo y pico:** el p95 se mantuvo por debajo de 110 ms incluso con 50 usuarios simultáneos. La búsqueda paginada en PostgreSQL no se degradó con el pico.
 - **Login:** es el endpoint más caro por request (p95 280 ms) por el costo de BCrypt, y aun así quedó muy lejos del umbral de 1500 ms.
 - **Último asiento:** con 30 compras simultáneas sobre 5 lugares se vendieron exactamente 5 y no hubo sobreventa. El p95 más alto (910 ms) es esperable, porque las compras esperan el bloqueo pesimista de la fila del vuelo. Al terminar, las 5 compras se cancelaron y los vuelos volvieron a 5 lugares.
