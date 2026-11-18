@@ -19,7 +19,12 @@ import unq.pdes.backend.controller.dtos.requests.FlightRequestDto
 import unq.pdes.backend.service.FlightService
 import java.time.LocalDate
 
-@Tag(name = "Flight Services", description = "Consulta y carga de vuelos (servicio externo de vuelos).")
+@Tag(
+    name = "Flight Services",
+    description =
+        "Puerta de esta API hacia el servicio de vuelos. Buscar y ver puede cualquier usuario autenticado. " +
+            "Crear es solo admin. Vender o cancelar un asiento no está acá: lo dispara POST /purchases.",
+)
 @RestController
 @RequestMapping("/flights")
 class FlightController(
@@ -27,7 +32,11 @@ class FlightController(
 ) {
     @Operation(
         summary = "Buscar vuelos",
-        description = "Lista los vuelos filtrando opcionalmente por origen, destino y fecha (yyyy-MM-dd).",
+        description =
+            "Lista vuelos por origen, destino y fecha. Los tres filtros son opcionales.\n\n" +
+                "La fecha va como yyyy-MM-dd. No vende asientos: eso lo hace POST /purchases.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**503** vuelos no responde",
     )
     @GetMapping
     fun search(
@@ -42,13 +51,29 @@ class FlightController(
         return ResponseEntity.ok(flights.map { FlightDto.fromExternal(it) })
     }
 
-    @Operation(summary = "Obtener vuelo", description = "Retorna el vuelo identificado por ID.")
+    @Operation(
+        summary = "Obtener vuelo",
+        description =
+            "Trae un vuelo por el id que guarda el paquete.\n\n" +
+                "Ese id vive en el servicio de vuelos, no en la base del negocio.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**404** no existe\n" +
+                "**503** vuelos no responde",
+    )
     @GetMapping("/{id}")
     fun byId(
         @PathVariable id: Long,
     ): ResponseEntity<FlightDto> = ResponseEntity.ok(FlightDto.fromExternal(flightService.findById(id)))
 
-    @Operation(summary = "Cargar vuelo", description = "Registra un nuevo vuelo en el servicio de vuelos. Solo ADMIN.")
+    @Operation(
+        summary = "Cargar vuelo",
+        description =
+            "Crea un vuelo en el otro servicio y devuelve el id para armar un paquete.\n\n" +
+                "Origen y destino son códigos de ciudad. Los lugares libres no pueden pasar la capacidad.\n\n" +
+                "**Quién:** admin\n" +
+                "**201** vuelo creado\n" +
+                "**503** vuelos no responde",
+    )
     @PostMapping
     fun create(
         @Valid @RequestBody request: FlightRequestDto,

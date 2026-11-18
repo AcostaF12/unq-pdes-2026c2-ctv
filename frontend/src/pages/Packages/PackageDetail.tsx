@@ -28,10 +28,10 @@ const SCORE_BUCKETS = [
   { label: 'Malo (0-4)', min: 0, max: 4 },
 ]
 
-function FlightCard({ label, flight }: { label: string; flight: Flight }) {
+function FlightCard({ label, flight, index }: { label: string; flight: Flight; index: number }) {
   const seats = seatsLabel(flight.availability)
   return (
-    <div className="flight-card">
+    <div className="flight-card reveal" style={{ ['--i' as string]: index }}>
       <p className="flight-card__label">{label}</p>
       <p className="flight-card__route">
         {flight.origin} → {flight.destination}
@@ -222,20 +222,32 @@ export function PackageDetail() {
               <Rating score={detail.averageScore} count={detail.reviews.length} size="md" />
               <ul className="package-detail__facts">
                 {nights != null ? (
-                  <li className="chip">
+                  <li className="chip reveal" style={{ ['--i' as string]: 0 }}>
                     {nights} {nights === 1 ? 'noche' : 'noches'}
                   </li>
                 ) : null}
-                <li className="chip">Vuelos incluidos</li>
-                <li className="chip">Hotel en {detail.hotel.city.name}</li>
+                <li className="chip reveal" style={{ ['--i' as string]: nights != null ? 1 : 0 }}>
+                  Vuelos incluidos
+                </li>
+                <li className="chip reveal" style={{ ['--i' as string]: nights != null ? 2 : 1 }}>
+                  Hotel en {detail.hotel.city.name}
+                </li>
               </ul>
             </div>
             <p className="package-detail__price">USD {detail.price}</p>
           </header>
 
           <div className="package-detail__flights">
-            {detail.outboundFlight ? <FlightCard label="Ida" flight={detail.outboundFlight} /> : null}
-            {detail.returnFlight ? <FlightCard label="Vuelta" flight={detail.returnFlight} /> : null}
+            {detail.outboundFlight ? (
+              <FlightCard label="Ida" flight={detail.outboundFlight} index={0} />
+            ) : null}
+            {detail.returnFlight ? (
+              <FlightCard
+                label="Vuelta"
+                flight={detail.returnFlight}
+                index={detail.outboundFlight ? 1 : 0}
+              />
+            ) : null}
           </div>
 
           {error || favoriteError ? (
@@ -276,29 +288,45 @@ export function PackageDetail() {
         </div>
       </article>
 
-      <section className="package-reviews">
-        <h2>Reseñas</h2>
+      <section className="package-reviews" aria-labelledby="package-reviews-title">
+        <header className="package-reviews__head">
+          <h2 id="package-reviews-title">Reseñas</h2>
+          <p className="package-reviews__meta">
+            {detail.reviews.length === 0
+              ? 'Sin opiniones'
+              : `${detail.reviews.length} ${detail.reviews.length === 1 ? 'opinión' : 'opiniones'}`}
+          </p>
+        </header>
         <ReviewSummary reviews={detail.reviews} average={detail.averageScore} />
-        {detail.reviews.length === 0 ? <p className="catalog__muted">Todavía no hay reseñas.</p> : null}
-        {detail.reviews.map((review, index) => (
-          <article className="review-item reveal" key={review.id} style={{ ['--i' as string]: index }}>
-            <span className="review-item__avatar" aria-hidden="true">
-              {review.buyerUsername.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="review-item__content">
-              <p className="review-item__head">
-                <strong>{review.buyerUsername}</strong>
-                <span className="review-item__score">{review.score}/10</span>
-              </p>
-              {review.comment ? <p>{review.comment}</p> : null}
-            </div>
-          </article>
-        ))}
+        {detail.reviews.length === 0 ? (
+          <p className="package-reviews__empty">Todavía no hay reseñas.</p>
+        ) : (
+          <ul className="package-reviews__list">
+            {detail.reviews.map((review, index) => (
+              <li
+                className="review-item reveal"
+                key={review.id}
+                style={{ ['--i' as string]: index }}
+              >
+                <span className="review-item__avatar" aria-hidden="true">
+                  {review.buyerUsername.slice(0, 1).toUpperCase()}
+                </span>
+                <div className="review-item__content">
+                  <p className="review-item__head">
+                    <strong>{review.buyerUsername}</strong>
+                    <span className="review-item__score">{review.score}/10</span>
+                  </p>
+                  {review.comment ? <p className="review-item__comment">{review.comment}</p> : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
         {isBuyer && purchased && alreadyReviewed ? (
-          <p className="catalog__muted">Ya dejaste tu reseña para este viaje.</p>
+          <p className="package-reviews__note">Ya dejaste tu reseña para este viaje.</p>
         ) : null}
         {isBuyer && purchased && !alreadyReviewed ? (
-          <form className="catalog__form" onSubmit={onReview}>
+          <form className="catalog__form package-reviews__form" onSubmit={onReview}>
             <fieldset className="score-picker">
               <legend>Puntaje (0-10)</legend>
               <div className="score-picker__options">

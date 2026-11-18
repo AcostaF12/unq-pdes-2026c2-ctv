@@ -9,12 +9,15 @@ import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import unq.pdes.backend.external.flights.ExternalFlightDto
 import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
 import unq.pdes.backend.service.PurchaseService
 import unq.pdes.backend.service.ReviewService
+import java.time.LocalDate
+import java.time.LocalTime
 
 @SpringBootTest
 class ReviewServiceTest {
@@ -99,5 +102,28 @@ class ReviewServiceTest {
             }
 
         assertEquals("Only buyers can write reviews.", exception.message)
+    }
+
+    @Test
+    fun `05 - a cancelled purchase does not allow reviewing but keeps existing reviews`() {
+        val buyer = factory.buyerNamed("buyer")
+        val reviewed = factory.packageNamed("París Romántico")
+        val notReviewed = factory.packageNamed("Londres Clásico", destinationCode = "LON", destinationCity = "London")
+        Mockito
+            .`when`(flightsClient.findById(1L))
+            .thenReturn(ExternalFlightDto(1L, "Demo", LocalDate.now().plusDays(10), LocalTime.NOON, "BUE", "PAR", 180, 100))
+        val first = purchaseService.purchase(buyer.username, reviewed.id!!)
+        val second = purchaseService.purchase(buyer.username, notReviewed.id!!)
+        reviewService.create(buyer.username, reviewed.id!!, 9, "Excelente")
+
+        purchaseService.cancel(buyer.username, first.id!!)
+        purchaseService.cancel(buyer.username, second.id!!)
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                reviewService.create(buyer.username, notReviewed.id!!, 8, "Otra")
+            }
+        assertEquals("You can only review packages you purchased.", exception.message)
+        assertEquals(1, reviewService.findByPackageId(reviewed.id!!).size)
     }
 }

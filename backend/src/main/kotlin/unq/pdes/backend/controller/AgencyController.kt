@@ -17,17 +17,33 @@ import unq.pdes.backend.controller.dtos.requests.CreateAgencyRequestDto
 import unq.pdes.backend.controller.dtos.requests.UpdateAgencyRequestDto
 import unq.pdes.backend.service.AgencyService
 
-@Tag(name = "Agency Services", description = "Consulta de agencias.")
+@Tag(
+    name = "Agency Services",
+    description = "Agencias que publican paquetes. El listado lo ve cualquier usuario autenticado. Crear y editar es solo admin.",
+)
 @RestController
 @RequestMapping("/agencies")
 class AgencyController(
     private val agencyService: AgencyService,
 ) {
-    @Operation(summary = "Listar agencias", description = "Retorna todas las agencias registradas, ordenadas por nombre.")
+    @Operation(
+        summary = "Listar agencias",
+        description =
+            "Lista todas las agencias, activas e inactivas, ordenadas por nombre.\n\n" +
+                "No pagina.\n\n" +
+                "**Quién:** cualquier usuario autenticado",
+    )
     @GetMapping
     fun all(): ResponseEntity<List<AgencyDto>> = ResponseEntity.ok(agencyService.findAll().map { AgencyDto.fromModel(it) })
 
-    @Operation(summary = "Crear agencia y su cuenta", description = "Solo ADMIN. Crea ambas en una transacción.")
+    @Operation(
+        summary = "Crear agencia y su cuenta",
+        description =
+            "Crea la agencia y, en el mismo paso, el vendedor que la administra.\n\n" +
+                "**Quién:** admin\n" +
+                "**201** agencia y cuenta creadas\n" +
+                "**400** ese usuario ya existe",
+    )
     @PostMapping
     fun create(
         @Valid @RequestBody request: CreateAgencyRequestDto,
@@ -41,7 +57,14 @@ class AgencyController(
                 ),
             )
 
-    @Operation(summary = "Editar o desactivar agencia", description = "Solo ADMIN. Conserva paquetes e historial.")
+    @Operation(
+        summary = "Editar o desactivar agencia",
+        description =
+            "Cambia el nombre o apaga la agencia.\n\n" +
+                "Apagarla no borra paquetes ni compras. Sus vendedores dejan de entrar " +
+                "y las ofertas dejan de poder comprarse.\n\n" +
+                "**Quién:** admin",
+    )
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,

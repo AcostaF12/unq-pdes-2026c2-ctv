@@ -72,13 +72,15 @@ En progreso...
 ├── frontend/                 # React + TypeScript + Vite
 │   └── cypress/              # Tests de interfaz (Cypress)
 ├── acceptance-tests/         # Tests de aceptación (Cucumber)
+├── load-tests/               # Tests de carga y stress (k6)
 ├── monitoring/               # Configuración de Prometheus, Grafana y Logstash
 ├── docs/                     # MER, guion de demo, administración y seed
 ├── scripts/                  # Validaciones de la CI
 ├── .github/workflows/        # CI, publicación de imágenes y deploy
 ├── docker-compose.yml        # Entorno local completo
 ├── docker-compose.prod.yml   # Overlay para la VM: imágenes de GHCR
-└── docker-compose.e2e.yml    # Entorno aislado para Cypress
+├── docker-compose.e2e.yml    # Entorno aislado para Cypress
+└── package.json              # Atajos npm para levantar y apagar el entorno
 ```
 
 ---
@@ -102,22 +104,32 @@ En progreso...
 
 ## 🚀 Getting Started
 
-Con Docker Desktop abierto, desde la raíz del repositorio, levantar toda la aplicación (2 bases de datos, backend, flights-service, frontend, Prometheus, Grafana, Zipkin y ELK):
+Con Docker Desktop abierto, desde la raíz del repositorio, levantar la aplicación (2 bases de datos, backend, flights-service y frontend):
 
 ```bash
 docker compose up --build -d --wait
 ```
 
-La primera vez tarda porque descarga imágenes y compila. `--wait` espera a que pasen los healthchecks.
+Para sumar el monitoreo (Prometheus, Grafana, Zipkin y ELK), agregar el perfil `monitoring`:
+
+```bash
+docker compose --profile monitoring up --build -d --wait
+```
+
+La primera vez tarda porque descarga imágenes y compila. `--wait` espera a que pasen los healthchecks. Sin el monitoreo pueden aparecer avisos de conexión a Logstash y Zipkin en los logs; la aplicación funciona igual.
+
+Con Node instalado, los mismos comandos tienen atajos desde la raíz: `npm start` y `npm run start:monitoring`.
 
 ### Useful Commands
 
 ```bash
-docker compose ps                  # estado de los contenedores
-docker compose logs -f backend     # logs de un servicio
-docker compose down                # apagar, conservando los datos
-docker compose down -v             # apagar y borrar los volúmenes (datos desde cero)
+docker compose ps                              # estado de los contenedores
+docker compose logs -f backend                 # logs de un servicio
+docker compose --profile monitoring down       # apagar todo, conservando los datos
+docker compose --profile monitoring down -v    # apagar y borrar los volúmenes (datos desde cero)
 ```
+
+Atajos equivalentes: `npm run ps`, `npm run logs` y `npm run down`.
 
 Los datos de ejemplo se cargan una sola vez y se conservan entre reinicios. Para empezar de cero, usar `down -v`.
 
@@ -128,10 +140,10 @@ Los datos de ejemplo se cargan una sola vez y se conservan entre reinicios. Para
 | Frontend | http://localhost:8090 |
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 (usuario `admin` / pass `admin`) |
-| Zipkin | http://localhost:9411 |
-| Kibana (logs) | http://localhost:5601 |
+| Prometheus (`monitoring`) | http://localhost:9090 |
+| Grafana (`monitoring`) | http://localhost:3001 (usuario `admin` / pass `admin`) |
+| Zipkin (`monitoring`) | http://localhost:9411 |
+| Kibana (logs, `monitoring`) | http://localhost:5601 |
 
 ### Demo Users
 
@@ -213,7 +225,7 @@ BACKEND_DB_PORT=15433 FLIGHTS_DB_PORT=15434 docker compose up --build -d --wait
 
 Cada módulo propio tiene un Dockerfile multi-stage: se compila en una imagen (JDK o Node) y se corre en otra más chica (JRE o nginx).
 
-`docker-compose.yml` levanta **11 contenedores**:
+`docker-compose.yml` define **11 contenedores**. Por defecto levanta los 5 de la aplicación; los 6 de monitoreo están en el perfil `monitoring`:
 
 | Contenedor | Imagen | Puerto | Rol |
 |------------|--------|--------|-----|
@@ -260,6 +272,7 @@ Otros archivos de Compose:
 | Frontend | Vitest, ESLint | `frontend/` | `npm test` y `npm run lint` |
 | Aceptación | Cucumber | `acceptance-tests/` | Ver [acceptance-tests/README.md](acceptance-tests/README.md) |
 | Interfaz (E2E) | Cypress | `frontend/cypress/` | Ver [frontend/README.md](frontend/README.md#pruebas-e2e) |
+| Carga y stress | k6 | `load-tests/` | Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
 
 Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker.
 
@@ -274,6 +287,7 @@ Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docke
 | Acceptance and E2E CI | PR y push a `dev` o `main` | Cucumber y Cypress contra la aplicación en Docker |
 | Workflow Validation CI | PR y push a `dev` o `main` | actionlint y `scripts/check-ci.rb` |
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
+| Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
 
 En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. Un PR nunca publica ni despliega.
 
@@ -315,7 +329,9 @@ La VM usa el profile `prod` de Spring. El esquema lo administra Flyway y los dat
 ## 📚 Documentation
 
 - [MER](docs/mer.puml) ([imagen](docs/mer.png))
+- [Flujo de la aplicación](docs/flujo-de-la-aplicacion.md)
 - [Guion de demo](docs/demo.md)
 - [Funciones del administrador](docs/admin.md)
 - [Seed y ciclo de vida de los datos](docs/seed-y-ciclo-de-vida.md)
+- [Tests de carga](docs/load-tests.md)
 - [Release notes de la Entrega 2](docs/release-notes-entrega-2.md)

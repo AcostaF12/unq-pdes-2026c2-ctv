@@ -114,25 +114,32 @@ class DemoDataSeeder(
             }
         val purchased = purchases.findAll().map { it.buyer.id to it.travelPackage.id }.toMutableSet()
         val reservations = mutableListOf<ExternalDemoReservationDto>()
+        val created = mutableMapOf<String, Purchase>()
         val now = LocalDateTime.now()
         val eligibleBuyers = userMap.filterValues { it.role == Role.BUYER && it.enabled }.keys
         SeedData.PURCHASES.filter { it.buyer in eligibleBuyers }.forEachIndexed { index, seed ->
             val buyer = userMap.getValue(seed.buyer)
             val trip = seedPackages.getValue(seed.travelPackage)
             if (purchased.add(buyer.id to trip.id)) {
-                purchases.save(purchase(buyer, trip, now.minusDays(seed.daysAgo).minusHours((index % 24).toLong())))
+                created[reservationKey(seed.buyer, seed.travelPackage)] =
+                    purchases.save(purchase(buyer, trip, now.minusDays(seed.daysAgo).minusHours((index % 24).toLong())))
             }
             listOf(trip.outboundFlightId, trip.returnFlightId).forEachIndexed { leg, flightId ->
                 reservations +=
                     ExternalDemoReservationDto(
-                        key = "ctv-demo-v1:${seed.buyer}:${seed.travelPackage}:$leg",
+                        key = "${reservationKey(seed.buyer, seed.travelPackage)}:$leg",
                         flightId = flightId,
                         passengerName = "${buyer.firstName} ${buyer.lastName}",
                     )
             }
         }
         // The remote batch is atomic and idempotent. A local rollback can retry without selling twice.
-        flights.reserveDemoSeats(reservations)
+        val saleIds = flights.reserveDemoSeats(reservations).associate { it.key to it.saleId }
+        // Seeded purchases keep their sale ids so they can be cancelled like any other purchase.
+        created.forEach { (key, purchase) ->
+            purchase.outboundSaleId = saleIds["$key:0"]
+            purchase.returnSaleId = saleIds["$key:1"]
+        }
         val reviewed = reviews.findAll().map { it.buyer.id to it.travelPackage.id }.toMutableSet()
         reviews.saveAll(
             SeedData.REVIEWS.filter { it.buyer in eligibleBuyers }.mapNotNull { seed ->
@@ -171,6 +178,11 @@ class DemoDataSeeder(
         run.completedAt = now
         return true
     }
+
+    private fun reservationKey(
+        buyer: String,
+        travelPackage: String,
+    ) = "ctv-demo-v1:$buyer:$travelPackage"
 
     private fun purchase(
         buyer: User,

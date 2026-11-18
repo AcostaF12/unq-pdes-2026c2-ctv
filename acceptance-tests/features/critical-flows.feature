@@ -60,6 +60,16 @@ Feature: Flujos críticos de Compra Tu Viaje
     Then la compra responde con status 201
     And ambos vuelos tienen un asiento menos disponible
 
+  Scenario: Un comprador cancela una compra y ambos vuelos recuperan su asiento
+    Given existe un paquete nuevo entre "BUE" y "PAR"
+    And inició sesión un comprador nuevo
+    And se registra la disponibilidad actual de ambos vuelos
+    And compró el paquete nuevo
+    When cancela la compra del paquete nuevo
+    Then la cancelación responde con status 204
+    And ambos vuelos recuperan la disponibilidad registrada
+    And la compra figura en su historial con estado "CANCELLED"
+
   Scenario: Una compra conserva el precio vigente al momento de comprar
     Given existe un paquete nuevo entre "BUE" y "PAR"
     And inició sesión un comprador nuevo

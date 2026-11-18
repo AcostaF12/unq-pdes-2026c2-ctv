@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { listAgencies } from '../../api/agencies'
 import { listCities } from '../../api/cities'
@@ -113,6 +114,12 @@ export function PackageList() {
   const totalElements = packagesQuery.data?.totalElements ?? 0
   const hasFilters = hasPackageSearchFilters(search.filters)
   const chips = buildPackageFilterChips(search.appliedValues, cities, agencies)
+  const displayedKey = `${search.page}:${packages.map((item) => item.id).join(',')}`
+  // la key del listado solo cambia con resultados reales, no con los datos previos de placeholder
+  const [resultsKey, setResultsKey] = useState(displayedKey)
+  if (!packagesQuery.isPlaceholderData && resultsKey !== displayedKey) {
+    setResultsKey(displayedKey)
+  }
 
   return (
     <section className="page">
@@ -145,8 +152,12 @@ export function PackageList() {
           </p>
           {chips.length > 0 ? (
             <div className="catalog__chips" aria-label="Filtros aplicados">
-              {chips.map((chip) => (
-                <span key={chip.key} className="chip chip--removable">
+              {chips.map((chip, index) => (
+                <span
+                  key={chip.key}
+                  className="chip chip--removable"
+                  style={{ ['--i' as string]: index }}
+                >
                   {chip.label}
                   <button
                     type="button"
@@ -210,6 +221,7 @@ export function PackageList() {
         />
       ) : (
         <ul
+          key={resultsKey}
           className={
             packagesQuery.isPlaceholderData ? 'catalog__grid catalog__grid--stale' : 'catalog__grid'
           }

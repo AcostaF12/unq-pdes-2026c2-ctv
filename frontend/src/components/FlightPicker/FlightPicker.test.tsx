@@ -8,7 +8,7 @@ import { listFlights } from '../../api/flights'
 import { allFlights, apiError, laterOutboundToParis, outboundToParis, returnFromParis } from '../../test/fixtures'
 import { createTestQueryClient } from '../../test/queryClient'
 import { FlightPicker, type FlightSelection } from './FlightPicker'
-import { describeFlight, describeSeats, outboundOptions, returnOptions } from './flightOptions'
+import { describeFlight, describeSeats, flightChoiceLabel, outboundOptions, returnOptions } from './flightOptions'
 
 vi.mock('../../api/flights', () => ({
   listFlights: vi.fn(),
@@ -32,6 +32,7 @@ describe('flight option helpers', () => {
 
   it('describes flights with airline, date, time, route and seats left', () => {
     expect(describeFlight(returnFromParis)).toBe('Air Sur · 2026-12-10 08:30 · PAR → BUE · 1 lugar')
+    expect(flightChoiceLabel(returnFromParis)).toBe('Air Sur · 08:30 · 1 lugar')
     expect(describeSeats(0)).toBe('sin lugares')
     expect(describeSeats(5)).toBe('5 lugares')
   })
@@ -82,8 +83,8 @@ describe('FlightPicker', () => {
     await waitFor(() => {
       expect(optionLabels(outbound)).toEqual([
         'Elegí un vuelo de ida',
-        describeFlight(outboundToParis),
-        describeFlight(laterOutboundToParis),
+        flightChoiceLabel(outboundToParis),
+        flightChoiceLabel(laterOutboundToParis),
       ])
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ destination: 'PAR' })
@@ -93,27 +94,27 @@ describe('FlightPicker', () => {
 
     const inbound = screen.getByLabelText('Vuelo de vuelta')
     await waitFor(() => {
-      expect(optionLabels(inbound)).toEqual(['Elegí un vuelo de vuelta', describeFlight(returnFromParis)])
+      expect(optionLabels(inbound)).toEqual(['Elegí un vuelo de vuelta', flightChoiceLabel(returnFromParis)])
+      expect(inbound).toHaveValue(String(returnFromParis.id))
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ origin: 'PAR', destination: 'BUE' })
-
-    await user.selectOptions(inbound, String(returnFromParis.id))
-    expect(inbound).toHaveValue(String(returnFromParis.id))
   })
 
-  it('clears the return flight when the outbound flight changes', async () => {
+  it('keeps the return flight when the new outbound uses the same route', async () => {
     const user = userEvent.setup()
     renderPicker('PAR')
 
     const outbound = screen.getByLabelText('Vuelo de ida')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(outbound, String(outboundToParis.id))
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), String(returnFromParis.id))
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
+    await waitFor(() => {
+      expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
+    })
 
     await user.selectOptions(outbound, String(laterOutboundToParis.id))
 
-    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
+    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
   })
 
   it('tells the admin when there are no flights to the destination', async () => {
@@ -146,7 +147,7 @@ describe('FlightPicker', () => {
       destination: 'PAR', origin: 'BUE', date: '2026-12-01',
     }))
     await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toEqual([
-      'Elegí un vuelo de ida', 'Aerolíneas Test · 2026-12-01 08:30 · BUE → PAR · 40 lugares',
+      'Elegí un vuelo de ida', flightChoiceLabel(outboundToParis),
     ]))
 
     await user.selectOptions(screen.getByLabelText('Origen de ida'), '')
@@ -158,9 +159,9 @@ describe('FlightPicker', () => {
   it.each(['Origen de ida', 'Fecha de ida'])('clears both selected flights when %s changes', async (label) => {
     const user = userEvent.setup()
     renderPicker('PAR')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
 
     if (label === 'Origen de ida') {
@@ -182,9 +183,9 @@ describe('FlightPicker', () => {
       && (!params?.date || flight.flightDate === params.date),
     ))
     renderPicker('PAR')
-    await screen.findByRole('option', { name: describeFlight(outboundToParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: describeFlight(returnFromParis) })
+    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
     await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-11' } })
 
@@ -196,7 +197,7 @@ describe('FlightPicker', () => {
     expect(await screen.findByRole('option', { name: 'No hay vuelos de regreso para esa ruta' })).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '' } })
-    expect(await screen.findByRole('option', { name: describeFlight(returnFromParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })).toBeInTheDocument()
   })
 
   it('shows city loading errors without blocking unfiltered flight selection', async () => {
@@ -205,6 +206,6 @@ describe('FlightPicker', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar las ciudades')
     expect(screen.getByLabelText('Origen de ida')).toBeDisabled()
-    expect(await screen.findByRole('option', { name: describeFlight(outboundToParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })).toBeInTheDocument()
   })
 })

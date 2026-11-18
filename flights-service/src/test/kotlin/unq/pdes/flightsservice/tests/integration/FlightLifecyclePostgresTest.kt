@@ -99,7 +99,9 @@ class FlightLifecyclePostgresTest {
         repeat(2) {
             mvc
                 .perform(post("/internal/demo/reservations").contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isNoContent)
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.reservations[0].key").value("ctv-demo-v1:http"))
+                .andExpect(jsonPath("$.reservations[0].saleId").isNumber)
         }
         mvc
             .perform(

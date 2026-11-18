@@ -130,6 +130,10 @@ export function PackageSearchForm({
           error={error}
         />
         <Button type="submit" className="catalog__filters-submit">
+          <svg className="catalog__filters-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="M16 16l4 4" />
+          </svg>
           Buscar
         </Button>
       </div>

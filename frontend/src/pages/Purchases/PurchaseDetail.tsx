@@ -5,9 +5,11 @@ import type { Flight } from '../../api/packages'
 import { getPurchase } from '../../api/purchases'
 import { useAuth } from '../../auth/AuthContext'
 import { Button } from '../../components/Button/Button'
+import { CancelPurchase } from '../../components/CancelPurchase/CancelPurchase'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { HotelPhoto } from '../../components/HotelPhoto/HotelPhoto'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
+import { PurchaseStatusBadge } from '../../components/PurchaseStatusBadge/PurchaseStatusBadge'
 import {
   confirmationCode,
   flightNumber,
@@ -15,6 +17,7 @@ import {
   formatPurchaseDateTime,
   tripNights,
 } from '../../lib/format'
+import { isCancelled } from '../../lib/purchaseStatus'
 import { queryKeys } from '../../query/keys'
 import './Purchases.css'
 import './PurchaseDetail.css'
@@ -56,7 +59,7 @@ export function PurchaseDetail() {
   const { id } = useParams()
   const purchaseId = Number(id)
   const invalidId = !Number.isInteger(purchaseId)
-  const { isBuyer, isAdmin } = useAuth()
+  const { isBuyer, isAdmin, user } = useAuth()
   const backPath = isAdmin ? '/admin/sales' : isBuyer ? '/purchases' : '/agency/sales'
   const backLabel = isBuyer ? '← Mis compras' : '← Ventas'
 
@@ -101,6 +104,8 @@ export function PurchaseDetail() {
   const { travelPackage, buyer, outboundFlight, returnFlight, review } = purchase
   const nights =
     outboundFlight && returnFlight ? tripNights(outboundFlight.flightDate, returnFlight.flightDate) : null
+  const cancelled = isCancelled(purchase)
+  const canCancel = isBuyer && !cancelled && user?.username === buyer.username
 
   return (
     <section className="page purchase-detail">
@@ -109,11 +114,12 @@ export function PurchaseDetail() {
       </Link>
 
       <header className="purchase-detail__intro">
-        <p className="purchase-intro__eyebrow">Compra confirmada</p>
+        <p className="purchase-detail__kicker">{cancelled ? 'Compra cancelada' : 'Compra confirmada'}</p>
         <h1 className="page__title">{travelPackage.name}</h1>
         <p className="purchase-detail__sub">
           <span className="purchase-ticket__code">{confirmationCode(purchase.id)}</span>
           <time dateTime={purchase.purchasedAt}>{formatPurchaseDateTime(purchase.purchasedAt)}</time>
+          <PurchaseStatusBadge purchase={purchase} />
         </p>
       </header>
 
@@ -157,11 +163,11 @@ export function PurchaseDetail() {
         <div className="pass__stub">
           <p className="purchase-ticket__price">
             <span className="purchase-ticket__price-label">Precio abonado</span>
-            USD {purchase.purchasePrice}
+            <span className="purchase-ticket__amount">USD {purchase.purchasePrice}</span>
           </p>
           <span className="pass__barcode" aria-hidden="true" />
           <span className="pass__stamp" aria-hidden="true">
-            Confirmada
+            {cancelled ? 'Cancelada' : 'Confirmada'}
           </span>
         </div>
       </article>
@@ -194,17 +200,22 @@ export function PurchaseDetail() {
       </div>
 
       {isBuyer ? (
-        <section className="detail-card reveal" style={{ ['--i' as string]: 5 }}>
+        <section className="detail-card detail-card--review reveal" style={{ ['--i' as string]: 5 }}>
           <h2>Tu reseña</h2>
           {review ? (
             <>
               <p className="detail-card__strong">{review.score}/10</p>
-              {review.comment ? <p>{review.comment}</p> : null}
+              {review.comment ? <p className="detail-card__comment">{review.comment}</p> : null}
             </>
+          ) : cancelled ? (
+            <p className="catalog__muted">Las compras canceladas no admiten reseña.</p>
           ) : (
             <>
               <p className="catalog__muted">Todavía no calificaste este viaje.</p>
-              <Link className="purchase-ticket__link" to={`/trips/${travelPackage.id}`}>
+              <Link
+                className="purchase-ticket__link purchase-ticket__link--ghost"
+                to={`/trips/${travelPackage.id}`}
+              >
                 Dejar reseña →
               </Link>
             </>
@@ -216,9 +227,13 @@ export function PurchaseDetail() {
         <Button type="button" onClick={() => window.print()}>
           Imprimir comprobante
         </Button>
-        <Link className="empty-state__cta empty-state__cta--ghost" to={`/trips/${travelPackage.id}`}>
+        <Link
+          className="purchase-ticket__link purchase-ticket__link--ghost purchase-detail__package-link"
+          to={`/trips/${travelPackage.id}`}
+        >
           Ver el paquete
         </Link>
+        {canCancel ? <CancelPurchase purchaseId={purchase.id} packageName={travelPackage.name} /> : null}
       </div>
     </section>
   )

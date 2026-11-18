@@ -116,11 +116,11 @@ describe('AdminPackages page', () => {
     await waitFor(() => {
       expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual([
         'Ingresá el nombre',
+        'Ingresá el precio',
         'Elegí una agencia',
         'Elegí un hotel',
         'Elegí el vuelo de ida',
         'Elegí el vuelo de vuelta',
-        'Ingresá el precio',
       ])
     })
     expect(screen.getByLabelText('Hotel')).toHaveAttribute('aria-invalid', 'true')

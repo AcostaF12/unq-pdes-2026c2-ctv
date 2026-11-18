@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.model.Purchase
+import unq.pdes.backend.model.PurchaseStatus
 import unq.pdes.backend.model.user.AgencyUser
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
@@ -124,7 +125,7 @@ class PurchaseService(
     ): Boolean {
         val buyer = userService.findByUsername(username)
         if (buyer.role != Role.BUYER) throw AccessDeniedException("Only buyers can check their purchases.")
-        return purchaseRepository.existsByBuyerIdAndTravelPackageId(buyer.id!!, packageId)
+        return purchaseRepository.existsByBuyerIdAndTravelPackageIdAndStatus(buyer.id!!, packageId, PurchaseStatus.ACTIVE)
     }
 
     private fun pageRequest(
@@ -175,12 +176,49 @@ class PurchaseService(
                     .agency(travelPackage.agency)
                     .purchasePrice(travelPackage.price)
                     .purchasedAt(LocalDateTime.now())
+                    .flightSales(outboundSale.id, returnSale.id)
                     .build(),
             )
         } catch (ex: Exception) {
             outboundSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
             returnSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
             throw ex
+        }
+    }
+
+    /**
+     * Logical delete. Order: validate locally, check the outbound departure, release both seats in
+     * flights-service and only then mark the purchase CANCELLED. Any failure rolls back the local change,
+     * so the purchase stays ACTIVE; a retry is safe because an already released sale (404) counts as released.
+     */
+    @Transactional
+    fun cancel(
+        username: String,
+        id: Long,
+    ): Purchase {
+        val purchase =
+            purchaseRepository.findForUpdate(id)
+                ?: throw EntityNotFoundException("There is no Purchase with id: $id.")
+        val requester = userService.findByUsername(username)
+        if (purchase.buyer.id != requester.id && requester.role != Role.ADMIN) {
+            throw AccessDeniedException("Only the buyer or an admin can cancel this purchase.")
+        }
+        require(purchase.isActive) { "La compra ya fue cancelada." }
+        val outbound = flightsClient.findById(purchase.travelSnapshot.outboundFlightId)
+        val now = LocalDateTime.now()
+        require(LocalDateTime.of(outbound.flightDate, outbound.departureTime).isAfter(now)) {
+            "El vuelo de ida ya partió. La compra no puede cancelarse."
+        }
+        listOfNotNull(purchase.outboundSaleId, purchase.returnSaleId).forEach(::releaseSeat)
+        purchase.cancel(now)
+        return purchaseRepository.save(purchase)
+    }
+
+    private fun releaseSeat(saleId: Long) {
+        try {
+            flightsClient.cancelSale(saleId)
+        } catch (_: EntityNotFoundException) {
+            // Already released by a previous, partially failed attempt: nothing left to give back.
         }
     }
 }
