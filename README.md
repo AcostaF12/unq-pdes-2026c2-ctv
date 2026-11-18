@@ -72,6 +72,7 @@ En progreso...
 ├── frontend/                 # React + TypeScript + Vite
 │   └── cypress/              # Tests de interfaz (Cypress)
 ├── acceptance-tests/         # Tests de aceptación (Cucumber)
+├── load-tests/               # Tests de carga y stress (k6)
 ├── monitoring/               # Configuración de Prometheus, Grafana y Logstash
 ├── docs/                     # MER, guion de demo, administración y seed
 ├── scripts/                  # Validaciones de la CI
@@ -271,6 +272,7 @@ Otros archivos de Compose:
 | Frontend | Vitest, ESLint | `frontend/` | `npm test` y `npm run lint` |
 | Aceptación | Cucumber | `acceptance-tests/` | Ver [acceptance-tests/README.md](acceptance-tests/README.md) |
 | Interfaz (E2E) | Cypress | `frontend/cypress/` | Ver [frontend/README.md](frontend/README.md#pruebas-e2e) |
+| Carga y stress | k6 | `load-tests/` | Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
 
 Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker.
 
@@ -285,6 +287,7 @@ Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docke
 | Acceptance and E2E CI | PR y push a `dev` o `main` | Cucumber y Cypress contra la aplicación en Docker |
 | Workflow Validation CI | PR y push a `dev` o `main` | actionlint y `scripts/check-ci.rb` |
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
+| Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
 
 En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. Un PR nunca publica ni despliega.
 
@@ -330,4 +333,5 @@ La VM usa el profile `prod` de Spring. El esquema lo administra Flyway y los dat
 - [Guion de demo](docs/demo.md)
 - [Funciones del administrador](docs/admin.md)
 - [Seed y ciclo de vida de los datos](docs/seed-y-ciclo-de-vida.md)
+- [Tests de carga](docs/load-tests.md)
 - [Release notes de la Entrega 2](docs/release-notes-entrega-2.md)
