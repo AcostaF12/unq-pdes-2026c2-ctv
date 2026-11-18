@@ -126,11 +126,16 @@ describe('Administración: vuelos y paquetes', () => {
       fieldByLabel('Agencia').select('Despegar')
       fieldByLabel('Hotel').select(HOTEL_OPTION)
     })
-    // los vuelos se eligen de listas filtradas por hotel y por ruta, sin escribir ids
+    // los vuelos se eligen de listas filtradas por hotel y por ruta, sin escribir ids;
+    // la opción muestra aerolínea, hora y lugares, y el detalle completo (con la ruta) queda en el title
     selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
-    cy.get('[data-testid="package-outbound-flight"] option:selected').should('contain.text', 'BUE → PAR')
+    cy.get('[data-testid="package-outbound-flight"] option:selected')
+      .should('have.attr', 'title')
+      .and('contain', 'BUE → PAR')
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
-    cy.get('[data-testid="package-return-flight"] option:selected').should('contain.text', 'PAR → BUE')
+    cy.get('[data-testid="package-return-flight"] option:selected')
+      .should('have.attr', 'title')
+      .and('contain', 'PAR → BUE')
     cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Precio').type('2100')
       cy.contains('button', /^Crear paquete$/).click()
@@ -316,7 +321,10 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     })
     cy.wait('@filteredOutbound').its('response.statusCode').should('eq', 200)
     selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
-    cy.get('[data-testid="package-outbound-flight"] option:selected').should('contain.text', outboundDate)
+    // la fecha agrupa las opciones (optgroup) y figura completa en el title de la opción
+    cy.get('[data-testid="package-outbound-flight"] option:selected')
+      .should('have.attr', 'title')
+      .and('contain', outboundDate)
     cy.wait('@filteredReturn').its('response.statusCode').should('eq', 200)
     cy.get('[data-testid="package-return-flight"]').should('be.enabled')
     selectOptionContaining('[data-testid="package-return-flight"]', airline)
