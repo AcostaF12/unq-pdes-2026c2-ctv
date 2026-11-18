@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import unq.pdes.flightsservice.controller.dtos.models.DemoReservationsResponseDto
 import unq.pdes.flightsservice.controller.dtos.models.FlightDto
 import unq.pdes.flightsservice.controller.dtos.requests.DemoReservationsRequestDto
 import unq.pdes.flightsservice.model.DemoSeatReservation
@@ -26,8 +27,8 @@ class DemoSeedController(
     @PostMapping("/internal/demo/reservations")
     fun reserve(
         @Valid @RequestBody request: DemoReservationsRequestDto,
-    ): ResponseEntity<Void> {
-        reservations.reserve(request.reservations.map { DemoSeatReservation(it.key, it.flightId, it.passengerName) })
-        return ResponseEntity.noContent().build()
+    ): ResponseEntity<DemoReservationsResponseDto> {
+        val sales = reservations.reserve(request.reservations.map { DemoSeatReservation(it.key, it.flightId, it.passengerName) })
+        return ResponseEntity.ok(DemoReservationsResponseDto.from(sales))
     }
 }
