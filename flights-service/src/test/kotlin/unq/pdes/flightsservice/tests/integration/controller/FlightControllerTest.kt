@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -246,5 +247,71 @@ class FlightControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"flightId":999999,"passengerName":"Buyer"}"""),
             ).andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `GET vuelos with a malformed date should return 400`() {
+        mvc
+            .perform(get("/vuelos").param("date", "hoy"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
+            .andExpect(jsonPath("$.errorData.description").value("Invalid value for parameter 'date'."))
+    }
+
+    @Test
+    fun `GET vuelo by a non numeric id should return 400`() {
+        mvc
+            .perform(get("/flights/abc"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
+            .andExpect(jsonPath("$.errorData.description").value("Invalid value for parameter 'id'."))
+    }
+
+    @Test
+    fun `POST vuelos with missing fields should return 400`() {
+        mvc
+            .perform(
+                post("/flights")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"airline":"Aerolineas Argentinas"}"""),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
+            .andExpect(jsonPath("$.errorData.description").value("The request body is malformed or incomplete."))
+    }
+
+    @Test
+    fun `POST vuelos with malformed JSON should return 400`() {
+        mvc
+            .perform(
+                post("/flights")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"airline":"""),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
+            .andExpect(jsonPath("$.errorData.description").value("The request body is malformed or incomplete."))
+    }
+
+    @Test
+    fun `POST venta with malformed JSON should return 400`() {
+        mvc
+            .perform(
+                post("/venta")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"flightId":1,"""),
+            ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.httpCode").value(400))
+            .andExpect(jsonPath("$.httpStatus").value("BAD_REQUEST"))
+            .andExpect(jsonPath("$.errorData.description").value("The request body is malformed or incomplete."))
+    }
+
+    @Test
+    fun `unsupported method should still return 405`() {
+        mvc
+            .perform(delete("/vuelos"))
+            .andExpect(status().isMethodNotAllowed)
     }
 }

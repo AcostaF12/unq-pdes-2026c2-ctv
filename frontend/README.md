@@ -2,7 +2,7 @@
 
 React 19 + TypeScript + Vite. Consume la API del backend (`http://localhost:8080` por defecto).
 
-## Scripts
+## Comandos
 
 ```bash
 npm ci            # instala dependencias según el lock
@@ -14,11 +14,11 @@ npm run build     # tsc -b + vite build; deja el reporte de bundle en dist/stats
 
 ## Configuración
 
-| Variable | Default | Uso |
+| Variable | Por defecto | Uso |
 |----------|---------|-----|
 | `VITE_API_BASE_URL` | `http://localhost:8080` | URL base de la API. Se resuelve al compilar, no al ejecutar la imagen. |
 
-Para otra URL en Docker se pasa como build arg: `docker build --build-arg VITE_API_BASE_URL=http://host:8080 .`
+Para otra URL en Docker se pasa como argumento de build: `docker build --build-arg VITE_API_BASE_URL=http://host:8080 .`
 
 ## Estructura
 
@@ -32,8 +32,6 @@ src/
 ├── router/       # rutas y carga diferida de páginas
 └── styles/       # tokens de diseño y tipografías
 ```
-
-El diseño de la fase 1 y el backlog están en [`docs/frontend`](../docs/frontend).
 
 Al crear o editar paquetes, el selector de vuelos permite filtrar por ciudad de origen,
 fecha de ida y fecha de vuelta. Los filtros son opcionales: el destino depende del hotel
@@ -77,11 +75,14 @@ npm run e2e:open
 ```
 
 `e2e:open` abre la interfaz de Cypress para ver las acciones en el navegador.
-`npm run e2e:run` ejecuta los tests sin abrir la interfaz, como se hará en CI.
-El entorno Docker anterior debe estar levantado. Los escenarios se escribirán
-en `frontend/cypress/e2e/` con nombres terminados en `.cy.js` o `.cy.ts`;
-La suite verifica login/búsqueda/detalle, compra/historial, creación/edición/eliminación
+`npm run e2e:run` ejecuta los tests sin abrir la interfaz, como en CI.
+El entorno Docker anterior debe estar levantado. Los tests están en
+`frontend/cypress/e2e/`, en archivos terminados en `.cy.js`: siete suites con 15 tests.
+Verifican login/búsqueda/detalle, compra/historial, creación/edición/eliminación
 de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios reales.
+`admin-users.cy.js` cubre usuarios, vendedores y agencias, las consultas y los cuatro
+reportes, y el rechazo de las pantallas administrativas para comprador y agencia;
+`package-lifecycle.cy.js`, el archivo y la nueva publicación de una oferta vendida.
 `admin-management.cy.js` cubre la sección Administración: acceso por rol, alta de vuelos de ida y
 vuelta, alta de un paquete para una agencia, su compra por un comprador, edición y eliminación
 (incluido el rechazo al borrar un paquete ya comprado) y el alta de paquetes desde la agencia con

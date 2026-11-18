@@ -1,4 +1,22 @@
 services:
+  # Internal services stay reachable through the Compose networks, but the VM
+  # does not publish their ports. `!reset` needs Docker Compose >= 2.24.
+  backend-postgres:
+    ports: !reset []
+
+  flights-postgres:
+    ports: !reset []
+
+  elasticsearch:
+    ports: !reset []
+
+  logstash:
+    ports: !reset []
+
+  # Grafana reads Prometheus through the backend network.
+  prometheus:
+    ports: !reset []
+
   flights-service:
     build: !reset null
     image: ghcr.io/acostaf12/ctv-flights-service:latest
@@ -14,6 +32,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       SEED_ENABLED: ${SEED_ENABLED:-true}
       CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
+      # Never fall back to the public development secret outside local runs.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (the deploy writes it to /opt/ctv/.env)}
 
   frontend:
     build: !reset null

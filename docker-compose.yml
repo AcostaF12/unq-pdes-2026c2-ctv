@@ -1,6 +1,6 @@
 services:
   backend-postgres:
-    image: postgres:16
+    image: postgres:16.16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -18,7 +18,7 @@ services:
       - backend-net
 
   flights-postgres:
-    image: postgres:16
+    image: postgres:16.16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -97,7 +97,7 @@ services:
 
   zipkin:
     profiles: ["monitoring"]
-    image: openzipkin/zipkin:latest
+    image: openzipkin/zipkin:3.6.1
     ports:
       - "9411:9411"
     networks:
@@ -106,7 +106,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "8090:80"
+      - "8090:8080"
     depends_on:
       - backend
     networks:
@@ -114,7 +114,7 @@ services:
 
   prometheus:
     profiles: ["monitoring"]
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.16.0
     ports:
       - "9090:9090"
     volumes:
@@ -128,7 +128,7 @@ services:
 
   grafana:
     profiles: ["monitoring"]
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.3.1
     ports:
       - "3001:3000"
     environment:
@@ -189,6 +189,19 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    networks:
+      - logging-net
+
+  # One-shot job: creates the ctv-logs-* data view in Kibana (idempotent).
+  kibana-setup:
+    profiles: ["monitoring"]
+    image: curlimages/curl:8.17.0
+    entrypoint: ["sh", "/setup/setup-data-view.sh"]
+    volumes:
+      - ./monitoring/kibana:/setup:ro
+    depends_on:
+      - kibana
+    restart: "no"
     networks:
       - logging-net
 
