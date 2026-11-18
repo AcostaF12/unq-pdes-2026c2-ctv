@@ -1,5 +1,7 @@
 require 'yaml'
 require 'open3'
+require 'tmpdir'
+require 'fileutils'
 
 ROOT = File.expand_path('..', __dir__)
 tests = YAML.load_file(File.join(ROOT, '.github/workflows/e2e.yml'))
@@ -108,7 +110,8 @@ check(jobs.fetch('stop')['needs'].nil?, 'Stop must remain independent')
 end
 check(jobs.fetch('workflow-validation')['uses'] == './.github/workflows/workflow-validation.yml', 'Deploy must reuse workflow validation')
 check(jobs.fetch('workflow-validation')['if'] == "inputs.action == 'deploy'", 'Stop must skip workflow validation')
-check(Array(jobs.fetch('publish')['needs']).sort == %w[backend flights-service frontend tests workflow-validation], 'Publishing must require all passing checks')
+check(Array(jobs.fetch('publish')['needs']).sort == %w[backend flights-service frontend preflight tests workflow-validation], 'Publishing must require all passing checks')
+check(jobs.fetch('preflight')['if'] == "inputs.action == 'deploy'", 'Stop must skip the deploy preflight')
 check(jobs.fetch('publish')['if'].nil?, 'Publishing must not bypass failed checks')
 check(Array(jobs.fetch('deploy')['needs']).sort == %w[publish tests], 'Deploy must require tests and publishing')
 check(jobs.fetch('deploy')['if'] == "inputs.action == 'deploy'", 'Deploy must not bypass failure gating')
@@ -123,9 +126,85 @@ script = ssh.dig('with', 'script')
 end
 check(script.include?('set -eu'), 'Remote deploy must stop if image pull fails')
 
-# Exercise the real shell control flow without contacting Docker or Azure.
-local_script = script.sub('cd /opt/ctv', ':').gsub('${{ github.sha }}', '0' * 40)
-output, _, status = Open3.capture3('sh', stdin_data: "docker() { echo called-docker; return 17; }\n#{local_script}")
-check(status.exitstatus == 17 && output.lines.size == 1, 'Failed pull must prevent up')
+# The JWT secret travels as an SSH environment variable, never inside the script text.
+check(!script.include?('secrets.'), 'Remote deploy script must not embed secrets')
+check(ssh.dig('env', 'JWT_SECRET') == '${{ secrets.JWT_SECRET }}' && ssh.dig('with', 'envs').to_s.split(',').include?('JWT_SECRET'), 'Deploy must pass JWT_SECRET to the VM')
+preflight = jobs.fetch('preflight').fetch('steps').map { |step| step['run'].to_s }.join("\n")
+check(preflight.include?('JWT_SECRET') && preflight.include?('exit 1'), 'Deploy must fail early without JWT_SECRET')
+
+# Exercise the real shell control flow with a fake release, without contacting Docker, GitHub or Azure.
+sha = '0' * 40
+Dir.mktmpdir do |dir|
+  release = File.join(dir, 'src', "unq-pdes-2026c2-ctv-#{sha}")
+  FileUtils.mkdir_p(File.join(release, 'monitoring/grafana'))
+  File.write(File.join(release, 'docker-compose.yml'), "new-compose\n")
+  File.write(File.join(release, 'docker-compose.prod.yml'), "new-prod\n")
+  File.write(File.join(release, 'monitoring/prometheus.yml'), "new-prometheus\n")
+  File.write(File.join(release, 'monitoring/grafana/x.yml'), "new-grafana\n")
+  tarball = File.join(dir, 'release.tar.gz')
+  _, err, status = Open3.capture3('tar', '-czf', tarball, '-C', File.join(dir, 'src'), File.basename(release))
+  check(status.success?, "Could not build the fake release: #{err}")
+
+  run_deploy = lambda do |name, env|
+    vm = File.join(dir, "vm-#{name}")
+    FileUtils.mkdir_p(File.join(vm, 'monitoring'))
+    File.write(File.join(vm, 'docker-compose.yml'), "old-compose\n")
+    File.write(File.join(vm, 'monitoring/prometheus.yml'), "old-prometheus\n")
+    File.write(File.join(vm, '.env'), "CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*\nJWT_SECRET='old'\n")
+    log = File.join(dir, "calls-#{name}.log")
+    stubs = <<~SH
+      curl() { echo "curl $*" >> "#{log}"; cat "#{tarball}"; }
+      sudo() { echo "unexpected sudo" >> "#{log}"; return 99; }
+      docker() { echo "docker $*" >> "#{log}"; cat > /dev/null; return 17; }
+    SH
+    local_script = script.sub('cd /opt/ctv', "cd '#{vm}'").gsub('${{ github.sha }}', sha)
+    _, _, result = Open3.capture3(env, 'sh', stdin_data: stubs + local_script)
+    [vm, File.exist?(log) ? File.read(log) : '', result]
+  end
+
+  vm, log, status = run_deploy.call('missing', { 'JWT_SECRET' => '' })
+  check(!status.success? && log.empty?, 'Deploy must stop before touching the VM without JWT_SECRET')
+  check(File.read(File.join(vm, 'docker-compose.yml')) == "old-compose\n", 'Deploy without JWT_SECRET must not sync files')
+
+  vm, log, status = run_deploy.call('release', { 'JWT_SECRET' => 'local-test-secret-with-at-least-32-bytes' })
+  check(status.exitstatus == 17, 'Failed pull must fail the deploy')
+  check(log.lines.grep(/^docker /).size == 1 && log.include?('pull'), 'Failed pull must prevent up')
+  check(log.include?("codeload.github.com/AcostaF12/unq-pdes-2026c2-ctv/tar.gz/#{sha}"), 'Deploy must download the deployed commit')
+  check(!log.include?('unexpected sudo'), 'Deploy must not escalate when it owns /opt/ctv')
+  check(File.read(File.join(vm, 'docker-compose.yml')) == "new-compose\n" &&
+        File.read(File.join(vm, 'docker-compose.prod.yml')) == "new-prod\n", 'Deploy must sync the Compose files')
+  check(File.read(File.join(vm, 'monitoring/prometheus.yml')) == "new-prometheus\n" &&
+        File.read(File.join(vm, 'monitoring/grafana/x.yml')) == "new-grafana\n", 'Deploy must sync the monitoring config')
+  env_file = File.read(File.join(vm, '.env'))
+  check(env_file.include?('CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*') && env_file.scan(/^JWT_SECRET=/).size == 1 &&
+        env_file.include?("JWT_SECRET='local-test-secret-with-at-least-32-bytes'"), 'Deploy must store JWT_SECRET in .env keeping other settings')
+  check(File.stat(File.join(vm, '.env')).mode & 0o777 == 0o600, '.env must only be readable by the deploy user') unless Gem.win_platform?
+end
+
+# Image hardening: non-root processes, cached dependencies and pinned third-party images.
+%w[backend flights-service].each do |mod|
+  dockerfile = File.read(File.join(ROOT, mod, 'Dockerfile'))
+  check(dockerfile.match?(/^USER (?!root\b|0\b)\S+/), "#{mod} image must run as a non-root user")
+  check(dockerfile.index('gradlew dependencies').to_i.between?(1, dockerfile.index('COPY src').to_i), "#{mod} must resolve dependencies before copying sources")
+end
+check(File.read(File.join(ROOT, 'frontend/Dockerfile')).include?('nginx-unprivileged'), 'frontend image must run nginx as non-root')
+%w[docker-compose.yml acceptance-tests/docker-compose.yml backend/Dockerfile flights-service/Dockerfile frontend/Dockerfile].each do |file|
+  File.read(File.join(ROOT, file)).scan(/^\s*(?:image:|FROM)\s+(\S+)/).flatten.each do |image|
+    check(image.match?(%r{:[^/]+\z}) && !image.end_with?(':latest'), "#{file} must pin #{image}")
+  end
+end
+prod = File.read(File.join(ROOT, 'docker-compose.prod.yml'))
+%w[backend-postgres flights-postgres elasticsearch logstash prometheus].each do |service|
+  check(prod.match?(/^  #{Regexp.escape(service)}:\n    ports: !reset \[\]$/), "Production must not publish #{service} ports")
+end
+check(prod.include?('JWT_SECRET: ${JWT_SECRET:?'), 'Production must require JWT_SECRET')
+
+# CI image builds share cached layers and retry transient registry errors.
+%w[acceptance e2e].each do |suite|
+  steps = tests.fetch('jobs').fetch(suite).fetch('steps')
+  check(steps.any? { |step| step['run'].to_s.include?('scripts/ci-build-images.sh') }, "#{suite} must build images with cache and retry")
+  check(steps.any? { |step| step['uses'].to_s.start_with?('crazy-max/ghaction-github-runtime@') }, "#{suite} must expose the cache runtime")
+  check(steps.none? { |step| step['run'].to_s.match?(/compose .*up .*--build/) }, "#{suite} must not rebuild images without cache")
+end
 
 puts 'CI contract checks passed'
