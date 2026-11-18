@@ -31,16 +31,6 @@ docker compose down
 
 Este comando conserva los volúmenes de Docker. Sin embargo, el backend reinicia sus datos de ejemplo al arrancar con el perfil `dev`. No uses este entorno para guardar datos que quieras conservar.
 
-### Usar las imágenes de Docker Hub
-
-Para arrancar sin compilar, una vez publicadas las imágenes:
-
-```bash
-docker compose -f docker-compose.hub.yml up -d --wait
-```
-
-Se usan `acostaf12/ctv-backend`, `acostaf12/ctv-flights-service` y `acostaf12/ctv-frontend`. Podés cambiar el namespace con `DOCKERHUB_NAMESPACE` y la etiqueta con `CTV_IMAGE_TAG`, que por defecto es `latest`. Los puertos y usuarios son los mismos.
-
 ### Desarrollo con hot reload
 
 Levantá las bases en Docker y ejecutá cada módulo en una terminal distinta. Necesitás Java 25 y Node.js 24:
@@ -148,7 +138,7 @@ Consultá las ejecuciones en [GitHub Actions](https://github.com/AcostaF12/unq-p
 - [Backend](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-backend).
 - [Servicio de vuelos](https://sonarcloud.io/summary/new_code?id=acostaf12_unq-pdes-2026c2-ctv-flights-service).
 
-En cada push a `main`, después de los controles de cada módulo, sus imágenes se publican en Docker Hub y GitHub Container Registry con `latest` y el SHA del commit. Docker Hub requiere los secretos `DOCKERHUB_USERNAME` y `DOCKERHUB_TOKEN`; la variable opcional `DOCKERHUB_NAMESPACE` cambia el namespace. Si faltan las credenciales, la publicación falla.
+En cada push a `main`, después de los controles de cada módulo, sus imágenes se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. La publicación usa el `GITHUB_TOKEN` del workflow y no necesita secretos adicionales.
 
 Abrir un PR no despliega la aplicación. El deploy de la demo se inicia manualmente desde GitHub Actions:
 
