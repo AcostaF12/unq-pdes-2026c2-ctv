@@ -50,7 +50,7 @@ describe('Administración de usuarios, vendedores y agencias', () => {
       expect(response.body).not.to.have.property('password')
       sellerId = response.body.id
     })
-    cy.contains('li', `@${username}`).should('contain.text', 'Vendedor').and('contain.text', agencyName)
+    cy.contains('tr', `@${username}`).should('contain.text', 'Vendedor').and('contain.text', agencyName)
     apiLogin('vferreyra', 'vferreyra').then((token) => {
       adminToken = token
     })
@@ -101,7 +101,7 @@ describe('Administración de usuarios, vendedores y agencias', () => {
     fieldByLabel('Estado').select('disabled')
     cy.contains('button', 'Guardar cambios').click()
     cy.wait('@updateUser').its('response.statusCode').should('eq', 200)
-    cy.contains('li', `@${username}`).should('contain.text', 'Deshabilitado')
+    cy.contains('tr', `@${username}`).should('contain.text', 'Deshabilitado')
     cy.then(() =>
       cy.request({
         url: `${Cypress.expose('backendUrl')}/users/me`,

@@ -28,7 +28,12 @@ import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.service.ReviewService
 import unq.pdes.backend.service.TravelPackageService
 
-@Tag(name = "Package Services", description = "Búsqueda y administración de paquetes turísticos.")
+@Tag(
+    name = "Package Services",
+    description =
+        "El catálogo. Buscar y ver el detalle puede cualquier usuario autenticado. " +
+            "Crear, editar, borrar y archivar es de la agencia dueña o de un admin.",
+)
 @RestController
 @RequestMapping("/packages")
 class TravelPackageController(
@@ -39,9 +44,11 @@ class TravelPackageController(
     @Operation(
         summary = "Buscar paquetes",
         description =
-            "Filtra por nombre, origen, destino, rango de precio inclusivo, agencia ('agencyId'), hotel " +
-                "('hotel') y puntaje promedio mínimo ('minRating', 0 a 10). Admite paginación " +
-                "('page', 'size') y orden ('sort=name,asc', 'price,desc', 'destination.name,asc' o 'rating,desc').",
+            "Arma una página del catálogo publicado. La página 0 es la primera.\n\n" +
+                "Filtra por nombre, origen, destino, precio, agencia, hotel y puntaje. " +
+                "El orden va en sort: name, price, destination.name o rating.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**Nota:** un admin también ve ofertas de agencias inactivas",
     )
     @GetMapping
     fun search(
@@ -59,7 +66,13 @@ class TravelPackageController(
         return ResponseEntity.ok(PageDto.from(packages) { TravelPackageDto.fromModel(it, summaries[it.id]) })
     }
 
-    @Operation(summary = "Paquetes de la agencia", description = "Lista los paquetes de la agencia autenticada.")
+    @Operation(
+        summary = "Paquetes de la agencia",
+        description =
+            "Lista los paquetes de la agencia del token, también los archivados.\n\n" +
+                "No pagina. Un admin mira el catálogo completo en GET /admin/packages.\n\n" +
+                "**Quién:** agencia",
+    )
     @GetMapping("/agency")
     fun mine(
         @AuthenticationPrincipal principal: UserDetails,
@@ -69,7 +82,14 @@ class TravelPackageController(
         return ResponseEntity.ok(packages.map { TravelPackageDto.fromModel(it, summaries[it.id]) })
     }
 
-    @Operation(summary = "Detalle de paquete", description = "Incluye vuelos y reseñas cuando están disponibles.")
+    @Operation(
+        summary = "Detalle de paquete",
+        description =
+            "Abre un paquete con su hotel, sus reseñas y, si vuelos responde, la ida y la vuelta.\n\n" +
+                "Si vuelos no responde, el paquete igual vuelve y los vuelos vienen vacíos.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**404** no existe",
+    )
     @GetMapping("/{id}")
     fun byId(
         @PathVariable id: Long,
@@ -84,8 +104,12 @@ class TravelPackageController(
     @Operation(
         summary = "Crear paquete",
         description =
-            "Registra un paquete para la agencia autenticada. Un ADMIN debe indicar 'agencyId' y crea el paquete " +
-                "para esa agencia; las agencias ignoran 'agencyId'.",
+            "Publica una oferta con nombre, hotel, ida, vuelta y precio.\n\n" +
+                "La agencia no manda agencyId: se usa la suya. Un admin sí tiene que mandarlo. " +
+                "La vuelta sale del destino de la ida y el hotel está en esa ciudad.\n\n" +
+                "**Quién:** agencia o admin\n" +
+                "**201** oferta creada\n" +
+                "**400** nombre repetido en la agencia, o la ruta no cierra",
     )
     @PostMapping
     fun create(
@@ -108,8 +132,10 @@ class TravelPackageController(
     @Operation(
         summary = "Actualizar paquete",
         description =
-            "Modifica un paquete de la agencia autenticada. Un ADMIN puede modificar cualquier paquete e indica " +
-                "la agencia con 'agencyId' (obligatorio).",
+            "Cambia una oferta que ya existe. Valen las mismas reglas de hotel y vuelos que al crearla.\n\n" +
+                "La agencia solo edita las suyas. Un admin edita cualquiera e indica agencyId. " +
+                "Si ya tiene compras, no se le cambia la agencia.\n\n" +
+                "**Quién:** agencia dueña o admin",
     )
     @PutMapping("/{id}")
     fun update(
@@ -133,7 +159,12 @@ class TravelPackageController(
 
     @Operation(
         summary = "Eliminar paquete",
-        description = "Elimina un paquete de la agencia autenticada. Un ADMIN puede eliminar cualquier paquete.",
+        description =
+            "Borra el paquete solo si nadie lo compró, reseñó ni marcó como favorito.\n\n" +
+                "Si ya se vendió, se archiva con PUT /packages/{id}/status.\n\n" +
+                "**Quién:** agencia dueña o admin\n" +
+                "**204** borrado\n" +
+                "**400** todavía tiene historia",
     )
     @DeleteMapping("/{id}")
     fun delete(
@@ -144,7 +175,13 @@ class TravelPackageController(
         return ResponseEntity.noContent().build()
     }
 
-    @Operation(summary = "Publicar o archivar paquete", description = "ADMIN o agencia propietaria. Archivar conserva compras y reseñas.")
+    @Operation(
+        summary = "Publicar o archivar paquete",
+        description =
+            "Archiva o vuelve a publicar una oferta, sin borrar compras ni reseñas.\n\n" +
+                "active=false la saca del catálogo. active=true la publica solo si los vuelos siguen vigentes y con lugar.\n\n" +
+                "**Quién:** agencia dueña o admin",
+    )
     @PutMapping("/{id}/status")
     fun status(
         @AuthenticationPrincipal principal: UserDetails,

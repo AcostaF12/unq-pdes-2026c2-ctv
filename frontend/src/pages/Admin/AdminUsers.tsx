@@ -19,9 +19,14 @@ import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { Pagination } from '../../components/Pagination/Pagination'
 import { queryKeys } from '../../query/keys'
 import { ADMIN_PATH } from '../../router/paths'
+import { AdminStatusBadge } from './AdminStatusBadge'
 import { ManagedUserForm } from './ManagedUserForm'
 import '../Packages/packages.css'
 import './admin.css'
+
+function userRoleLabel(user: ManagedUser) {
+  return user.role === 'AGENCY' ? 'Vendedor' : roleLabel(user.role)
+}
 
 export function AdminUsers() {
   const client = useQueryClient()
@@ -104,30 +109,65 @@ export function AdminUsers() {
           {!users.data?.content.length ? (
             <EmptyState title="Sin usuarios" message="Creá el primer usuario desde este panel." />
           ) : (
-            <ul className="admin-list" aria-label="Usuarios registrados">
-              {users.data.content.map((user) => (
-                <li key={user.id} className="admin-row">
-                  <div className="admin-row__main">
-                    <h2 className="admin-row__title">
-                      {user.firstName} {user.lastName} (@{user.username})
-                    </h2>
-                    <p>
-                      {user.role === 'AGENCY' ? 'Vendedor' : roleLabel(user.role)}
-                      {user.agency ? ` · ${user.agency.name}` : ''}
-                    </p>
-                    <p className="catalog__muted">{user.enabled ? 'Habilitado' : 'Deshabilitado'}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    disabled={save.isPending}
-                    aria-label={`Editar ${user.username}`}
-                    onClick={() => open(user)}
-                  >
-                    Editar
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            <div
+              className="admin-table-wrap"
+              role="region"
+              aria-label="Usuarios registrados"
+              tabIndex={0}
+            >
+              <table className="admin-table">
+                <caption>Usuarios registrados</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Agencia</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.data.content.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="admin-table__identity">
+                          <span className="admin-table__name">
+                            {user.firstName} {user.lastName} (@{user.username})
+                          </span>
+                        </div>
+                      </td>
+                      <td>{userRoleLabel(user)}</td>
+                      <td>
+                        {user.agency ? (
+                          user.agency.name
+                        ) : (
+                          <span className="admin-table__muted">—</span>
+                        )}
+                      </td>
+                      <td>
+                        <AdminStatusBadge
+                          active={user.enabled}
+                          activeLabel="Habilitado"
+                          inactiveLabel="Deshabilitado"
+                        />
+                      </td>
+                      <td className="admin-table__actions-cell">
+                        <div className="admin-table__actions">
+                          <Button
+                            variant="ghost"
+                            disabled={save.isPending}
+                            aria-label={`Editar ${user.username}`}
+                            onClick={() => open(user)}
+                          >
+                            Editar
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           <Pagination page={page} totalPages={users.data?.totalPages ?? 0} onPageChange={setPage} />
         </>

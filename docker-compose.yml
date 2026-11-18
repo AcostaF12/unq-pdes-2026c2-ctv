@@ -96,6 +96,7 @@ services:
       - tracing-net
 
   zipkin:
+    profiles: ["monitoring"]
     image: openzipkin/zipkin:latest
     ports:
       - "9411:9411"
@@ -112,6 +113,7 @@ services:
       - frontend-net
 
   prometheus:
+    profiles: ["monitoring"]
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
@@ -125,6 +127,7 @@ services:
       - flights-net
 
   grafana:
+    profiles: ["monitoring"]
     image: grafana/grafana:latest
     ports:
       - "3001:3000"
@@ -141,6 +144,7 @@ services:
       - backend-net
 
   elasticsearch:
+    profiles: ["monitoring"]
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     environment:
       - discovery.type=single-node
@@ -159,6 +163,7 @@ services:
       - logging-net
 
   logstash:
+    profiles: ["monitoring"]
     image: docker.elastic.co/logstash/logstash:8.15.3
     volumes:
       - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
@@ -175,6 +180,7 @@ services:
       - logging-net
 
   kibana:
+    profiles: ["monitoring"]
     image: docker.elastic.co/kibana/kibana:8.15.3
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200

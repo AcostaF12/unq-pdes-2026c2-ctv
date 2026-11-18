@@ -154,8 +154,8 @@ jobs:
                 image: ghcr.io/acostaf12/ctv-frontend:${{ github.sha }}
             COMPOSE
             }
-            release_compose pull
-            release_compose up -d --no-build
+            release_compose --profile monitoring pull
+            release_compose --profile monitoring up -d --no-build
 
       - name: Health check
         run: |

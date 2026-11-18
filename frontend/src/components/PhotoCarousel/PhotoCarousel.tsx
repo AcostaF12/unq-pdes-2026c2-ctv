@@ -13,6 +13,43 @@ interface CarouselState {
   failed: ReadonlySet<number>
 }
 
+type SlideDirection = 'next' | 'prev'
+
+function chevronPath(direction: SlideDirection): string {
+  switch (direction) {
+    case 'prev':
+      return 'M14.5 5.5 8 12l6.5 6.5'
+    case 'next':
+      return 'M9.5 5.5 16 12l-6.5 6.5'
+    default: {
+      const exhaustive: never = direction
+      return exhaustive
+    }
+  }
+}
+
+function Chevron({ direction }: { direction: SlideDirection }) {
+  return (
+    <svg
+      className="photo-carousel__chevron"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d={chevronPath(direction)}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function usableIndex(
   photos: string[],
   failed: ReadonlySet<number>,
@@ -41,8 +78,10 @@ function initialState(cityCode: string): CarouselState {
 
 export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
   const [state, setState] = useState<CarouselState>(() => initialState(cityCode))
+  const [direction, setDirection] = useState<SlideDirection>('next')
   if (state.cityCode !== cityCode) {
     setState(initialState(cityCode))
+    setDirection('next')
   }
 
   const photos = photosForCity(cityCode)
@@ -50,10 +89,11 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
   const currentSrc = photos[index]
   const showFallback = photos.length === 0 || state.failed.size >= photos.length || !currentSrc
 
-  const goTo = (nextIndex: number) => {
+  const goTo = (nextIndex: number, slide: SlideDirection) => {
     if (photos.length === 0) {
       return
     }
+    setDirection(slide)
     setState((current) => ({
       ...current,
       requestedIndex: (nextIndex + photos.length) % photos.length,
@@ -61,11 +101,11 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
   }
 
   const goPrev = () => {
-    goTo(index - 1)
+    goTo(index - 1, 'prev')
   }
 
   const goNext = () => {
-    goTo(index + 1)
+    goTo(index + 1, 'next')
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -99,7 +139,8 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
       onKeyDown={onKeyDown}
     >
       <img
-        className="photo-carousel__img"
+        key={currentSrc}
+        className={`photo-carousel__img photo-carousel__img--${direction}`}
         src={currentSrc}
         srcSet={responsiveSrcSet(currentSrc)}
         sizes="(min-width: 1100px) 1100px, 100vw"
@@ -124,7 +165,7 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
             aria-label="Foto anterior"
             onClick={goPrev}
           >
-            ‹
+            <Chevron direction="prev" />
           </button>
           <button
             type="button"
@@ -132,7 +173,7 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
             aria-label="Foto siguiente"
             onClick={goNext}
           >
-            ›
+            <Chevron direction="next" />
           </button>
           <div className="photo-carousel__dots">
             {photos.map((photo, photoIndex) => (
@@ -147,7 +188,10 @@ export function PhotoCarousel({ cityCode, alt }: PhotoCarouselProps) {
                     : 'photo-carousel__dot'
                 }
                 onClick={() => {
-                  goTo(photoIndex)
+                  if (photoIndex === index) {
+                    return
+                  }
+                  goTo(photoIndex, photoIndex > index ? 'next' : 'prev')
                 }}
               />
             ))}

@@ -4,7 +4,7 @@ Guía de lo que puede hacer el rol administrador en la aplicación.
 
 ## Cómo entrar
 
-1. Levantar el stack (`docker compose up --build -d --wait`, o `docker compose -f docker-compose.hub.yml up -d --wait` para usar las imágenes de Docker Hub).
+1. Levantar el stack (`docker compose up --build -d --wait`).
 2. Abrir http://localhost:8090 e iniciar sesión con:
 
 | Usuario | Contraseña |
