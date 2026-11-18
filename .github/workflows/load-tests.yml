@@ -1,0 +1,86 @@
+name: Load Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Escenario de k6 a correr"
+        required: true
+        type: choice
+        options:
+          - all
+          - catalog-load
+          - login-load
+          - last-seat-stress
+          - catalog-spike
+        default: all
+      target:
+        description: "Dónde corre la aplicación: en el mismo runner (validación) o en la VM de Azure"
+        required: true
+        type: choice
+        options:
+          - runner
+          - vm
+        default: runner
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BASE_URL: ${{ inputs.target == 'vm' && format('http://{0}:8080', secrets.VM_HOST) || 'http://localhost:8080' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: "1.0.0"
+
+      - name: Start application in the runner
+        if: inputs.target == 'runner'
+        run: docker compose up --build -d --wait --wait-timeout 300
+
+      - name: Check target health
+        id: ready
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          if curl -sf --max-time 10 "$BASE_URL/actuator/health" | grep -q '"status":"UP"'; then
+            echo "Backend UP en $BASE_URL"
+            exit 0
+          fi
+          if [ "$TARGET" = "vm" ]; then
+            echo "::error::La VM no responde en $BASE_URL/actuator/health. Prendé la VM con Deploy Demo (action: deploy) y volvé a correr este workflow."
+          else
+            echo "::error::El backend del runner no está UP en $BASE_URL/actuator/health."
+          fi
+          exit 1
+
+      - name: catalog-load
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'catalog-load') }}
+        run: bash load-tests/run.sh catalog-load
+
+      - name: login-load
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'login-load') }}
+        run: bash load-tests/run.sh login-load
+
+      - name: last-seat-stress
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'last-seat-stress') }}
+        run: bash load-tests/run.sh last-seat-stress
+
+      - name: catalog-spike
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'catalog-spike') }}
+        run: bash load-tests/run.sh catalog-spike
+
+      - name: Show application logs on failure
+        if: failure() && inputs.target == 'runner'
+        run: docker compose logs --no-color --tail=200
+
+      - name: Stop application
+        if: always() && inputs.target == 'runner'
+        run: docker compose down -v

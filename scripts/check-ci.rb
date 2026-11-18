@@ -75,6 +75,24 @@ end
   check(steps.none? { |step| step['uses'].to_s.start_with?('actions/upload-artifact@') }, 'CI must use logs only')
 end
 
+load = YAML.load_file(File.join(ROOT, '.github/workflows/load-tests.yml'))
+load_events = load['on'] || load[true]
+check(load_events.keys == ['workflow_dispatch'], 'Load tests must only run manually')
+check(load['permissions'] == { 'contents' => 'read' }, 'Load tests must use a read-only token')
+scenarios = %w[catalog-load login-load last-seat-stress catalog-spike]
+check(load_events.dig('workflow_dispatch', 'inputs', 'scenario', 'options') == ['all'] + scenarios, 'Load tests must offer every scenario')
+check(load_events.dig('workflow_dispatch', 'inputs', 'target', 'options') == %w[runner vm], 'Load tests must target the runner or the VM')
+load_steps = load.fetch('jobs').fetch('k6').fetch('steps')
+check(load_steps.any? { |step| step['if'].to_s.start_with?('always()') && step['run'].to_s.include?('down') }, 'Missing load test cleanup')
+check(load_steps.none? { |step| step['continue-on-error'] }, 'Load tests must propagate failures')
+check(load_steps.none? { |step| step['uses'].to_s.start_with?('actions/upload-artifact@') }, 'CI must use logs only')
+scenarios.each do |scenario|
+  step = load_steps.find { |s| s['name'] == scenario }
+  check(!step.nil? && File.exist?(File.join(ROOT, "load-tests/#{scenario}.js")), "Missing load test #{scenario}")
+  # Every scenario runs even if a previous one failed, but never against an unhealthy target.
+  check(step['if'].include?("!cancelled() && steps.ready.outcome == 'success'"), "#{scenario} must run after earlier failures")
+end
+
 jobs = deploy.fetch('jobs')
 check(jobs.fetch('tests')['uses'] == './.github/workflows/e2e.yml', 'Deploy must reuse test workflow')
 check(jobs.fetch('tests')['if'] == "inputs.action == 'deploy'", 'Stop must skip tests')
