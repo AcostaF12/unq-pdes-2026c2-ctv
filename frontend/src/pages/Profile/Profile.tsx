@@ -74,11 +74,9 @@ export function Profile() {
     queryFn: listCities,
   })
 
-  const [prefsTick, setPrefsTick] = useState(0)
-  const storedPreferences = useMemo(
-    () => (user ? readPreferences(user.id) : null),
-    [user, prefsTick],
-  )
+  // el tick fuerza un re-render tras guardar; las preferencias se releen de localStorage en cada render
+  const [, setPrefsTick] = useState(0)
+  const storedPreferences = user ? readPreferences(user.id) : null
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),

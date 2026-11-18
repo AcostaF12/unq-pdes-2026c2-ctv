@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { listAgencies } from '../../api/agencies'
 import { listCities } from '../../api/cities'
@@ -115,9 +115,10 @@ export function PackageList() {
   const hasFilters = hasPackageSearchFilters(search.filters)
   const chips = buildPackageFilterChips(search.appliedValues, cities, agencies)
   const displayedKey = `${search.page}:${packages.map((item) => item.id).join(',')}`
-  const resultsKeyRef = useRef(displayedKey)
-  if (!packagesQuery.isPlaceholderData) {
-    resultsKeyRef.current = displayedKey
+  // la key del listado solo cambia con resultados reales, no con los datos previos de placeholder
+  const [resultsKey, setResultsKey] = useState(displayedKey)
+  if (!packagesQuery.isPlaceholderData && resultsKey !== displayedKey) {
+    setResultsKey(displayedKey)
   }
 
   return (
@@ -220,7 +221,7 @@ export function PackageList() {
         />
       ) : (
         <ul
-          key={resultsKeyRef.current}
+          key={resultsKey}
           className={
             packagesQuery.isPlaceholderData ? 'catalog__grid catalog__grid--stale' : 'catalog__grid'
           }

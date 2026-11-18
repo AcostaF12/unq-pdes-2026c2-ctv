@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { listCities } from '../../api/cities'
@@ -21,9 +21,10 @@ export function Hotels() {
   const [cityCode, setCityCode] = useState('')
   const [nameQuery, setNameQuery] = useState('')
   const [fadeTick, setFadeTick] = useState(0)
-  const seenCityCode = useRef(cityCode)
-  if (seenCityCode.current !== cityCode) {
-    seenCityCode.current = cityCode
+  // ajuste de estado durante el render (patrón de React para reaccionar a un cambio de valor)
+  const [seenCityCode, setSeenCityCode] = useState(cityCode)
+  if (seenCityCode !== cityCode) {
+    setSeenCityCode(cityCode)
     setFadeTick((tick) => tick + 1)
   }
 
