@@ -1,6 +1,6 @@
-# Acceptance tests
+# Tests de aceptación
 
-Este módulo ejecuta escenarios Cucumber contra el backend y el servicio de vuelos reales. No reemplaza los tests unitarios ni los tests de integración propios de cada aplicación.
+Este módulo ejecuta los 14 escenarios Cucumber de `features/critical-flows.feature` contra el backend y el servicio de vuelos reales. No reemplaza los tests unitarios ni los tests de integración propios de cada aplicación.
 
 ## Requisito
 
@@ -28,10 +28,10 @@ El reporte HTML se genera en `acceptance-tests/reports/cucumber-report.html`.
 ## CI
 
 `Acceptance and E2E CI` ejecuta ambas suites en PRs y pushes a `dev` y `main`.
-Cucumber usa el perfil `ci`: solo logs, sin reporte HTML ni artifacts.
+Cucumber usa el perfil `ci`: solo logs, sin reporte HTML ni artefactos.
 Cada job tiene bases temporales y elimina sus contenedores al finalizar.
 El deploy manual reutiliza estas pruebas y solo publica/despliega si ambas pasan;
-las tres imágenes usan el SHA del commit seleccionado. `stop` no ejecuta pruebas.
+las tres imágenes usan el SHA del commit elegido. `stop` no ejecuta pruebas.
 La configuración se puede comprobar localmente con `ruby scripts/check-ci.rb`
 desde la raíz del repositorio. Esto no sustituye una ejecución real en Actions.
 

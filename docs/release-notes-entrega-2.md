@@ -29,7 +29,7 @@ Ajustamos los tests a las respuestas paginadas de la API y corregimos los perfil
 
 ### Interfaz con Cypress
 
-Los diez tests recorren la aplicación desde el navegador:
+Los 15 tests, en siete suites, recorren la aplicación desde el navegador:
 
 1. Login, búsqueda por nombre/origen/destino y consulta del detalle.
 2. Contraseña incorrecta y reintento exitoso.
@@ -41,6 +41,11 @@ Los diez tests recorren la aplicación desde el navegador:
 8. Edición del precio y eliminación de un paquete sin compras.
 9. Rechazo de la eliminación de un paquete con compras.
 10. Creación de un paquete por una agencia mediante los selectores de hotel y vuelos, y su eliminación.
+11. Alta de una agencia y un vendedor, seguimiento de una venta, bloqueo de la cuenta y cambio de permisos.
+12. Consultas administrativas y los cuatro reportes Top 5.
+13. Rechazo de las pantallas y APIs administrativas para un comprador.
+14. Rechazo de las pantallas y APIs administrativas para una agencia.
+15. Archivo de una oferta vendida, conservación de su historial y nueva publicación.
 
 Cucumber y Cypress usan entornos Docker aislados. Cypress corre por terminal con Electron sin ventana visible, pero sigue probando un navegador real. Antes de empezar, CI espera que los servicios estén saludables.
 
@@ -80,6 +85,6 @@ Los [checks del PR #13](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/13
 
 En el commit `bea677a` de `dev`, backend y vuelos fallaban al consultar el Quality Gate fuera de `main`. Eso quedó resuelto esperando el gate solo en `main` y alineando `check-ci.rb` con esa regla.
 
-Queda pendiente comprobar una ejecución real del deploy manual con los workflows reutilizados. No desplegamos a Azure durante estos cambios.
+Al cerrar estos cambios no habíamos desplegado a Azure. La ejecución real del deploy manual con los workflows reutilizados se comprobó después, el 18/11/2026, en la [corrida 44223522482](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44223522482), que terminó en verde.
 
 Para exigir todos los controles antes de un merge, también falta revisar los filtros por carpeta, distinguir los nombres de los jobs `build` y configurar los checks obligatorios en `dev` y `main`. Esa configuración requiere un administrador del repositorio. El YAML bloquea el deploy cuando fallan sus dependencias, pero no activa por sí solo la protección del merge.

@@ -14,7 +14,7 @@ La seed permite recorrer administración, venta, compra y reseñas con datos rel
 | Vendedores, uno por agencia | 4 |
 | Paquetes | 28 |
 | Vuelos de ida y vuelta | 54 |
-| Compras con snapshots | 26 |
+| Compras con copia de los datos al comprar | 26 |
 | Reseñas con compra previa | 19 |
 | Favoritos | 15 |
 | Reservas de demo, dos por compra | 52 |
@@ -41,7 +41,7 @@ Son credenciales públicas de ejemplo. La seed está habilitada por defecto en `
 1. Flyway prepara y valida los esquemas de los dos servicios. Vuelos usa `validate` también en producción, sin `create-drop`.
 2. Vuelos agrega o identifica sus vuelos de demo mediante claves únicas `ctv-demo-v1:DESTINO:VARIANTE:TRAMO`. Conserva los IDs reales, fechas, ventas y stock. Un vuelo anterior sin clave solo se adopta si la coincidencia de ruta, horario y aerolínea es inequívoca.
 3. El backend bloquea el registro `ctv-demo-v1` de `demo_seed_runs`. Si ya terminó, no vuelve a cargar ni a recrear elementos borrados.
-4. Antes de escribir, valida el grafo de fixtures y consulta el catálogo interno de vuelos. Los paquetes usan los IDs devueltos por ese catálogo; no dependen del orden de inserción.
+4. Antes de escribir, valida el grafo de datos de ejemplo y consulta el catálogo interno de vuelos. Los paquetes usan los IDs devueltos por ese catálogo; no dependen del orden de inserción.
 5. Carga las tablas en orden mediante mapas de referencias y lecturas agrupadas. Cada cuenta nueva recibe su propio hash con sal; las contraseñas existentes no se recalculan.
 6. Crea compras, reserva los asientos de ida y vuelta mediante un lote remoto y después agrega reseñas y favoritos. Cada reserva tiene una clave única; reintentar el lote no descuenta otro asiento.
 7. Marca la versión como completa al confirmar la transacción local. Si falla, todos los cambios locales se revierten. Si el lote remoto llegó a confirmarse, sus claves permiten reintentar sin duplicarlo.

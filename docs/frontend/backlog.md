@@ -1,46 +1,46 @@
-# Backlog frontend — Fase 1
+# Backlog del frontend — Fase 1
 
-Criterio general: no agregar dependencias, no cambiar contratos del backend, no mockear paquetes/compras/favoritos/reviews.
+Criterio general: no agregar dependencias, no cambiar contratos del backend, no simular (mockear) paquetes, compras, favoritos ni reseñas.
 
-## Slice A — Sesión + shell
+## Etapa A — Sesión y estructura de la app
 
 **Hecho cuando**
 
-- Login y register persisten `token` + `user` y navegan a `/hotels`.
+- Login y registro guardan `token` + `user` y navegan a `/hotels`.
 - Axios manda `Authorization: Bearer`.
 - 401 (fuera de `/auth/login` y `/auth/register`) limpia sesión y vuelve a login.
 - Recargar con JWT válido mantiene la sesión (`GET /users/me`).
-- `AppShell` muestra Hoteles, Perfil, Salir; admin ve “Nuevo hotel”.
+- `AppShell` muestra Hoteles, Perfil, Salir; el administrador ve “Nuevo hotel”.
 - Sin sesión no se entra a rutas privadas.
 - Con sesión, `/login` y `/register` redirigen a `/hotels`.
 - Tests de Login/Register apuntan a `/hotels` (ya no `/trips`).
 
 **Probar:** `npm test` · login `buyer` / `buyer123` · recargar · logout · token inválido.
 
-## Slice B — Catálogo y detalle
+## Etapa B — Catálogo y detalle
 
 **Hecho cuando**
 
-- `/hotels` lista hoteles con filtro client-side por ciudad.
-- Hay loading, vacío, error de red y retry.
-- `/hotels/:id` muestra nombre, ciudad y foto con fallback si la URL no carga.
+- `/hotels` lista hoteles con filtro por ciudad en el cliente.
+- Hay estados de carga, vacío, error de red y reintento.
+- `/hotels/:id` muestra nombre, ciudad y foto con imagen alternativa si la URL no carga.
 - Hotel inexistente muestra mensaje claro.
 
 **Probar:** catálogo con seed · filtrar París · detalle · foto rota no se ve ícono quebrado.
 
-## Slice C — ABM admin + perfil
+## Etapa C — ABM del administrador y perfil
 
 **Hecho cuando**
 
-- Admin crea, edita y borra (con confirmación).
+- El administrador crea, edita y borra (con confirmación).
 - Ciudad es un select de `GET /cities`.
-- Buyer/agency no ven alta ni rompen al entrar a `/hotels/new`.
+- Comprador y agencia no ven el alta ni rompen al entrar a `/hotels/new`.
 - `/profile` muestra nombre, usuario, rol y agencia si aplica.
 - 403 de API se muestra sin romper la página.
 
-**Probar:** `facosta` / `facosta` ABM · `buyer` no ve alta · `agency` ve agencia en perfil.
+**Probar:** `facosta` / `facosta` ABM · `buyer` no ve el alta · `agency` ve agencia en perfil.
 
-## Smoke manual por rol
+## Prueba manual rápida por rol
 
 1. `buyer` / `buyer123` — catálogo, detalle, perfil, no alta.
 2. `agency` / `agency123` — igual + agencia en perfil.

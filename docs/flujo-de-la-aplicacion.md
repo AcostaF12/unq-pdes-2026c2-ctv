@@ -72,23 +72,24 @@ La raíz `/` redirige a `/trips`.
 | Invitado | login o registro | `/login`, `/register` | `/auth/**` es público |
 | Comprador | `buyer` | `/trips`, `/trips/:id`, `/favorites`, `/purchases` | Comprar, favoritos y reseñas piden rol comprador |
 | Agencia | `agency` | `/agency`, `/agency/sales` | Sus paquetes y sus ventas piden rol agencia |
-| Admin | `vferreyra` | `/admin/…`, hoteles | `/admin/**` y el alta de hoteles, agencias y vuelos piden rol admin |
+| Administrador | `vferreyra` | `/admin/…`, hoteles | `/admin/**` y el alta de hoteles, agencias y vuelos piden rol admin |
 
 Un comprador que abre `/admin` ve “Sin permiso” en la pantalla. Si llama igual a `GET /admin/reports`, la API responde 403.
 
 ### Comprador
 
-1. En `/trips` filtra origen, destino, precio y orden. Eso es `GET /packages` con query params. El filtro y el orden se resuelven en la API, no en el navegador.
+1. En `/trips` filtra origen, destino, precio y orden. Eso es `GET /packages` con parámetros de consulta. El filtro y el orden se resuelven en la API, no en el navegador.
 2. En `/trips/:id`, `GET /packages/{id}` trae hotel, reseñas y, si vuelos responde, la ida y la vuelta.
 3. Marcar favorito es `POST /favorites` con `{ "packageId": … }`.
 4. Comprar es `POST /purchases` con el mismo campo. El detalle de esa compra está más abajo.
 5. `/purchases` lee `GET /purchases/me`. El precio es el que se pagó, guardado en la compra. Si mañana cambia el paquete, el ticket no cambia.
+6. Cancelar es `DELETE /purchases/{id}`. Es una baja lógica: la compra pasa a `CANCELLED`, sigue en el historial y los asientos de ida y vuelta vuelven a vuelos.
 
 ### Agencia
 
 En `/agency`, crear un paquete es `POST /packages` con nombre, hotel, vuelo de ida, vuelo de vuelta y precio. La agencia no manda su id: el backend usa la agencia de la sesión. `/agency/sales` es `GET /purchases/agency`.
 
-### Admin
+### Administrador
 
 | Pantalla | Qué hace |
 | --- | --- |

@@ -50,12 +50,12 @@ Al terminar: `docker compose -f docker-compose.e2e.yml down`. Las bases temporal
 | Backend, frontend y modelo | Builds, migraciones Flyway y `docs/mer.puml` |
 | Documentación y Swagger | README, guía de seed, `/v3/api-docs` y Swagger UI |
 | Unitarios e integración | JUnit/Vitest, PostgreSQL y reportes JaCoCo |
-| Interfaz/e2e | Las siete suites Cypress contra servicios y bases reales |
-| Git, issues y revisión | PR vinculado a los issues y revisión de otra persona |
+| Interfaz/e2e | Las siete suites Cypress (15 tests) contra servicios y bases reales |
+| Git y flujo de trabajo | Ramas creadas desde `dev` e integradas por pull request con la CI en verde. El equipo no usa issues de GitHub ni revisiones obligatorias |
 | CI, Sonar y Quality Gate | Ejecución remota verde asociada al SHA entregado |
 | Docker y entrega continua | Imágenes SHA publicadas en GHCR y arranque desde el overlay `docker-compose.prod.yml` |
 
-Los resultados locales no acreditan aprobación remota de Sonar ni publicación de imágenes. Adjuntar esas ejecuciones al PR después de integrar los cambios.
+Los resultados locales no acreditan aprobación remota de Sonar ni publicación de imágenes. Esas ejecuciones quedan en GitHub Actions, asociadas a cada PR y a cada push.
 
 ## Resultado local del 22 de octubre de 2026
 

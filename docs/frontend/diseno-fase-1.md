@@ -1,6 +1,6 @@
-# Diseño frontend — Fase 1
+# Diseño del frontend — Fase 1
 
-Fuente de verdad para el frontend de **Compra Tu Viaje** mientras el backend solo expone auth, perfil, ciudades y hoteles.
+Fuente de verdad para el frontend de **Compra Tu Viaje** mientras el backend solo expone autenticación, perfil, ciudades y hoteles.
 
 ## Alcance
 
@@ -17,16 +17,16 @@ Fuente de verdad para el frontend de **Compra Tu Viaje** mientras el backend sol
 
 **Afuera (no mockear)**
 
-Paquetes, compras, favoritos, reviews, gestión de agencia, vuelos, ruta `/trips`.
+Paquetes, compras, favoritos, reseñas, gestión de agencia, vuelos, ruta `/trips`.
 
-Cuando existan APIs de paquetes, `/packages` pasa a ser el home y `/hotels` queda como catálogo/admin.
+Cuando existan APIs de paquetes, `/packages` pasa a ser la página de inicio y `/hotels` queda como catálogo/admin.
 
 ## Roles
 
 | Rol | Qué puede hacer en esta fase |
 |-----|------------------------------|
 | `BUYER` | Entrar, ver catálogo, detalle, perfil, salir |
-| `AGENCY` | Igual que buyer. El DTO trae `agency`; se muestra en perfil |
+| `AGENCY` | Igual que el comprador. El DTO trae `agency`; se muestra en perfil |
 | `ADMIN` | Lo mismo + crear, editar y eliminar hoteles |
 
 El registro público siempre crea un `BUYER`. Usuarios seed: `buyer` / `buyer123`, `agency` / `agency123`, `facosta` / `facosta`.
@@ -35,24 +35,24 @@ El registro público siempre crea un `BUYER`. Usuarios seed: `buyer` / `buyer123
 
 | Pantalla | Datos | Origen |
 |----------|-------|--------|
-| Login / Register | credenciales | formulario → `/auth/*` |
+| Login / Registro | credenciales | formulario → `/auth/*` |
 | Sesión | `token`, `user` | localStorage + hidratación con `/users/me` |
 | Catálogo | lista de hoteles, ciudades para filtrar | `GET /hotels`, `GET /cities` |
 | Detalle | un hotel | `GET /hotels/{id}` |
 | Alta / edición | `name`, `cityCode`, `photoUrl` | ciudades + `POST/PUT /hotels` |
 | Perfil | nombre, usuario, rol, agencia opcional | `/users/me` o sesión hidratada |
 
-Filtro por ciudad: **solo en cliente**. `GET /hotels` no acepta query params.
+Filtro por ciudad: **solo en cliente**. `GET /hotels` no acepta parámetros de consulta.
 
-Las `photoUrl` del seed (`https://images.ctv.demo/...`) no cargan. Toda foto usa fallback visual si falla.
+Las `photoUrl` del seed (`https://images.ctv.demo/...`) no cargan. Toda foto usa una imagen alternativa si falla.
 
 ## Rutas
 
 | Ruta | Quién | Pantalla |
 |------|-------|----------|
-| `/` | todos | redirect a `/hotels` (sin sesión → login) |
+| `/` | todos | redirige a `/hotels` (sin sesión → login) |
 | `/login`, `/register` | público | existentes. Si hay sesión → `/hotels` |
-| `/hotels` | autenticado | catálogo (home) |
+| `/hotels` | autenticado | catálogo (inicio) |
 | `/hotels/new` | `ADMIN` | alta. Declarar **antes** de `:id` |
 | `/hotels/:id` | autenticado | detalle |
 | `/hotels/:id/edit` | `ADMIN` | edición |
@@ -73,7 +73,7 @@ hotel inexistente → mensaje 404 en detalle
 
 ## Contratos (no cambiar backend)
 
-Auth: `{ token, user }`
+Autenticación: `{ token, user }`
 
 ```
 user = {
@@ -96,34 +96,34 @@ Mutaciones de hoteles sin rol admin → `403`. Token inválido → `401`. Hotel 
 
 ## Sistema visual
 
-Extender `frontend/src/styles/tokens.css`: arena, terracota, marino, sombras hard, radius 0, Archivo Black + Space Grotesk.
+Extender `frontend/src/styles/tokens.css`: arena, terracota, marino, sombras duras, bordes rectos (`radius 0`), Archivo Black + Space Grotesk.
 
 Componentes nuevos mínimos:
 
-- `AppShell` — header, nav, logout (`Button` ghost)
-- `HotelCard` — foto con fallback, nombre, ciudad
+- `AppShell` — encabezado, navegación y cierre de sesión (`Button` ghost)
+- `HotelCard` — foto con imagen alternativa, nombre, ciudad
 - `HotelPhoto` — `onError` → bloque con código IATA
 - `EmptyState` — vacío / error / sin permiso
 - `Select` — mismo look que `Input`
 
-Reusar `Button` e `Input`. No agregar UI kit ni Tailwind.
+Reusar `Button` e `Input`. No agregar un kit de UI ni Tailwind.
 
 ## Estados de UI
 
 | Estado | Tratamiento |
 |--------|-------------|
-| Loading | texto/bloque "Cargando…" en el área de contenido |
-| Vacío | `EmptyState` (catálogo sin resultados o filtro sin match) |
+| Cargando | texto/bloque "Cargando…" en el área de contenido |
+| Vacío | `EmptyState` (catálogo sin resultados o filtro sin coincidencias) |
 | Error de red | mensaje + opción de reintentar |
 | 401 | logout y `/login` |
 | 403 | "Esta acción es solo para administradores." |
 | 404 de hotel | "No encontramos este hotel." |
-| Foto rota | fallback con código de ciudad, nunca ícono roto |
+| Foto rota | imagen alternativa con código de ciudad, nunca ícono roto |
 
 ## Arquitectura frontend
 
 - Sin dependencias nuevas.
 - Axios único en `api/client.ts` con Bearer e interceptor 401 (excepto `/auth/login` y `/auth/register`).
 - `AuthContext` + guards `RequireAuth`, `RequireAdmin`, `RequireGuest`.
-- CSS co-located por componente/página.
+- CSS junto a cada componente o página.
 - Formularios: react-hook-form + Zod, igual que login/register.
