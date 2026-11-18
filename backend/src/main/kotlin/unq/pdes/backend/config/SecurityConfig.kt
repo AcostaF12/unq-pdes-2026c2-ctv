@@ -53,6 +53,7 @@ class SecurityConfig(
             it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")
             it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.DELETE, "/purchases/**").hasAnyRole("BUYER", "ADMIN")
 
             it.requestMatchers(HttpMethod.POST, "/favorites").hasRole("BUYER")
             it.requestMatchers(HttpMethod.DELETE, "/favorites/**").hasRole("BUYER")

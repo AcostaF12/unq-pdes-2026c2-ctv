@@ -1,6 +1,7 @@
 package unq.pdes.backend.controller.dtos.models
 
 import unq.pdes.backend.model.Purchase
+import unq.pdes.backend.model.PurchaseStatus
 import unq.pdes.backend.model.history.PurchaseBuyerSnapshot
 import unq.pdes.backend.model.history.PurchaseTravelSnapshot
 import java.math.BigDecimal
@@ -12,6 +13,8 @@ data class PurchaseDto(
     val travelPackage: TravelPackageDto,
     val purchasePrice: BigDecimal,
     val purchasedAt: LocalDateTime,
+    val status: PurchaseStatus,
+    val cancelledAt: LocalDateTime?,
 ) {
     companion object {
         fun fromModel(purchase: Purchase): PurchaseDto =
@@ -21,6 +24,8 @@ data class PurchaseDto(
                 travelPackage = travelPackageDto(purchase.travelSnapshot),
                 purchasePrice = purchase.purchasePrice,
                 purchasedAt = purchase.purchasedAt,
+                status = purchase.status,
+                cancelledAt = purchase.cancelledAt,
             )
 
         private fun buyerDto(snapshot: PurchaseBuyerSnapshot): UserDto =

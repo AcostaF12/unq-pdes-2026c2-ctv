@@ -59,7 +59,7 @@ class AdminReportControllerTest {
     private fun purchase(
         buyer: User,
         travelPackage: TravelPackage,
-    ) {
+    ): Purchase =
         purchases.save(
             Purchase
                 .Builder()
@@ -70,7 +70,6 @@ class AdminReportControllerTest {
                 .purchasedAt(LocalDateTime.now())
                 .build(),
         )
-    }
 
     @Test
     fun `only admins can read reports`() {
@@ -198,5 +197,24 @@ class AdminReportControllerTest {
             .andExpect(jsonPath("$.topBuyers[0].name").value("alpha"))
             .andExpect(jsonPath("$.topAgencies.length()").value(1))
             .andExpect(jsonPath("$.topRatedDestinations").isEmpty)
+    }
+
+    @Test
+    fun `cancelled purchases are ignored by every sales ranking`() {
+        val paris = factory.packageNamed("París", destinationCode = "PAR", destinationCity = "París", agencyName = "Agencia A")
+        val rome = factory.packageNamed("Roma", destinationCode = "ROM", destinationCity = "Roma", agencyName = "Agencia B")
+        val loyal = factory.buyerNamed("loyal")
+        val regretful = factory.buyerNamed("regretful")
+        purchase(loyal, paris)
+        repeat(3) { purchases.save(purchase(regretful, rome).apply { cancel(LocalDateTime.now()) }) }
+        mvc
+            .perform(get("/admin/reports").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.topBuyers.length()").value(1))
+            .andExpect(jsonPath("$.topBuyers[0].name").value("loyal"))
+            .andExpect(jsonPath("$.topAgencies.length()").value(1))
+            .andExpect(jsonPath("$.topAgencies[0].name").value("Agencia A"))
+            .andExpect(jsonPath("$.topDestinations.length()").value(1))
+            .andExpect(jsonPath("$.topDestinations[0].code").value("PAR"))
     }
 }

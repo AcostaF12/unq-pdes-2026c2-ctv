@@ -15,12 +15,15 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import unq.pdes.backend.config.bootstrap.DemoDataSeeder
 import unq.pdes.backend.config.bootstrap.SeedFlightIds
+import unq.pdes.backend.external.flights.ExternalDemoReservationDto
+import unq.pdes.backend.external.flights.ExternalDemoReservationResultDto
 import unq.pdes.backend.external.flights.ExternalFlightDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.helpers.service.DataServiceH2
 import unq.pdes.backend.model.City
 import unq.pdes.backend.model.DemoSeedRun
 import unq.pdes.backend.model.Hotel
+import unq.pdes.backend.model.PurchaseStatus
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.persistence.jpa.CityRepository
 import unq.pdes.backend.persistence.jpa.DemoSeedRunRepository
@@ -98,7 +101,11 @@ class DemoDataSeederTest {
         assertEquals(19, reviews.count())
         assertEquals(15, favorites.count())
         assertTrue(packages.findAll().all { it.outboundFlightId >= 1001 })
-        assertTrue(reviews.findAll().all { purchases.existsByBuyerIdAndTravelPackageId(it.buyer.id!!, it.travelPackage.id!!) })
+        assertTrue(
+            reviews.findAll().all {
+                purchases.existsByBuyerIdAndTravelPackageIdAndStatus(it.buyer.id!!, it.travelPackage.id!!, PurchaseStatus.ACTIVE)
+            },
+        )
         assertNotNull(runs.findById("ctv-demo-v1").orElseThrow().completedAt)
         val batch =
             Mockito
@@ -108,6 +115,23 @@ class DemoDataSeederTest {
                 .arguments[0] as List<*>
         assertEquals(52, batch.size)
         assertEquals(52, batch.distinct().size)
+    }
+
+    @Test
+    fun `seeded purchases keep the sale ids returned by flights-service so they can be cancelled`() {
+        Mockito.`when`(flights.reserveDemoSeats(Mockito.anyList())).thenAnswer { invocation ->
+            (invocation.arguments[0] as List<*>).mapIndexed { index, reservation ->
+                ExternalDemoReservationResultDto((reservation as ExternalDemoReservationDto).key, 5000L + index)
+            }
+        }
+
+        assertTrue(seeder.seed())
+
+        val seeded = purchases.findAll()
+        assertEquals(26, seeded.size)
+        assertTrue(seeded.all { it.outboundSaleId != null && it.returnSaleId != null })
+        assertEquals(52, seeded.flatMap { listOf(it.outboundSaleId, it.returnSaleId) }.distinct().size)
+        assertTrue(seeded.all { it.status == PurchaseStatus.ACTIVE })
     }
 
     @Test

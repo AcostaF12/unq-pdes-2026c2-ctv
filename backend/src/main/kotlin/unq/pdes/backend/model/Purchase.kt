@@ -3,6 +3,8 @@ package unq.pdes.backend.model
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -48,13 +50,39 @@ class Purchase private constructor(
     @Column(name = "purchased_at", nullable = false)
     var purchasedAt: LocalDateTime = builder.purchasedAt!!
 
+    /** Seat sale ids in flights-service. Null for legacy purchases created before they were stored. */
+    @Column(name = "outbound_sale_id")
+    var outboundSaleId: Long? = builder.outboundSaleId
+
+    @Column(name = "return_sale_id")
+    var returnSaleId: Long? = builder.returnSaleId
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    var status: PurchaseStatus = PurchaseStatus.ACTIVE
+        protected set
+
+    @Column(name = "cancelled_at")
+    var cancelledAt: LocalDateTime? = null
+        protected set
+
+    val isActive: Boolean
+        get() = status == PurchaseStatus.ACTIVE
+
+    /** Logical delete: the purchase stays in every history, flagged as cancelled. */
+    fun cancel(at: LocalDateTime) {
+        require(isActive) { "La compra ya fue cancelada." }
+        status = PurchaseStatus.CANCELLED
+        cancelledAt = at
+    }
+
     override fun equals(other: Any?): Boolean = (other is Purchase) && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
 
     override fun toString(): String =
         "Purchase(id=$id, buyer=${buyer.id}, package=${travelPackage.id}, " +
-            "price=$purchasePrice, at=$purchasedAt)"
+            "price=$purchasePrice, at=$purchasedAt, status=$status)"
 
     class Builder {
         var id: Long? = null
@@ -63,6 +91,8 @@ class Purchase private constructor(
         var agency: Agency? = null
         var purchasePrice: BigDecimal? = null
         var purchasedAt: LocalDateTime? = null
+        var outboundSaleId: Long? = null
+        var returnSaleId: Long? = null
 
         fun id(id: Long?) =
             apply {
@@ -94,6 +124,14 @@ class Purchase private constructor(
             apply {
                 this.purchasedAt = purchasedAt
             }
+
+        fun flightSales(
+            outboundSaleId: Long?,
+            returnSaleId: Long?,
+        ) = apply {
+            this.outboundSaleId = outboundSaleId
+            this.returnSaleId = returnSaleId
+        }
 
         fun build(): Purchase {
             requireNotNull(buyer) { "The purchase must have a buyer." }

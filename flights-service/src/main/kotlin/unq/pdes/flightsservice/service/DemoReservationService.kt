@@ -13,22 +13,26 @@ class DemoReservationService(
     private val flights: FlightRepository,
     private val sales: FlightSaleRepository,
 ) {
-    /** Stable keys make a retry after a backend rollback safe across services. */
+    /**
+     * Stable keys make a retry after a backend rollback safe across services.
+     * Returns one sale per request, in order, so the backend can later release each seat.
+     */
     @Transactional
-    fun reserve(requests: List<DemoSeatReservation>) {
+    fun reserve(requests: List<DemoSeatReservation>): List<FlightSale> {
         require(requests.size <= 200) { "Too many demo reservations." }
         require(requests.map { it.key }.distinct().size == requests.size) { "Duplicate demo reservation keys." }
         val locked =
             requests.map { it.flightId }.distinct().sorted().associateWith { id ->
                 flights.findForUpdate(id) ?: throw EntityNotFoundException("There is no Flight with id: $id.")
             }
-        requests.forEach { request ->
+        return requests.map { request ->
             require(request.key.startsWith("ctv-demo-v1:") && request.key.length <= 300) { "Invalid demo reservation key." }
             val existing = sales.findBySeedKey(request.key)
             if (existing != null) {
                 require(existing.flight.id == request.flightId && existing.passengerName == request.passengerName) {
                     "The demo reservation key already refers to a different sale."
                 }
+                existing
             } else {
                 val flight = locked.getValue(request.flightId)
                 require(flight.availability > 0) { "The flight has no availability." }

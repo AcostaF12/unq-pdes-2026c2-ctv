@@ -21,6 +21,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
 import unq.pdes.backend.external.flights.ExternalDemoReservationDto
+import unq.pdes.backend.external.flights.ExternalDemoReservationResultDto
 import unq.pdes.backend.external.flights.ExternalFlightRequestDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.external.flights.FlightsServiceUnavailableException
@@ -63,11 +64,17 @@ class FlightsClientTest {
                     {"reservations":[{"key":"ctv-demo-v1:buyer:trip:0","flightId":900,"passengerName":"Buyer Demo"}]}
                     """.trimIndent(),
                 ),
-            ).andRespond(withStatus(HttpStatus.NO_CONTENT))
+            ).andRespond(
+                withSuccess(
+                    """{"reservations":[{"key":"ctv-demo-v1:buyer:trip:0","saleId":77}]}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
         val catalog = client.seedCatalog()
         assertEquals(900L, catalog.single().id)
         assertEquals(key, catalog.single().seedKey)
-        client.reserveDemoSeats(listOf(ExternalDemoReservationDto("ctv-demo-v1:buyer:trip:0", 900, "Buyer Demo")))
+        val reserved = client.reserveDemoSeats(listOf(ExternalDemoReservationDto("ctv-demo-v1:buyer:trip:0", 900, "Buyer Demo")))
+        assertEquals(listOf(ExternalDemoReservationResultDto("ctv-demo-v1:buyer:trip:0", 77L)), reserved)
         server.verify()
     }
 

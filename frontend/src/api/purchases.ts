@@ -4,12 +4,17 @@ import type { Flight, Review, TravelPackage } from './packages'
 
 export type BuyerIdentity = Pick<AuthenticatedUser, 'id' | 'username' | 'firstName' | 'lastName'>
 
+export type PurchaseStatus = 'ACTIVE' | 'CANCELLED'
+
 export interface Purchase {
   id: number
   buyer: BuyerIdentity
   travelPackage: TravelPackage
   purchasePrice: number
   purchasedAt: string
+  /** Always sent by the backend; optional so older fixtures keep reading as ACTIVE. */
+  status?: PurchaseStatus
+  cancelledAt?: string | null
 }
 
 export interface PurchaseDetail extends Purchase {
@@ -72,4 +77,8 @@ export async function buyPackage(packageId: number): Promise<Purchase> {
 export async function getPurchase(id: number): Promise<PurchaseDetail> {
   const { data } = await apiClient.get<PurchaseDetail>(`/purchases/${id}`)
   return data
+}
+
+export async function cancelPurchase(id: number): Promise<void> {
+  await apiClient.delete(`/purchases/${id}`)
 }
