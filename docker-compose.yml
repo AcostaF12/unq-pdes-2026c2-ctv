@@ -192,6 +192,19 @@ services:
     networks:
       - logging-net
 
+  # One-shot job: creates the ctv-logs-* data view in Kibana (idempotent).
+  kibana-setup:
+    profiles: ["monitoring"]
+    image: curlimages/curl:8.17.0
+    entrypoint: ["sh", "/setup/setup-data-view.sh"]
+    volumes:
+      - ./monitoring/kibana:/setup:ro
+    depends_on:
+      - kibana
+    restart: "no"
+    networks:
+      - logging-net
+
 networks:
   backend-net:
   flights-net:
