@@ -150,6 +150,8 @@ Dir.mktmpdir do |dir|
     FileUtils.mkdir_p(File.join(vm, 'monitoring'))
     File.write(File.join(vm, 'docker-compose.yml'), "old-compose\n")
     File.write(File.join(vm, 'monitoring/prometheus.yml'), "old-prometheus\n")
+    # The VM had private config directories that Grafana (uid 472) could not read.
+    FileUtils.chmod(0o700, File.join(vm, 'monitoring'))
     File.write(File.join(vm, '.env'), "CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*\nJWT_SECRET='old'\n")
     log = File.join(dir, "calls-#{name}.log")
     stubs = <<~SH
@@ -178,7 +180,14 @@ Dir.mktmpdir do |dir|
   env_file = File.read(File.join(vm, '.env'))
   check(env_file.include?('CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*') && env_file.scan(/^JWT_SECRET=/).size == 1 &&
         env_file.include?("JWT_SECRET='local-test-secret-with-at-least-32-bytes'"), 'Deploy must store JWT_SECRET in .env keeping other settings')
-  check(File.stat(File.join(vm, '.env')).mode & 0o777 == 0o600, '.env must only be readable by the deploy user') unless Gem.win_platform?
+  unless Gem.win_platform?
+    check(File.stat(File.join(vm, '.env')).mode & 0o777 == 0o600, '.env must only be readable by the deploy user')
+    readable = Dir.glob(File.join(vm, 'monitoring', '**', '*')).push(File.join(vm, 'monitoring')).all? do |path|
+      mode = File.stat(path).mode
+      mode & 0o004 != 0 && (!File.directory?(path) || mode & 0o001 != 0)
+    end
+    check(readable, 'Monitoring config must be readable by the non-root monitoring containers')
+  end
 end
 
 # Image hardening: non-root processes, cached dependencies and pinned third-party images.
