@@ -1,7 +1,9 @@
 package unq.pdes.backend.tests.unit.model
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -11,6 +13,7 @@ import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.City
 import unq.pdes.backend.model.Hotel
 import unq.pdes.backend.model.Purchase
+import unq.pdes.backend.model.PurchaseStatus
 import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.model.user.User
@@ -153,5 +156,41 @@ class PurchaseTest {
             }
 
         assertEquals("The purchase must belong to an agency.", exception.message)
+    }
+
+    @Test
+    fun `10 - a new purchase is active and keeps the flight sale ids`() {
+        val purchase = validBuilder().flightSales(10L, 11L).build()
+
+        assertEquals(PurchaseStatus.ACTIVE, purchase.status)
+        assertTrue(purchase.isActive)
+        assertNull(purchase.cancelledAt)
+        assertEquals(10L, purchase.outboundSaleId)
+        assertEquals(11L, purchase.returnSaleId)
+    }
+
+    @Test
+    fun `11 - cancel marks the purchase as cancelled with its timestamp`() {
+        val purchase = validBuilder().build()
+        val at = LocalDateTime.of(2026, 9, 1, 10, 0)
+
+        purchase.cancel(at)
+
+        assertEquals(PurchaseStatus.CANCELLED, purchase.status)
+        assertFalse(purchase.isActive)
+        assertEquals(at, purchase.cancelledAt)
+    }
+
+    @Test
+    fun `12 - a cancelled purchase cannot be cancelled again`() {
+        val purchase = validBuilder().build()
+        purchase.cancel(LocalDateTime.of(2026, 9, 1, 10, 0))
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                purchase.cancel(LocalDateTime.of(2026, 9, 2, 10, 0))
+            }
+
+        assertEquals("La compra ya fue cancelada.", exception.message)
     }
 }

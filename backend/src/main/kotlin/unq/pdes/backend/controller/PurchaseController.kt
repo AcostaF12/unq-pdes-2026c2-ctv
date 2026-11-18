@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -160,5 +161,21 @@ class PurchaseController(
     ): ResponseEntity<PurchaseDto> {
         val purchase = purchaseService.purchase(principal.username, request.packageId)
         return ResponseEntity.status(HttpStatus.CREATED).body(PurchaseDto.fromModel(purchase))
+    }
+
+    @Operation(
+        summary = "Cancelar compra",
+        description =
+            "Baja lógica: libera los asientos de ida y vuelta y marca la compra como CANCELLED. " +
+                "Solo el comprador o un administrador pueden cancelarla, y únicamente antes de la partida " +
+                "del vuelo de ida. La compra sigue apareciendo en los historiales.",
+    )
+    @DeleteMapping("/{id}")
+    fun cancel(
+        @AuthenticationPrincipal principal: UserDetails,
+        @PathVariable id: Long,
+    ): ResponseEntity<Void> {
+        purchaseService.cancel(principal.username, id)
+        return ResponseEntity.noContent().build()
     }
 }

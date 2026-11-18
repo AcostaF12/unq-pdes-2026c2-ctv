@@ -3,6 +3,7 @@ package unq.pdes.backend.tests.integration.migration
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.sql.DriverManager
 
@@ -51,7 +52,8 @@ class PurchaseHistoryMigrationTest {
                 statement
                     .executeQuery(
                         "SELECT buyer_snapshot_username, package_snapshot_name, package_snapshot_price, " +
-                            "hotel_snapshot_name, origin_snapshot_name, destination_snapshot_name " +
+                            "hotel_snapshot_name, origin_snapshot_name, destination_snapshot_name, " +
+                            "status, cancelled_at, outbound_sale_id " +
                             "FROM purchases WHERE id = 1",
                     ).use { result ->
                         result.next()
@@ -61,6 +63,9 @@ class PurchaseHistoryMigrationTest {
                         assertEquals("Hotel París", result.getString("hotel_snapshot_name"))
                         assertEquals("Buenos Aires", result.getString("origin_snapshot_name"))
                         assertEquals("París", result.getString("destination_snapshot_name"))
+                        assertEquals("ACTIVE", result.getString("status"))
+                        assertNull(result.getTimestamp("cancelled_at"))
+                        assertNull(result.getObject("outbound_sale_id"))
                     }
             }
         }

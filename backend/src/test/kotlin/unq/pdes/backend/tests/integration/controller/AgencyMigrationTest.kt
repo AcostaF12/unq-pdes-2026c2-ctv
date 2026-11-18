@@ -19,7 +19,13 @@ class AgencyMigrationTest {
         DriverManager.getConnection(url, "sa", "").use { connection ->
             connection.createStatement().use { sql ->
                 sql.executeUpdate("INSERT INTO agencies(name) VALUES ('Before migration')")
-                val flyway = Flyway.configure().dataSource(url, "sa", "").load()
+                // Pinned to V5 so later migrations do not change what this V3 upgrade test counts.
+                val flyway =
+                    Flyway
+                        .configure()
+                        .dataSource(url, "sa", "")
+                        .target("5")
+                        .load()
                 assertEquals(3, flyway.migrate().migrationsExecuted)
                 sql.executeQuery("SELECT name, active FROM agencies").use { rows ->
                     assertTrue(rows.next())
