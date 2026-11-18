@@ -11,14 +11,16 @@ import unq.pdes.backend.model.report.DestinationRatingRanking
 interface AdminReportRepository : Repository<Purchase, Long> {
     @Query(
         """SELECT new unq.pdes.backend.model.report.CountRanking(p.buyer.id, p.buyer.username, COUNT(p))
-        FROM Purchase p GROUP BY p.buyer.id, p.buyer.username
+        FROM Purchase p WHERE p.status = unq.pdes.backend.model.PurchaseStatus.ACTIVE
+        GROUP BY p.buyer.id, p.buyer.username
         ORDER BY COUNT(p) DESC, p.buyer.username ASC, p.buyer.id ASC""",
     )
     fun topBuyers(pageable: Pageable): List<CountRanking>
 
     @Query(
         """SELECT new unq.pdes.backend.model.report.CountRanking(p.agency.id, p.agency.name, COUNT(p))
-        FROM Purchase p GROUP BY p.agency.id, p.agency.name
+        FROM Purchase p WHERE p.status = unq.pdes.backend.model.PurchaseStatus.ACTIVE
+        GROUP BY p.agency.id, p.agency.name
         ORDER BY COUNT(p) DESC, p.agency.name ASC, p.agency.id ASC""",
     )
     fun topAgencies(pageable: Pageable): List<CountRanking>
@@ -26,7 +28,8 @@ interface AdminReportRepository : Repository<Purchase, Long> {
     @Query(
         """SELECT new unq.pdes.backend.model.report.DestinationCountRanking(
         p.travelSnapshot.destinationCode, MAX(p.travelSnapshot.destinationName), COUNT(p))
-        FROM Purchase p GROUP BY p.travelSnapshot.destinationCode
+        FROM Purchase p WHERE p.status = unq.pdes.backend.model.PurchaseStatus.ACTIVE
+        GROUP BY p.travelSnapshot.destinationCode
         ORDER BY COUNT(p) DESC, p.travelSnapshot.destinationCode ASC""",
     )
     fun topDestinations(pageable: Pageable): List<DestinationCountRanking>

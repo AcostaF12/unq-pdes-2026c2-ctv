@@ -3,6 +3,7 @@ package unq.pdes.backend.service
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import unq.pdes.backend.model.PurchaseStatus
 import unq.pdes.backend.model.Review
 import unq.pdes.backend.model.ReviewSummary
 import unq.pdes.backend.model.user.Role
@@ -49,7 +50,9 @@ class ReviewService(
             throw AccessDeniedException("Only buyers can write reviews.")
         }
         val travelPackage = travelPackageService.findById(packageId)
-        require(purchaseRepository.existsByBuyerIdAndTravelPackageId(buyer.id!!, packageId)) {
+        require(
+            purchaseRepository.existsByBuyerIdAndTravelPackageIdAndStatus(buyer.id!!, packageId, PurchaseStatus.ACTIVE),
+        ) {
             "You can only review packages you purchased."
         }
         require(!reviewRepository.existsByBuyerIdAndTravelPackageId(buyer.id!!, packageId)) {

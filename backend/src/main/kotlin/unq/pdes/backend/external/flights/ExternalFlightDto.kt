@@ -46,3 +46,12 @@ data class ExternalDemoReservationDto(
     val flightId: Long,
     val passengerName: String,
 )
+
+data class ExternalDemoReservationResultDto(
+    val key: String,
+    val saleId: Long,
+)
+
+data class ExternalDemoReservationsResultDto(
+    val reservations: List<ExternalDemoReservationResultDto> = emptyList(),
+)

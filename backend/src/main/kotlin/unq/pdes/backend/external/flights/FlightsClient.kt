@@ -34,16 +34,15 @@ class FlightsClient(
 
     @Retry(name = "flightsService")
     @CircuitBreaker(name = "flightsService")
-    fun reserveDemoSeats(reservations: List<ExternalDemoReservationDto>) {
+    fun reserveDemoSeats(reservations: List<ExternalDemoReservationDto>): List<ExternalDemoReservationResultDto> =
         execute("Could not reserve demo seats.") {
             restClient
                 .post()
                 .uri("$flightsServiceUrl/internal/demo/reservations")
                 .body(mapOf("reservations" to reservations))
                 .retrieve()
-                .toBodilessEntity()
-        }
-    }
+                .body<ExternalDemoReservationsResultDto>()
+        }?.reservations ?: emptyList()
 
     @Retry(name = "flightsService")
     @CircuitBreaker(name = "flightsService")
