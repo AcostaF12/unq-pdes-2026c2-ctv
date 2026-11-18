@@ -3,6 +3,7 @@ package unq.pdes.backend.config.bootstrap
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import unq.pdes.backend.external.flights.ExternalDemoReservationDto
+import unq.pdes.backend.external.flights.ExternalFlightDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.model.Agency
 import unq.pdes.backend.model.City
@@ -48,23 +49,45 @@ class DemoDataSeeder(
         SeedData.validate()
         val catalog = flights.seedCatalog().associateBy { it.seedKey }
         // Resolve every reference before writing anything. Flight ids are discovered, never assumed.
+        validateCatalog(catalog)
+        val cityMap = seedCities()
+        val hotelMap = seedHotels(cityMap)
+        val agencyMap = seedAgencies()
+        val userMap = seedUsers(agencyMap)
+        val seedPackages = seedPackages(catalog, cityMap, hotelMap, agencyMap)
+        val now = LocalDateTime.now()
+        val eligibleBuyers = userMap.filterValues { it.role == Role.BUYER && it.enabled }.keys
+        val purchased = seedPurchases(userMap, seedPackages, eligibleBuyers, now)
+        seedReviews(userMap, seedPackages, eligibleBuyers, purchased)
+        seedFavorites(userMap, seedPackages, eligibleBuyers)
+        run.completedAt = now
+        return true
+    }
+
+    private fun validateCatalog(catalog: Map<String?, ExternalFlightDto>) {
         SeedData.PACKAGES.forEach { seed ->
             for (leg in 0..1) {
                 val key = SeedFlightIds.key(seed.destination, seed.flightVariant, leg)
                 requireNotNull(catalog[key]?.id) { "Missing demo flight $key. Enable SEED_ENABLED in both services." }
                 val flight = catalog.getValue(key)
-                require(
-                    flight.origin == (if (leg == 0) SeedData.ORIGIN_CODE else seed.destination) &&
-                        flight.destination == (if (leg == 0) seed.destination else SeedData.ORIGIN_CODE),
-                ) {
+                val origin = if (leg == 0) SeedData.ORIGIN_CODE else seed.destination
+                val destination = if (leg == 0) seed.destination else SeedData.ORIGIN_CODE
+                require(flight.origin == origin && flight.destination == destination) {
                     "Invalid route for demo flight $key."
                 }
             }
         }
+    }
+
+    private fun seedCities(): Map<String, City> {
         val cityMap = cities.findAll().associateBy { it.code }.toMutableMap()
         SeedData.CITIES.forEach { (code, name) ->
             cityMap.getOrPut(code) { cities.save(City(code, name)) }
         }
+        return cityMap
+    }
+
+    private fun seedHotels(cityMap: Map<String, City>): Map<Pair<String, String>, Hotel> {
         val hotelMap = hotels.findAll().associateBy { it.city.code to it.name }.toMutableMap()
         SeedData.HOTELS.forEach { seed ->
             hotelMap.getOrPut(seed.cityCode to seed.name) {
@@ -78,8 +101,16 @@ class DemoDataSeeder(
                 )
             }
         }
+        return hotelMap
+    }
+
+    private fun seedAgencies(): Map<String, Agency> {
         val agencyMap = agencies.findAll().associateBy { it.name }.toMutableMap()
         SeedData.AGENCIES.forEach { name -> agencyMap.getOrPut(name) { agencies.save(Agency.Builder().name(name).build()) } }
+        return agencyMap
+    }
+
+    private fun seedUsers(agencyMap: Map<String, Agency>): Map<String, User> {
         val userMap = users.findAll().associateBy { it.username }.toMutableMap()
         SeedData.ADMINS.forEach { seed ->
             userMap.getOrPut(seed.username) { userService.createAdmin(seed.username, seed.password, seed.firstName, seed.lastName) }
@@ -92,31 +123,46 @@ class DemoDataSeeder(
                 userService.createAgencyUser(seed.username, seed.password, seed.firstName, seed.lastName, agencyMap.getValue(agency))
             }
         }
+        return userMap
+    }
+
+    private fun seedPackages(
+        catalog: Map<String?, ExternalFlightDto>,
+        cityMap: Map<String, City>,
+        hotelMap: Map<Pair<String, String>, Hotel>,
+        agencyMap: Map<String, Agency>,
+    ): Map<String, TravelPackage> {
         val packageMap = packages.findAll().associateBy { it.agency.name to it.name }.toMutableMap()
-        val seedPackages =
-            SeedData.PACKAGES.associate { seed ->
-                seed.name to
-                    packageMap.getOrPut(seed.agency to seed.name) {
-                        packages.save(
-                            TravelPackage
-                                .Builder()
-                                .agency(agencyMap.getValue(seed.agency))
-                                .hotel(hotelMap.getValue(seed.destination to seed.hotel))
-                                .origin(cityMap.getValue(SeedData.ORIGIN_CODE))
-                                .destination(cityMap.getValue(seed.destination))
-                                .name(seed.name)
-                                .price(BigDecimal(seed.price))
-                                .outboundFlightId(catalog.getValue(SeedFlightIds.key(seed.destination, seed.flightVariant, 0)).id!!)
-                                .returnFlightId(catalog.getValue(SeedFlightIds.key(seed.destination, seed.flightVariant, 1)).id!!)
-                                .build(),
-                        )
-                    }
-            }
+        return SeedData.PACKAGES.associate { seed ->
+            seed.name to
+                packageMap.getOrPut(seed.agency to seed.name) {
+                    packages.save(
+                        TravelPackage
+                            .Builder()
+                            .agency(agencyMap.getValue(seed.agency))
+                            .hotel(hotelMap.getValue(seed.destination to seed.hotel))
+                            .origin(cityMap.getValue(SeedData.ORIGIN_CODE))
+                            .destination(cityMap.getValue(seed.destination))
+                            .name(seed.name)
+                            .price(BigDecimal(seed.price))
+                            .outboundFlightId(catalog.getValue(SeedFlightIds.key(seed.destination, seed.flightVariant, 0)).id!!)
+                            .returnFlightId(catalog.getValue(SeedFlightIds.key(seed.destination, seed.flightVariant, 1)).id!!)
+                            .build(),
+                    )
+                }
+        }
+    }
+
+    /** Creates the missing demo purchases, reserves their seats and returns every (buyer, package) pair purchased. */
+    private fun seedPurchases(
+        userMap: Map<String, User>,
+        seedPackages: Map<String, TravelPackage>,
+        eligibleBuyers: Set<String>,
+        now: LocalDateTime,
+    ): Set<Pair<Long?, Long?>> {
         val purchased = purchases.findAll().map { it.buyer.id to it.travelPackage.id }.toMutableSet()
         val reservations = mutableListOf<ExternalDemoReservationDto>()
         val created = mutableMapOf<String, Purchase>()
-        val now = LocalDateTime.now()
-        val eligibleBuyers = userMap.filterValues { it.role == Role.BUYER && it.enabled }.keys
         SeedData.PURCHASES.filter { it.buyer in eligibleBuyers }.forEachIndexed { index, seed ->
             val buyer = userMap.getValue(seed.buyer)
             val trip = seedPackages.getValue(seed.travelPackage)
@@ -140,6 +186,15 @@ class DemoDataSeeder(
             purchase.outboundSaleId = saleIds["$key:0"]
             purchase.returnSaleId = saleIds["$key:1"]
         }
+        return purchased
+    }
+
+    private fun seedReviews(
+        userMap: Map<String, User>,
+        seedPackages: Map<String, TravelPackage>,
+        eligibleBuyers: Set<String>,
+        purchased: Set<Pair<Long?, Long?>>,
+    ) {
         val reviewed = reviews.findAll().map { it.buyer.id to it.travelPackage.id }.toMutableSet()
         reviews.saveAll(
             SeedData.REVIEWS.filter { it.buyer in eligibleBuyers }.mapNotNull { seed ->
@@ -159,6 +214,13 @@ class DemoDataSeeder(
                 }
             },
         )
+    }
+
+    private fun seedFavorites(
+        userMap: Map<String, User>,
+        seedPackages: Map<String, TravelPackage>,
+        eligibleBuyers: Set<String>,
+    ) {
         val favorited = favorites.findAll().map { it.buyer.id to it.travelPackage.id }.toMutableSet()
         favorites.saveAll(
             SeedData.FAVORITES.filter { it.buyer in eligibleBuyers }.mapNotNull { seed ->
@@ -175,8 +237,6 @@ class DemoDataSeeder(
                 }
             },
         )
-        run.completedAt = now
-        return true
     }
 
     private fun reservationKey(

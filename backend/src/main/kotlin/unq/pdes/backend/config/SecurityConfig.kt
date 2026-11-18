@@ -34,31 +34,31 @@ class SecurityConfig(
             it.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
             it.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
             it.requestMatchers("/auth/**", "/error").permitAll()
-            it.requestMatchers("/admin/**").hasRole("ADMIN")
+            it.requestMatchers("/admin/**").hasRole(ADMIN_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.POST, HOTELS_PATH).hasRole(ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.PUT, HOTELS_PATH).hasRole(ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.DELETE, HOTELS_PATH).hasRole(ADMIN_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
-            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
-            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasAnyRole("AGENCY", "ADMIN")
-            it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole("AGENCY")
+            it.requestMatchers(HttpMethod.POST, PACKAGES_PATH).hasAnyRole(AGENCY_ROLE, ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.PUT, PACKAGES_PATH).hasAnyRole(AGENCY_ROLE, ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.DELETE, PACKAGES_PATH).hasAnyRole(AGENCY_ROLE, ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.GET, "/packages/agency").hasRole(AGENCY_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, "/flights").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.POST, "/agencies/**").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.PUT, "/agencies/**").hasRole("ADMIN")
-            it.requestMatchers(HttpMethod.DELETE, "/agencies/**").hasRole("ADMIN")
+            it.requestMatchers(HttpMethod.POST, "/flights").hasRole(ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.POST, AGENCIES_PATH).hasRole(ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.PUT, AGENCIES_PATH).hasRole(ADMIN_ROLE)
+            it.requestMatchers(HttpMethod.DELETE, AGENCIES_PATH).hasRole(ADMIN_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, "/purchases").hasRole("BUYER")
-            it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole("BUYER")
-            it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole("AGENCY")
-            it.requestMatchers(HttpMethod.DELETE, "/purchases/**").hasAnyRole("BUYER", "ADMIN")
+            it.requestMatchers(HttpMethod.POST, "/purchases").hasRole(BUYER_ROLE)
+            it.requestMatchers(HttpMethod.GET, "/purchases/me/**").hasRole(BUYER_ROLE)
+            it.requestMatchers(HttpMethod.GET, "/purchases/agency").hasRole(AGENCY_ROLE)
+            it.requestMatchers(HttpMethod.DELETE, "/purchases/**").hasAnyRole(BUYER_ROLE, ADMIN_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, "/favorites").hasRole("BUYER")
-            it.requestMatchers(HttpMethod.DELETE, "/favorites/**").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.POST, "/favorites").hasRole(BUYER_ROLE)
+            it.requestMatchers(HttpMethod.DELETE, "/favorites/**").hasRole(BUYER_ROLE)
 
-            it.requestMatchers(HttpMethod.POST, "/reviews").hasRole("BUYER")
+            it.requestMatchers(HttpMethod.POST, "/reviews").hasRole(BUYER_ROLE)
 
             it.anyRequest().authenticated()
         }
@@ -69,5 +69,9 @@ class SecurityConfig(
     companion object {
         private const val HOTELS_PATH = "/hotels/**"
         private const val PACKAGES_PATH = "/packages/**"
+        private const val AGENCIES_PATH = "/agencies/**"
+        private const val ADMIN_ROLE = "ADMIN"
+        private const val AGENCY_ROLE = "AGENCY"
+        private const val BUYER_ROLE = "BUYER"
     }
 }
