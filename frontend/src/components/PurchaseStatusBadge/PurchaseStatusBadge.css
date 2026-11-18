@@ -1,0 +1,18 @@
+.purchase-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.purchase-status--cancelled {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+}

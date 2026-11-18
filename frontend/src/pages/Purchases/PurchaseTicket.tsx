@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { Purchase } from '../../api/purchases'
+import { PurchaseStatusBadge } from '../../components/PurchaseStatusBadge/PurchaseStatusBadge'
 import { confirmationCode, formatPurchaseDate } from '../../lib/format'
 
 interface PurchaseTicketProps {
@@ -53,6 +54,7 @@ export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: Purc
             {formatPurchaseDate(purchase.purchasedAt)}
           </time>
           <span className="purchase-ticket__code">{confirmationCode(purchase.id)}</span>
+          <PurchaseStatusBadge purchase={purchase} />
         </p>
       </div>
       <div className="purchase-ticket__stub">
