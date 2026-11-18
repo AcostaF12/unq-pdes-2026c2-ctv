@@ -29,9 +29,7 @@ jobs:
         uses: crazy-max/ghaction-github-runtime@v3
 
       - name: Build images with cache and retry
-        # From the repository root, so Bake can read the ../backend and ../flights-service contexts.
-        working-directory: .
-        run: scripts/ci-build-images.sh acceptance-tests/docker-compose.yml ctv-acceptance-ci
+        run: ../scripts/ci-build-images.sh docker-compose.yml ctv-acceptance-ci
 
       - name: Start isolated application
         run: docker compose -p ctv-acceptance-ci up --no-build -d --wait --wait-timeout 180 backend

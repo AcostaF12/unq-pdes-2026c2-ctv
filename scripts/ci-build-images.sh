@@ -11,9 +11,12 @@ set -euo pipefail
 file=$1
 project=$2
 attempts=${BUILD_ATTEMPTS:-3}
+# Bake resolves build contexts from the working directory, so callers run this script next
+# to the Compose file; reading the whole repository is allowed for contexts like ../backend.
+root=$(cd "$(dirname "$0")/.." && pwd)
 
 targets=$(docker buildx bake -f "$file" --print 2>/dev/null | jq -r '.target | keys[]')
-args=()
+args=(--allow "fs.read=$root")
 for target in $targets; do
   # Compose looks for <project>-<service> when the service has no image name.
   args+=(--set "$target.tags=$project-$target"
