@@ -21,8 +21,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Exposes the cache service variables so Bake can use type=gha.
+      - name: Expose GitHub Actions runtime
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Build images with cache and retry
+        run: ../scripts/ci-build-images.sh docker-compose.yml ctv-acceptance-ci
+
       - name: Start isolated application
-        run: docker compose -p ctv-acceptance-ci up --build -d --wait --wait-timeout 180 backend
+        run: docker compose -p ctv-acceptance-ci up --no-build -d --wait --wait-timeout 180 backend
 
       - name: Run Cucumber
         run: docker compose -p ctv-acceptance-ci run --rm --no-deps acceptance-tests sh -c 'npm install --no-package-lock && npm test -- --profile ci'
@@ -53,8 +63,18 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Exposes the cache service variables so Bake can use type=gha.
+      - name: Expose GitHub Actions runtime
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Build images with cache and retry
+        run: scripts/ci-build-images.sh docker-compose.e2e.yml ctv-e2e
+
       - name: Start application
-        run: docker compose -f docker-compose.e2e.yml up --build -d --wait --wait-timeout 180
+        run: docker compose -f docker-compose.e2e.yml up --no-build -d --wait --wait-timeout 180
 
       - name: Run Cypress with Electron
         working-directory: frontend

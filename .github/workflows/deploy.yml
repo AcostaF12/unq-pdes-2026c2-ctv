@@ -65,8 +65,29 @@ jobs:
     if: inputs.action == 'deploy'
     uses: ./.github/workflows/e2e.yml
 
+  preflight:
+    if: inputs.action == 'deploy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check deploy secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          fail() {
+            echo "::error::$1 Create it with: openssl rand -base64 48 | gh secret set JWT_SECRET"
+            exit 1
+          }
+          [ -n "${JWT_SECRET:-}" ] || fail "The JWT_SECRET repository secret is not configured."
+          # jjwt requires at least 256 bits for HS256.
+          [ "$(printf '%s' "$JWT_SECRET" | wc -c)" -ge 32 ] || fail "JWT_SECRET must be at least 32 bytes long."
+          case "$JWT_SECRET" in
+            *"'"*|*'"'*|*'$'*|*'`'*|*\\*|*' '*) fail "JWT_SECRET must not contain quotes, spaces, \$, backticks or backslashes." ;;
+          esac
+          echo "JWT_SECRET is configured."
+
   publish:
-    needs: [backend, flights-service, frontend, tests, workflow-validation]
+    needs: [backend, flights-service, frontend, preflight, tests, workflow-validation]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -86,6 +107,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and publish tested commit
         uses: docker/build-push-action@v6
         with:
@@ -94,6 +118,8 @@ jobs:
           build-args: |
             VITE_API_BASE_URL=http://${{ secrets.VM_HOST }}:8080
           tags: ghcr.io/acostaf12/ctv-${{ matrix.service }}:${{ github.sha }}
+          # Reuse the dependency layers cached by the CI image builds.
+          cache-from: type=gha,scope=${{ matrix.service }}
 
   stop:
     if: inputs.action == 'stop'
@@ -134,15 +160,49 @@ jobs:
           echo "Timed out waiting for SSH"
           exit 1
 
+      # The secret reaches the VM as an environment variable of the SSH session
+      # (never inside the script text) and is stored in /opt/ctv/.env with mode 600.
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
+          envs: JWT_SECRET
           script: |
             set -eu
+            : "${JWT_SECRET:?JWT_SECRET did not reach the VM}"
             cd /opt/ctv
+            # Older releases left files owned by root; the deploy user must own the release files.
+            if [ ! -w . ] || [ -n "$(find . ! -user "$(id -u)" -print -quit)" ]; then
+              sudo -n chown -R "$(id -u):$(id -g)" /opt/ctv
+            fi
+
+            # Sync the Compose files and the monitoring config of the deployed commit.
+            release=unq-pdes-2026c2-ctv-${{ github.sha }}
+            tmp=$(mktemp -d)
+            trap 'rm -rf "$tmp"' EXIT
+            curl -fsSL --retry 3 "https://codeload.github.com/AcostaF12/unq-pdes-2026c2-ctv/tar.gz/${{ github.sha }}" > "$tmp/release.tar.gz"
+            tar -xzf "$tmp/release.tar.gz" -C "$tmp" "$release/docker-compose.yml" "$release/docker-compose.prod.yml" "$release/monitoring"
+            monitoring_changed=false
+            diff -r "$tmp/$release/monitoring" monitoring > /dev/null 2>&1 || monitoring_changed=true
+            mkdir -p monitoring
+            # cp keeps the inodes of existing files, so single-file bind mounts see the new content.
+            cp "$tmp/$release/docker-compose.yml" "$tmp/$release/docker-compose.prod.yml" .
+            cp -R "$tmp/$release/monitoring/." monitoring/
+            chmod -R a+rX docker-compose.yml docker-compose.prod.yml monitoring
+
+            # Keep other settings of .env (CORS, seed) and replace only the JWT secret.
+            touch .env
+            (
+              umask 077
+              { grep -v '^JWT_SECRET=' .env || true; printf "JWT_SECRET='%s'\n" "$JWT_SECRET"; } > .env.new
+            )
+            chmod 600 .env.new
+            mv .env.new .env
+
             release_compose() {
               docker compose -f docker-compose.yml -f docker-compose.prod.yml -f - "$@" <<'COMPOSE'
             services:
@@ -155,7 +215,11 @@ jobs:
             COMPOSE
             }
             release_compose --profile monitoring pull
-            release_compose --profile monitoring up -d --no-build
+            release_compose --profile monitoring up -d --no-build --remove-orphans
+            if [ "$monitoring_changed" = true ]; then
+              # Prometheus, Grafana and Logstash only read their config at startup.
+              release_compose --profile monitoring restart prometheus grafana logstash
+            fi
 
       - name: Health check
         run: |
