@@ -69,11 +69,11 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Issues de SonarCloud resueltos: menor complejidad del seed y constantes para rutas y roles en la seguridad, sin cambios de comportamiento ([#36](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/36)).
 - Endurecimiento de Docker y del deploy: imágenes no-root, versiones fijas, capa de dependencias de Gradle, puertos internos sin publicar en la VM, `JWT_SECRET` propio en la VM, sincronización de los archivos de Compose y `monitoring/` en cada deploy, y caché de imágenes con reintentos en la CI ([#37](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/37)).
 - flights-service responde 400 (en lugar de 500) a cuerpos mal formados y parámetros de tipo inválido ([#38](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/38)).
+- Traza distribuida: el backend usa el `RestClient.Builder` de Spring Boot, que propaga `traceparent`, y en Zipkin una llamada a flights-service queda como una sola traza con los dos servicios. Kibana arranca con el data view `ctv-logs-*` creado por el job `kibana-setup` ([#39](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/39)).
 - Documentación en español, `.env.example` con las variables de configuración y limpieza de documentos de la Entrega 2 ya cubiertos por el release `ctv-version-2` ([#35](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/35)).
 
 **Pendiente:**
 
-- Traza distribuida backend → flights-service y data view de Kibana (PR en curso).
 - Deploy final verificado.
 - Guion del happy path final.
 
@@ -167,6 +167,12 @@ Los datos de ejemplo se cargan una sola vez y se conservan entre reinicios. Para
 | Grafana (`monitoring`) | http://localhost:3001 (usuario `admin` / contraseña `admin`) |
 | Zipkin (`monitoring`) | http://localhost:9411 |
 | Kibana (logs, `monitoring`) | http://localhost:5601 |
+
+Con el perfil `monitoring`:
+
+- **Grafana** carga el datasource de Prometheus y el dashboard `CTV - Overview` (servicios activos, uptime, memoria JVM y tasa de requests).
+- **Zipkin** muestra cada llamada del backend a flights-service como una sola traza con los dos servicios; la pestaña Dependencies dibuja el arco backend → flights-service.
+- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin (flights-service casi no escribe logs por request).
 
 ### Usuarios de demo
 
