@@ -42,10 +42,10 @@ Sin instalar k6, con Docker:
 
 ```bash
 docker run --rm -v "$PWD/load-tests:/scripts" -w /scripts \
-  -e BASE_URL=http://host.docker.internal:8080 grafana/k6:1.0.0 run catalog-load.js
+  -e BASE_URL=http://host.docker.internal:8080 grafana/k6:2.4.0 run catalog-load.js
 ```
 
-`BASE_URL` define el target (por defecto `http://localhost:8080`). `catalog-load` y `login-load` aceptan `VUS` y `DURATION` para una prueba corta, por ejemplo `-e VUS=1 -e DURATION=10s`. Las credenciales de demo se pueden cambiar con `BUYER_USER`, `BUYER_PASSWORD`, `ADMIN_USER` y `ADMIN_PASSWORD`.
+`BASE_URL` define el target (por defecto `http://localhost:8080`). `catalog-load` y `login-load` aceptan `VUS` y `DURATION` para una prueba corta, por ejemplo `-e VUS=1 -e DURATION=10s`; `catalog-spike` acepta `BASE_VUS`, `PEAK_VUS` y `TIME_SCALE` (factor sobre las duraciones), por ejemplo `-e BASE_VUS=1 -e PEAK_VUS=4 -e TIME_SCALE=0.125` para unos 20 s. Las credenciales de demo se pueden cambiar con `BUYER_USER`, `BUYER_PASSWORD`, `ADMIN_USER` y `ADMIN_PASSWORD`.
 
 ## Scenarios
 
@@ -58,9 +58,11 @@ docker run --rm -v "$PWD/load-tests:/scripts" -w /scripts \
 
 ### Datos que crea `last-seat-stress`
 
-En `setup()`, como administrador, crea un vuelo de ida `BUE → PAR` y uno de vuelta `PAR → BUE` con capacidad y disponibilidad 5 y fechas futuras distintas en cada corrida, un paquete `k6 último asiento <id>` para la primera agencia activa y el primer hotel de París, y 30 compradores `k6-<id>-<n>`. Después de las compras, consulta los dos vuelos y verifica que no quedó ningún lugar libre. En `teardown()` archiva el paquete para que no aparezca en el catálogo de la demo.
+En `setup()`, como administrador, crea un vuelo de ida `BUE → PAR` y uno de vuelta `PAR → BUE` con capacidad y disponibilidad 5 y fechas futuras distintas en cada corrida, un paquete `k6 último asiento <id>` para la primera agencia activa y el primer hotel de París, y 30 compradores `k6-<id>-<n>`. Después de las compras, consulta los dos vuelos y verifica que no quedó ningún lugar libre.
 
-Los vuelos, los compradores y las 5 compras quedan guardados, porque la API no permite borrar un paquete con compras. En la VM se acumulan en cada corrida: no se ven en el catálogo, pero sí en los listados del administrador y en los reportes de ventas.
+En `teardown()` deja la demo como estaba: busca las compras de la corrida en `GET /admin/sales?packageName=...`, cancela cada una con `DELETE /purchases/{id}` (tienen que responder 204), verifica que los dos vuelos vuelven a tener sus 5 lugares libres y archiva el paquete para que no aparezca en el catálogo. Esos checks también cuentan para el umbral `checks`.
+
+En la VM solo quedan, de cada corrida, los 30 compradores de prueba y los dos vuelos. Las compras canceladas siguen en los historiales con estado `CANCELLED`, pero no cuentan en los reportes Top 5 ni ocupan lugares, y el paquete archivado no se ve en el catálogo.
 
 ## Results
 
