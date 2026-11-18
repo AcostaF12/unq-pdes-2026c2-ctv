@@ -36,8 +36,12 @@ export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: Purc
       ? `${purchase.buyer.firstName} ${purchase.buyer.lastName} (@${purchase.buyer.username})`
       : travelPackage.agency.name
 
+  const classes = ['purchase-ticket', 'reveal', audience === 'buyer' ? '' : 'purchase-ticket--ledger']
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <article className="purchase-ticket reveal" style={{ ['--i' as string]: index }}>
+    <article className={classes} style={{ ['--i' as string]: index }}>
       <div className="purchase-ticket__body">
         <p className="purchase-ticket__meta">{counterparty}</p>
         {audience === 'admin' ? <p className="purchase-ticket__meta">{travelPackage.agency.name}</p> : null}
@@ -58,14 +62,16 @@ export function PurchaseTicket({ purchase, audience = 'buyer', index = 0 }: Purc
       <div className="purchase-ticket__stub">
         <p className="purchase-ticket__price">
           <span className="purchase-ticket__price-label">Precio abonado</span>
-          USD {purchase.purchasePrice}
+          <span className="purchase-ticket__amount">USD {purchase.purchasePrice}</span>
         </p>
-        <Link className="purchase-ticket__link" to={detailPath}>
-          Ver detalle
-        </Link>
-        <Link className="purchase-ticket__link" to={tripPath}>
-          Ver viaje
-        </Link>
+        <div className="purchase-ticket__actions">
+          <Link className="purchase-ticket__link purchase-ticket__link--primary" to={detailPath}>
+            Ver detalle
+          </Link>
+          <Link className="purchase-ticket__link purchase-ticket__link--ghost" to={tripPath}>
+            Ver viaje
+          </Link>
+        </div>
       </div>
     </article>
   )

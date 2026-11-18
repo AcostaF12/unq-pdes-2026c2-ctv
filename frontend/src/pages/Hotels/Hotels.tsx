@@ -20,6 +20,13 @@ export function Hotels() {
   const { isAdmin } = useAuth()
   const [cityCode, setCityCode] = useState('')
   const [nameQuery, setNameQuery] = useState('')
+  const [fadeTick, setFadeTick] = useState(0)
+  // ajuste de estado durante el render (patrón de React para reaccionar a un cambio de valor)
+  const [seenCityCode, setSeenCityCode] = useState(cityCode)
+  if (seenCityCode !== cityCode) {
+    setSeenCityCode(cityCode)
+    setFadeTick((tick) => tick + 1)
+  }
 
   const hotelsQuery = useQuery({
     queryKey: queryKeys.hotels.all,
@@ -131,7 +138,13 @@ export function Hotels() {
           }
         />
       ) : (
-        <ul className="hotels__grid">
+        <ul
+          className={
+            fadeTick === 0
+              ? 'hotels__grid'
+              : `hotels__grid ${fadeTick % 2 === 0 ? 'hotels__grid--fade-a' : 'hotels__grid--fade-b'}`
+          }
+        >
           {visibleHotels.map((hotel, index) => (
             <li key={hotel.id} className="reveal" style={{ ['--i' as string]: index }}>
               <HotelCard hotel={hotel} />

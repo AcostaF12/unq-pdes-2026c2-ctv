@@ -31,7 +31,7 @@
   min-width: 0;
 }
 
-@media (min-width: 880px) {
+@media (min-width: 720px) {
   .flight-picker {
     grid-template-columns: 1fr 1fr;
   }

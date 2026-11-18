@@ -60,6 +60,8 @@ describe('AgencyPackages page', () => {
     await user.click(await screen.findByRole('button', { name: 'Archivar' }))
     expect(setPackageActive).toHaveBeenCalledWith(parisPackage.id, false)
     expect(await screen.findByText('Paquete archivado. El historial se conserva.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Archivados' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Publicados' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Publicar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: `Editar ${parisPackage.name}` })).toBeEnabled()
   })

@@ -43,7 +43,7 @@ export function PackageCard({ travelPackage, index = 0, favorite, leaving = fals
             {travelPackage.origin.name} → {travelPackage.destination.name}
           </p>
           <h2 className="package-card__title">{travelPackage.name}</h2>
-          <p className="catalog__muted">{travelPackage.hotel.name}</p>
+          <p className="package-card__hotel catalog__muted">{travelPackage.hotel.name}</p>
           <p className="catalog__muted">{travelPackage.agency.name}</p>
           <Rating score={travelPackage.averageScore} count={travelPackage.reviewCount} />
           <p className="package-card__price">USD {travelPackage.price}</p>

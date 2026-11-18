@@ -74,11 +74,9 @@ export function Profile() {
     queryFn: listCities,
   })
 
-  const [prefsTick, setPrefsTick] = useState(0)
-  const storedPreferences = useMemo(
-    () => (user ? readPreferences(user.id) : null),
-    [user, prefsTick],
-  )
+  // el tick fuerza un re-render tras guardar; las preferencias se releen de localStorage en cada render
+  const [, setPrefsTick] = useState(0)
+  const storedPreferences = user ? readPreferences(user.id) : null
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -190,12 +188,14 @@ export function Profile() {
         </div>
       </header>
 
-      <Input
-        label="Buscar en tu cuenta"
-        value={sectionQuery}
-        onChange={(event) => setSectionQuery(event.target.value)}
-        placeholder="Perfil, preferencias, contraseña…"
-      />
+      <div className="account-search">
+        <Input
+          label="Buscar en tu cuenta"
+          value={sectionQuery}
+          onChange={(event) => setSectionQuery(event.target.value)}
+          placeholder="Perfil, preferencias, contraseña…"
+        />
+      </div>
 
       {visibleSections.length === 0 ? (
         <p className="account-empty">No hay secciones que coincidan con esa búsqueda.</p>

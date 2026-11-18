@@ -17,23 +17,45 @@ import unq.pdes.backend.controller.dtos.models.HotelDto
 import unq.pdes.backend.controller.dtos.requests.HotelRequestDto
 import unq.pdes.backend.service.HotelService
 
-@Tag(name = "Hotel Services", description = "Endpoints para la administración (ABM) de hoteles.")
+@Tag(
+    name = "Hotel Services",
+    description = "Hoteles de los paquetes. Leerlos puede cualquier usuario autenticado. Crear, editar y borrar es solo admin.",
+)
 @RestController
 @RequestMapping("/hotels")
 class HotelController(
     private val hotelService: HotelService,
 ) {
-    @Operation(summary = "Listar hoteles", description = "Retorna todos los hoteles registrados.")
+    @Operation(
+        summary = "Listar hoteles",
+        description =
+            "Lista todos los hoteles, con ciudad y foto.\n\n" +
+                "No pagina y no filtra por agencia.\n\n" +
+                "**Quién:** cualquier usuario autenticado",
+    )
     @GetMapping
     fun all(): ResponseEntity<List<HotelDto>> = ResponseEntity.ok(hotelService.findAll().map { HotelDto.fromModel(it) })
 
-    @Operation(summary = "Obtener hotel", description = "Retorna el hotel identificado por ID.")
+    @Operation(
+        summary = "Obtener hotel",
+        description =
+            "Abre un hotel por id.\n\n" +
+                "**Quién:** cualquier usuario autenticado\n" +
+                "**404** no existe",
+    )
     @GetMapping("/{id}")
     fun byId(
         @PathVariable id: Long,
     ): ResponseEntity<HotelDto> = ResponseEntity.ok(HotelDto.fromModel(hotelService.findById(id)))
 
-    @Operation(summary = "Crear hotel", description = "Registra un nuevo hotel.")
+    @Operation(
+        summary = "Crear hotel",
+        description =
+            "Da de alta un hotel en una ciudad que ya existe.\n\n" +
+                "El código sale de GET /cities.\n\n" +
+                "**Quién:** admin\n" +
+                "**201** hotel creado",
+    )
     @PostMapping
     fun create(
         @Valid @RequestBody request: HotelRequestDto,
@@ -42,7 +64,13 @@ class HotelController(
         return ResponseEntity.status(HttpStatus.CREATED).body(HotelDto.fromModel(hotel))
     }
 
-    @Operation(summary = "Actualizar hotel", description = "Modifica el hotel identificado por ID.")
+    @Operation(
+        summary = "Actualizar hotel",
+        description =
+            "Cambia el nombre, la ciudad o la foto.\n\n" +
+                "No modifica las compras que ya se hicieron.\n\n" +
+                "**Quién:** admin",
+    )
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,
@@ -52,7 +80,15 @@ class HotelController(
         return ResponseEntity.ok(HotelDto.fromModel(hotel))
     }
 
-    @Operation(summary = "Eliminar hotel", description = "Elimina el hotel identificado por ID.")
+    @Operation(
+        summary = "Eliminar hotel",
+        description =
+            "Borra el hotel si ningún paquete lo usa.\n\n" +
+                "Si hay una oferta apuntándolo, se conserva para no romper el historial.\n\n" +
+                "**Quién:** admin\n" +
+                "**204** borrado\n" +
+                "**409** un paquete todavía lo usa",
+    )
     @DeleteMapping("/{id}")
     fun delete(
         @PathVariable id: Long,

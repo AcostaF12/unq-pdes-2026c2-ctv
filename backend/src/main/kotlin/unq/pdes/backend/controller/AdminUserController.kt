@@ -22,21 +22,38 @@ import unq.pdes.backend.controller.dtos.requests.CreateManagedUserRequestDto
 import unq.pdes.backend.controller.dtos.requests.UpdateManagedUserRequestDto
 import unq.pdes.backend.service.UserAdministrationService
 
-@Tag(name = "Administración de usuarios", description = "Usuarios, vendedores y permisos. Solo ADMIN.")
+@Tag(
+    name = "Administración de usuarios",
+    description = "Alta y permisos de personas. Solo admin. Nunca devuelve contraseñas. Deshabilitar no borra el historial.",
+)
 @RestController
 @RequestMapping("/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
 class AdminUserController(
     private val administration: UserAdministrationService,
 ) {
-    @Operation(summary = "Listar usuarios", description = "Listado paginado sin contraseñas. Tamaño máximo: 100.")
+    @Operation(
+        summary = "Listar usuarios",
+        description =
+            "Página de usuarios, sin contraseñas. La página 0 es la primera.\n\n" +
+                "size va de 1 a 100. El default es 20.\n\n" +
+                "**Quién:** admin",
+    )
     @GetMapping
     fun list(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ManagedUserPageDto = ManagedUserPageDto.from(administration.list(page, size))
 
-    @Operation(summary = "Crear usuario", description = "BUYER, ADMIN o vendedor AGENCY con agencyId obligatorio.")
+    @Operation(
+        summary = "Crear usuario",
+        description =
+            "Crea un comprador, un admin o un vendedor.\n\n" +
+                "Si el rol es AGENCY, agencyId es obligatorio y la agencia tiene que existir.\n\n" +
+                "**Quién:** admin\n" +
+                "**201** usuario creado\n" +
+                "**400** el usuario ya existe",
+    )
     @PostMapping
     fun create(
         @Valid @RequestBody request: CreateManagedUserRequestDto,
@@ -56,7 +73,11 @@ class AdminUserController(
 
     @Operation(
         summary = "Actualizar usuario y permisos",
-        description = "Cambia perfil, rol, agencia y estado conservando el historial. No permite autobloqueo ni auto degradación.",
+        description =
+            "Cambia nombre, rol, agencia y si la cuenta sigue habilitada.\n\n" +
+                "No borra compras ni reseñas. Un admin no puede apagarse ni bajarse el rol. " +
+                "Si la cuenta queda apagada, el próximo pedido con su token responde 401.\n\n" +
+                "**Quién:** admin",
     )
     @PutMapping("/{id}")
     fun update(

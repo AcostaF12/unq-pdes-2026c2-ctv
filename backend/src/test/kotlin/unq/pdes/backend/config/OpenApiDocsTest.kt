@@ -27,6 +27,9 @@ class OpenApiDocsTest {
 
         assertContains(body, "\"openapi\"")
         assertContains(body, "CTV - Backend API")
+        assertContains(body, "bearer-jwt")
+        assertContains(body, "Única ruta pública que vende asientos")
+        assertContains(body, "Pegalo solo, sin la palabra Bearer")
     }
 
     @Test
