@@ -33,8 +33,6 @@ src/
 └── styles/       # tokens de diseño y tipografías
 ```
 
-El diseño de la fase 1 y el backlog están en [`docs/frontend`](../docs/frontend).
-
 Al crear o editar paquetes, el selector de vuelos permite filtrar por ciudad de origen,
 fecha de ida y fecha de vuelta. Los filtros son opcionales: el destino depende del hotel
 y el regreso usa la ruta inversa de la ida elegida. Cambiar origen o fecha de ida limpia

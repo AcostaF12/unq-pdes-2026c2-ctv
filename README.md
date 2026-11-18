@@ -48,7 +48,7 @@ Release [`ctv-version-1`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 
 ## 📝 Release Notes - Entrega 2
 
-Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/releases/tag/ctv-version-2). Detalle completo en [release notes de la Entrega 2](docs/release-notes-entrega-2.md).
+Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/releases/tag/ctv-version-2). Detalle completo en el [release de GitHub `ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/releases/tag/ctv-version-2).
 
 - Catálogo con buscador avanzado (nombre, origen, destino, rango de precios, agencia, hotel y puntaje), paginado y ordenable.
 - Favoritos, compra de paquetes y reseñas de quien compró. La compra vende ida y vuelta en el servicio de vuelos, compensa si falla la vuelta y bloquea el último asiento.
@@ -66,13 +66,15 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Imágenes publicadas solo en GitHub Container Registry; se quitó Docker Hub ([#27](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/27)).
 - README consolidado con configuración, arquitectura de Docker, pruebas y CI/CD ([#28](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/28)).
 - Primer deploy en verde con el workflow nuevo, que repite todos los controles antes de publicar y desplegar ([corrida 44223522482](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44223522482)).
-- Documentación en español y `.env.example` con las variables de configuración ([#35](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/35)).
+- Issues de SonarCloud resueltos: menor complejidad del seed y constantes para rutas y roles en la seguridad, sin cambios de comportamiento ([#36](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/36)).
+- Endurecimiento de Docker y del deploy: imágenes no-root, versiones fijas, capa de dependencias de Gradle, puertos internos sin publicar en la VM, `JWT_SECRET` propio en la VM, sincronización de los archivos de Compose y `monitoring/` en cada deploy, y caché de imágenes con reintentos en la CI ([#37](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/37)).
+- flights-service responde 400 (en lugar de 500) a cuerpos mal formados y parámetros de tipo inválido ([#38](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/38)).
+- Documentación en español, `.env.example` con las variables de configuración y limpieza de documentos de la Entrega 2 ya cubiertos por el release `ctv-version-2` ([#35](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/35)).
 
 **Pendiente:**
 
-- Endurecimiento de las imágenes Docker.
-- `JWT_SECRET` propio en la VM.
-- Sincronización de los archivos de Compose en el deploy.
+- Traza distribuida backend → flights-service y data view de Kibana (PR en curso).
+- Deploy final verificado.
 - Guion del happy path final.
 
 ---
@@ -88,7 +90,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 ├── load-tests/               # Tests de carga y stress (k6)
 ├── monitoring/               # Configuración de Prometheus, Grafana y Logstash
 ├── docs/                     # MER, guion de demo, administración y seed
-├── scripts/                  # Validaciones de la CI
+├── scripts/                  # Validaciones de la CI y build de imágenes
 ├── .github/workflows/        # CI, publicación de imágenes y deploy
 ├── docker-compose.yml        # Entorno local completo
 ├── docker-compose.prod.yml   # Overlay para la VM: imágenes de GHCR
@@ -161,7 +163,7 @@ Los datos de ejemplo se cargan una sola vez y se conservan entre reinicios. Para
 | Frontend | http://localhost:8090 |
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
-| Prometheus (`monitoring`) | http://localhost:9090 |
+| Prometheus (`monitoring`, solo local) | http://localhost:9090 |
 | Grafana (`monitoring`) | http://localhost:3001 (usuario `admin` / contraseña `admin`) |
 | Zipkin (`monitoring`) | http://localhost:9411 |
 | Kibana (logs, `monitoring`) | http://localhost:5601 |
@@ -195,7 +197,15 @@ Si los puertos `5433` o `5434` están ocupados, cambiar `BACKEND_DB_PORT` y `FLI
 
 Los servicios se configuran con variables de entorno. Todas tienen un valor por defecto para desarrollo local; Docker Compose ya define las necesarias.
 
-[`.env.example`](.env.example) reúne todas las variables con valores de ejemplo seguros, agrupadas por servicio. Para usarlo: `cp .env.example .env`. Docker Compose toma de `.env` las que interpola (`BACKEND_DB_PORT`, `FLIGHTS_DB_PORT` y, en el overlay de la VM, `SEED_ENABLED` y `CORS_ALLOWED_ORIGIN_PATTERNS`); el resto queda como referencia para correr un servicio fuera de Docker. `JWT_SECRET` trae solo un placeholder: en producción se define como secreto y nunca se versiona.
+[`.env.example`](.env.example) reúne todas las variables con valores de ejemplo seguros, agrupadas por servicio. Para usarlo: `cp .env.example .env`. Docker Compose toma de `.env` las que interpola (`BACKEND_DB_PORT`, `FLIGHTS_DB_PORT` y, en el overlay de la VM, `SEED_ENABLED`, `CORS_ALLOWED_ORIGIN_PATTERNS` y `JWT_SECRET`); el resto queda como referencia para correr un servicio fuera de Docker.
+
+`JWT_SECRET` trae solo un placeholder y nunca se versiona. En local es opcional (el backend usa un secreto de desarrollo público), pero con el overlay `docker-compose.prod.yml` es obligatoria: sin ella Compose no levanta. Debe tener al menos 32 bytes y no puede llevar comillas, espacios, `$`, backticks ni barras invertidas. Para generarla:
+
+```bash
+openssl rand -base64 48
+```
+
+En la VM la define el deploy a partir del secreto `JWT_SECRET` del repositorio en GitHub: escribe `/opt/ctv/.env` con permisos 600, reemplaza solo la línea de `JWT_SECRET` y conserva el resto (por ejemplo, CORS y seed).
 
 ### Backend
 
@@ -206,7 +216,7 @@ Los servicios se configuran con variables de entorno. Todas tienen un valor por 
 | `DB_NAME` | `backend_dev` | `backend` | Nombre de la base |
 | `DB_USERNAME` / `DB_PASSWORD` | `postgres` / `postgres` | `ctv` / `s3cret` | Credenciales de la base |
 | `FLIGHTS_SERVICE_URL` | `http://localhost:8081` | `http://flights-service:8081` | URL del servicio de vuelos |
-| `JWT_SECRET` | secreto de desarrollo | una clave de 32 bytes o más | Firma de los tokens. Cambiarlo fuera de desarrollo |
+| `JWT_SECRET` | secreto de desarrollo | salida de `openssl rand -base64 48` | Firma de los tokens (32 bytes o más). Obligatoria con el overlay de la VM |
 | `JWT_EXPIRATION_MS` | `86400000` (24 h) | `3600000` | Duración del token |
 | `CORS_ALLOWED_ORIGIN_PATTERNS` | `http://localhost:*,http://127.0.0.1:*` | `http://64.236.199.81:*` | Orígenes permitidos para el frontend |
 | `SEED_ENABLED` | `true` en `dev`, `false` en `prod` | `false` | Carga de datos de ejemplo |
@@ -252,21 +262,27 @@ BACKEND_DB_PORT=15433 FLIGHTS_DB_PORT=15434 docker compose up --build -d --wait
 
 Cada módulo propio tiene un Dockerfile multi-stage: se compila en una imagen (JDK o Node) y se corre en otra más chica (JRE o nginx).
 
+- Las imágenes corren sin root: `backend` y `flights-service` con el usuario `app` (uid 10001) y `frontend` con `nginx` (uid 101) sobre `nginxinc/nginx-unprivileged`, que escucha en el puerto 8080 dentro del contenedor (en el host sigue siendo 8090 en local y 18090 en e2e).
+- Los Dockerfiles de Kotlin resuelven las dependencias de Gradle en una capa propia antes de copiar `src`: cambiar código no vuelve a descargarlas.
+- Todas las imágenes base y de terceros usan versiones fijas: Temurin `25.0.5_8-jdk`/`25.0.5_8-jre`, Node `24.22-alpine` y `nginxinc/nginx-unprivileged:1.31-alpine` en los Dockerfiles, y las de la tabla en Compose.
+
 `docker-compose.yml` define **11 contenedores**. Por defecto levanta los 5 de la aplicación; los 6 de monitoreo están en el perfil `monitoring`:
 
-| Contenedor | Imagen | Puerto | Rol |
-|------------|--------|--------|-----|
-| `frontend` | build de `frontend/` (nginx) | 8090 | Sirve la SPA |
-| `backend` | build de `backend/` | 8080 | API de CTV |
-| `flights-service` | build de `flights-service/` | interno | API de vuelos, solo la usa el backend |
-| `backend-postgres` | `postgres:16` | 5433 | Base del backend |
-| `flights-postgres` | `postgres:16` | 5434 | Base de vuelos |
-| `prometheus` | `prom/prometheus` | 9090 | Métricas |
-| `grafana` | `grafana/grafana` | 3001 | Dashboards |
-| `zipkin` | `openzipkin/zipkin` | 9411 | Trazas |
-| `elasticsearch` | `elasticsearch:8.15.3` | 9200 | Índice de logs |
-| `logstash` | `logstash:8.15.3` | 5000 | Recibe los logs |
-| `kibana` | `kibana:8.15.3` | 5601 | Consulta de logs |
+| Contenedor | Imagen | Puerto local | En la VM | Rol |
+|------------|--------|--------------|----------|-----|
+| `frontend` | build de `frontend/` (`nginx-unprivileged:1.31-alpine`) | 8090 → 8080 | 8090 | Sirve la SPA |
+| `backend` | build de `backend/` (Temurin 25.0.5) | 8080 | 8080 | API de CTV |
+| `flights-service` | build de `flights-service/` (Temurin 25.0.5) | interno | interno | API de vuelos, solo la usa el backend |
+| `backend-postgres` | `postgres:16.16` | 5433 | no se publica | Base del backend |
+| `flights-postgres` | `postgres:16.16` | 5434 | no se publica | Base de vuelos |
+| `prometheus` | `prom/prometheus:v3.16.0` | 9090 | no se publica | Métricas |
+| `grafana` | `grafana/grafana:13.3.1` | 3001 | 3001 | Dashboards |
+| `zipkin` | `openzipkin/zipkin:3.6.1` | 9411 | 9411 | Trazas |
+| `elasticsearch` | `elasticsearch:8.15.3` | 9200 | no se publica | Índice de logs |
+| `logstash` | `logstash:8.15.3` | 5000 | no se publica | Recibe los logs |
+| `kibana` | `kibana:8.15.3` | 5601 | 5601 | Consulta de logs |
+
+En la VM, `docker-compose.prod.yml` quita los puertos de las bases, Elasticsearch, Logstash y Prometheus (`ports: !reset []`): solo se alcanzan por las redes internas (Grafana llega a Prometheus por la red interna).
 
 Las redes aíslan quién habla con quién:
 
@@ -282,7 +298,7 @@ El arranque respeta las dependencias con healthchecks: las bases, después vuelo
 
 Otros archivos de Compose:
 
-- `docker-compose.prod.yml`: overlay para la VM. Usa las imágenes publicadas en GHCR en lugar de compilar.
+- `docker-compose.prod.yml`: overlay para la VM. Usa las imágenes publicadas en GHCR en lugar de compilar, exige `JWT_SECRET` y no publica los puertos internos.
 - `acceptance-tests/docker-compose.yml`: entorno de Cucumber, con bases en memoria (`tmpfs`).
 - `docker-compose.e2e.yml`: entorno de Cypress, con puertos propios (18080, 18081, 18090) para convivir con el de desarrollo.
 
@@ -302,6 +318,8 @@ Otros archivos de Compose:
 | Carga y stress | k6 | `load-tests/` | Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
 
 Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker.
+
+En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci-build-images.sh`: usa `docker buildx bake` con la caché de GitHub Actions por servicio y reintenta hasta 3 veces (por ejemplo, ante un 429 de Maven Central). Después levantan el entorno con `docker compose up --no-build`.
 
 ---
 
@@ -333,12 +351,12 @@ La app corre en una VM de Azure que permanece **apagada** la mayor parte del tie
 **Prender y desplegar:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → elegir la rama → `action: deploy`
 
-El workflow repite los controles; si pasan, publica las imágenes con el SHA del commit, prende la VM, la levanta con esa versión (con el perfil `monitoring`) y verifica la salud del backend.
+El workflow primero valida el secreto `JWT_SECRET` (job `preflight`) y repite los controles; si pasan, publica las imágenes con el SHA del commit y prende la VM. En la VM sincroniza `docker-compose.yml`, `docker-compose.prod.yml` y `monitoring/` desde el commit desplegado (con permisos de lectura para todos, así Grafana puede leer el provisioning), actualiza `JWT_SECRET` en `/opt/ctv/.env`, levanta esa versión con el perfil `monitoring` y verifica la salud del backend. Si cambió `monitoring/`, reinicia Prometheus, Grafana y Logstash.
 
 **Apagar al terminar la demo:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: stop`
 
-Apagar la VM no depende de que pasen los tests. El workflow necesita estos secretos del repositorio en GitHub: `AZURE_CREDENTIALS`, `VM_HOST`, `VM_USER`, `VM_SSH_KEY` y `SONAR_TOKEN`.
+Apagar la VM no depende de que pasen los tests. El workflow necesita estos secretos del repositorio en GitHub: `AZURE_CREDENTIALS`, `VM_HOST`, `VM_USER`, `VM_SSH_KEY`, `SONAR_TOKEN` y `JWT_SECRET`.
 
 VM: `northcentralus`, IP pública `64.236.199.81` (fija mientras no se borre el recurso — no cambia entre `stop`/`deploy`).
 
@@ -353,6 +371,8 @@ VM: `northcentralus`, IP pública `64.236.199.81` (fija mientras no se borre el 
 
 La VM usa el perfil `prod` de Spring. El esquema lo administra Flyway y los datos se conservan entre deploys; el overlay de la VM habilita la seed de ejemplo, que se carga una sola vez. Para una instalación sin datos de ejemplo, usar `SEED_ENABLED=false`.
 
+En la VM solo se publican 8080, 8090, 3001, 5601 y 9411; las bases (5433, 5434), Elasticsearch (9200), Logstash (5000) y Prometheus (9090) no son accesibles desde afuera.
+
 ---
 
 ## 📚 Documentación
@@ -363,7 +383,5 @@ La VM usa el perfil `prod` de Spring. El esquema lo administra Flyway y los dato
 - [Funciones del administrador](docs/admin.md)
 - [Seed y ciclo de vida de los datos](docs/seed-y-ciclo-de-vida.md)
 - [Tests de carga](docs/load-tests.md)
-- [Release notes de la Entrega 2](docs/release-notes-entrega-2.md) y su [verificación](docs/entrega-2-verificacion.md)
-- [Revisión e integración de la PR 19](docs/pr-19-integracion.md) y [migración de agencias](docs/agency-migration.md)
+- [Migración de agencias](docs/agency-migration.md)
 - READMEs de [frontend](frontend/README.md), [flights-service](flights-service/README.md) y [tests de aceptación](acceptance-tests/README.md)
-- [Diseño](docs/frontend/diseno-fase-1.md) y [backlog](docs/frontend/backlog.md) de la fase 1 del frontend

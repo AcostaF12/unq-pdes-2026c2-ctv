@@ -84,4 +84,4 @@ No se ofrece un endpoint de reset desde administración. Para nuevas versiones d
 - `FlightLifecyclePostgresTest`: Flyway en PostgreSQL, persistencia de la seed, lote idempotente y competencia por el último asiento.
 - Cypress `package-lifecycle.cy.js`: archivo y publicación desde el panel, rechazo de compra y acceso al historial.
 
-Los builds de ambos servicios ejecutan ktlint, tests y cobertura; las pruebas PostgreSQL necesitan Docker. Ver los comandos generales en [verificación de la entrega 2](entrega-2-verificacion.md).
+Los builds de ambos servicios ejecutan ktlint, tests y cobertura; las pruebas PostgreSQL necesitan Docker. Ver los comandos generales en la sección Pruebas del [README](../README.md#-pruebas).
