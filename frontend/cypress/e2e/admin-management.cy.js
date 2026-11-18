@@ -370,7 +370,8 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     cy.reload()
     cy.contains('li', packageName).contains('USD 1950').should('be.visible')
 
-    cy.contains('li', packageName).contains('button', /^Eliminar$/).click()
+    // las acciones de la fila son botones de ícono; se identifican por su aria-label
+    cy.contains('li', packageName).find('button[aria-label="Eliminar"]').click()
     cy.wait('@deletePackage').its('response.statusCode').should('eq', 204)
     cy.contains('li', packageName).should('not.exist')
   })
