@@ -5,12 +5,18 @@ on:
     branches: [main, dev]
     paths:
       - "k8s/**"
+      - "backend/**"
+      - "flights-service/**"
+      - "frontend/**"
       - "scripts/ci-build-images.sh"
       - ".github/workflows/kubernetes.yml"
   push:
     branches: [main, dev]
     paths:
       - "k8s/**"
+      - "backend/**"
+      - "flights-service/**"
+      - "frontend/**"
       - "scripts/ci-build-images.sh"
       - ".github/workflows/kubernetes.yml"
   workflow_dispatch:
