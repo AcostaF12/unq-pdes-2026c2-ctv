@@ -2,16 +2,20 @@ FROM eclipse-temurin:25.0.5_8-jdk AS build
 WORKDIR /app
 
 # Wrapper + build scripts first so dependencies live in their own cached layer.
-COPY gradlew settings.gradle.kts build.gradle.kts ./
+# gradle.properties carries the repository retries for HTTP 429 from Maven Central.
+COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
 COPY gradle ./gradle
 RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 
-# Resolve plugins and dependencies before copying the sources: this layer is
-# only rebuilt when the build scripts or the version catalog change.
-RUN ./gradlew dependencies --no-daemon > /dev/null
+# Download plugins and dependency jars (not only their metadata, as `dependencies`
+# does) before copying the sources: this layer is only rebuilt when the build
+# scripts or the version catalog change.
+RUN ./gradlew resolveDependencies --no-daemon
 
+# Compile without network access: a jar missing from the layer above fails here
+# instead of being downloaded again on every build.
 COPY src ./src
-RUN ./gradlew bootJar --no-daemon
+RUN --network=none ./gradlew bootJar --no-daemon --offline
 
 FROM eclipse-temurin:25.0.5_8-jre AS runtime
 WORKDIR /app
