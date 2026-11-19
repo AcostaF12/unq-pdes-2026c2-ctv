@@ -1,3 +1,6 @@
+# Namespace "ctv": agrupa todos los objetos de la app en un espacio aislado del resto del cluster.
+# Kustomize (kustomization.yaml) mete cada recurso acá, así que `kubectl delete namespace ctv`
+# borra la aplicación completa de una sola vez.
 apiVersion: v1
 kind: Namespace
 metadata:

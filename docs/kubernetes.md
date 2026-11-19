@@ -4,6 +4,8 @@ La carpeta `k8s/` despliega la aplicación (2 bases, flights-service, backend y 
 
 El workflow [Kubernetes CI](../.github/workflows/kubernetes.yml) levanta un cluster [kind](https://kind.sigs.k8s.io/) en GitHub Actions, aplica estos manifiestos con las imágenes del commit, hace un smoke test y prueba la autorecuperación borrando un pod del backend.
 
+El resumen de cada corrida (pestaña *Summary* del job) junta en una pantalla el cluster, los Deployments, StatefulSets, Services y PVCs, los pods, el resultado del smoke test y la autorecuperación (pod borrado, pod nuevo y cuánto tardó en estar Ready).
+
 ## Objetos
 
 | Archivo | Objetos | Para qué |

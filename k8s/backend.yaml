@@ -1,17 +1,24 @@
-# CTV API. Two replicas behind one Service: if a pod dies, the other keeps answering while the
-# Deployment creates a replacement.
+# API de CTV (Spring Boot): un Service expuesto al host + un Deployment con 2 réplicas.
+# Si un pod muere, el otro sigue atendiendo detrás del mismo Service mientras el Deployment crea
+# un reemplazo. Es Deployment (no StatefulSet) porque la API no guarda estado: todo está en la base.
+
+# Service: IP y nombre estables (backend) que reparten el tráfico entre las réplicas sanas.
 apiVersion: v1
 kind: Service
 metadata:
   name: backend
 spec:
-  # Docker Desktop publishes LoadBalancer Services on localhost:8080. kind leaves the external IP
-  # pending and the host reaches the fixed nodePort through extraPortMappings (kind-config.yaml).
+  # LoadBalancer para que el navegador del host llegue a la API. Docker Desktop lo publica en
+  # localhost:8080; kind deja la IP externa pendiente y el host entra por el nodePort fijo
+  # gracias a extraPortMappings (kind-config.yaml).
   type: LoadBalancer
+  # Manda tráfico a todo pod con esta label, o sea, a las réplicas del Deployment de abajo.
   selector:
     app.kubernetes.io/name: backend
   ports:
     - name: http
+      # port: el del Service; targetPort: el puerto con nombre "http" del contenedor;
+      # nodePort: puerto fijo en el nodo (rango 30000-32767) que mapea kind-config.yaml.
       port: 8080
       targetPort: http
       nodePort: 30080
@@ -21,31 +28,39 @@ kind: Deployment
 metadata:
   name: backend
 spec:
+  # Dos pods: alta disponibilidad y reparto de carga.
   replicas: 2
+  # Rolling update: al cambiar la imagen reemplaza los pods de a uno, sin cortar el servicio.
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      # Never go below the desired replicas during an update.
+      # Nunca baja de las réplicas deseadas: primero levanta uno nuevo (maxSurge: 1), espera a que
+      # esté ready y recién entonces apaga uno viejo.
       maxUnavailable: 0
       maxSurge: 1
+  # Qué pods administra este Deployment; tiene que coincidir con las labels del template.
   selector:
     matchLabels:
       app.kubernetes.io/name: backend
+  # Plantilla de cada pod.
   template:
     metadata:
       labels:
         app.kubernetes.io/name: backend
     spec:
+      # Seguridad a nivel pod: si la imagen intentara correr como root, el pod no arranca.
       securityContext:
-        # The app user created in the image (uid 10001).
+        # El usuario app creado en la imagen (uid 10001).
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
+        # Filtro de syscalls por defecto del runtime: bloquea llamadas al kernel poco usadas.
         seccompProfile:
           type: RuntimeDefault
+      # Los initContainers corren hasta terminar ANTES que el contenedor principal.
       initContainers:
-        # Same role as depends_on/service_healthy in Compose: start once the database answers.
-        # -U skips looking up uid 10001, which has no user entry in the postgres image.
+        # Cumple el papel de depends_on/service_healthy de Compose: arranca cuando la base responde.
+        # -U evita buscar el uid 10001, que no tiene usuario en la imagen de postgres.
         - name: wait-for-db
           image: postgres:16.16
           command: ["sh", "-c", "until pg_isready -h backend-postgres -p 5432 -U ctv; do sleep 2; done"]
@@ -59,16 +74,20 @@ spec:
               drop: ["ALL"]
       containers:
         - name: backend
+          # Sin tag acá: el tag lo fija kustomization.yaml (images).
           image: ghcr.io/acostaf12/ctv-backend
+          # Usa la imagen local si ya está en el nodo (kind load / build local) antes de bajarla.
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
+          # envFrom vuelca todas las claves de los ConfigMaps como variables de entorno.
           envFrom:
             - configMapRef:
                 name: ctv-common
             - configMapRef:
                 name: backend-config
+          # Los datos sensibles se toman uno por uno del Secret.
           env:
             - name: DB_PASSWORD
               valueFrom:
@@ -76,35 +95,46 @@ spec:
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef: { name: ctv-secrets, key: JWT_SECRET }
-          # Gives the JVM up to 3 minutes to start before liveness can restart it.
+          # Las tres probes usan los endpoints de Spring Boot Actuator (ver ctv-common):
+          # - startupProbe: mientras no pasa, las otras dos no corren. Le da a la JVM hasta 3 minutos
+          #   (36 intentos x 5 s) para arrancar sin que liveness la reinicie por lenta.
           startupProbe:
             httpGet: { path: /actuator/health/liveness, port: http }
             periodSeconds: 5
             failureThreshold: 36
+          # - livenessProbe: "¿el proceso está vivo?". Tras 3 fallas seguidas, reinicia el contenedor.
           livenessProbe:
             httpGet: { path: /actuator/health/liveness, port: http }
             periodSeconds: 10
             failureThreshold: 3
-          # A pod only receives traffic from the Service while this probe passes.
+          # - readinessProbe: "¿puede atender?" (incluye la base). Si falla no se reinicia: el pod
+          #   sale del Service y deja de recibir tráfico hasta que vuelva a pasar.
           readinessProbe:
             httpGet: { path: /actuator/health/readiness, port: http }
             periodSeconds: 5
             failureThreshold: 3
+          # requests: lo que el scheduler reserva en el nodo para ubicar el pod.
+          # limits: el techo; si supera la memoria el contenedor se reinicia (OOMKilled), la CPU se frena.
           resources:
             requests: { cpu: 100m, memory: 384Mi }
             limits: { cpu: "1", memory: 768Mi }
+          # Seguridad a nivel contenedor: sin escalar privilegios, sin capabilities de Linux y con
+          # el sistema de archivos de solo lectura, así un atacante no puede modificar la app.
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           volumeMounts:
+            # Único lugar escribible: Tomcat y la JVM usan /tmp.
             - name: tmp
               mountPath: /tmp
+            # La configuración de Logback del ConfigMap ctv-logback, como archivo.
             - name: logback
               mountPath: /etc/ctv
               readOnly: true
       volumes:
+        # emptyDir: carpeta vacía que vive lo que vive el pod (no es persistente).
         - name: tmp
           emptyDir: {}
         - name: logback

@@ -153,69 +153,23 @@ object SeedData {
             AGENCY_RUMBO_AUSTRAL to UserSeed("agency4", "agency123", "Diego", "Austral"),
         )
 
-    private val CITY_PHOTOS =
-        mapOf(
-            "BUE" to
-                listOf(
-                    "photo-1725499267114-15531716d101",
-                    "photo-1781041004799-481f1e2a8fad",
-                    "photo-1610135206707-0f03e4800631",
-                ),
-            "PAR" to
-                listOf(
-                    "photo-1502602898657-3e91760cbb34",
-                    "photo-1499856871958-5b9627545d1a",
-                    "photo-1549144511-f099e773c147",
-                ),
-            "LON" to
-                listOf(
-                    "photo-1513635269975-59663e0ac1ad",
-                    "photo-1486299267070-83823f5448dd",
-                    "photo-1529655683826-aba9b3e77383",
-                ),
-            "ROM" to
-                listOf(
-                    "photo-1552832230-c0197dd311b5",
-                    "photo-1529260830199-42c24126f198",
-                    "photo-1515542622106-78bda8ba0e5b",
-                ),
-            "NYC" to
-                listOf(
-                    "photo-1496442226666-8d4d0e62e6e9",
-                    "photo-1485871981521-5b1fd3805eee",
-                    "photo-1480714378408-67cf0d13bc1b",
-                ),
-            "TYO" to
-                listOf(
-                    "photo-1540959733332-eab4deabeeaf",
-                    "photo-1542051841857-5f90071e7989",
-                    "photo-1480796927426-f609979314bd",
-                ),
-            "RIO" to
-                listOf(
-                    "photo-1772603503638-74ca65f96589",
-                    "photo-1763110805416-22e7a6fffa58",
-                    "photo-1518639192441-8fce0a366e2e",
-                ),
-            "BCN" to
-                listOf(
-                    "photo-1583422409516-2895a77efded",
-                    "photo-1539037116277-4db20889f2d4",
-                    "photo-1523531294919-4bcd7c65e216",
-                ),
-            "CUN" to
-                listOf(
-                    "photo-1507525428034-b723cf961d3e",
-                    "photo-1473496169904-658ba7c44d8a",
-                    "photo-1500375592092-40eb2168fd21",
-                ),
-            "DXB" to
-                listOf(
-                    "photo-1512453979798-5ea266f8880c",
-                    "photo-1518684079-3c830dcef090",
-                    "photo-1546412414-8035e1776c9a",
-                ),
-        )
+    /** Unsplash photo ids per city code: the hotel at position N uses the photo at position N. */
+    private val CITY_PHOTOS: Map<String, List<String>> =
+        """
+        BUE photo-1725499267114-15531716d101 photo-1781041004799-481f1e2a8fad photo-1610135206707-0f03e4800631
+        PAR photo-1502602898657-3e91760cbb34 photo-1499856871958-5b9627545d1a photo-1549144511-f099e773c147
+        LON photo-1513635269975-59663e0ac1ad photo-1486299267070-83823f5448dd photo-1529655683826-aba9b3e77383
+        ROM photo-1552832230-c0197dd311b5 photo-1529260830199-42c24126f198 photo-1515542622106-78bda8ba0e5b
+        NYC photo-1496442226666-8d4d0e62e6e9 photo-1485871981521-5b1fd3805eee photo-1480714378408-67cf0d13bc1b
+        TYO photo-1540959733332-eab4deabeeaf photo-1542051841857-5f90071e7989 photo-1480796927426-f609979314bd
+        RIO photo-1772603503638-74ca65f96589 photo-1763110805416-22e7a6fffa58 photo-1518639192441-8fce0a366e2e
+        BCN photo-1583422409516-2895a77efded photo-1539037116277-4db20889f2d4 photo-1523531294919-4bcd7c65e216
+        CUN photo-1507525428034-b723cf961d3e photo-1473496169904-658ba7c44d8a photo-1500375592092-40eb2168fd21
+        DXB photo-1512453979798-5ea266f8880c photo-1518684079-3c830dcef090 photo-1546412414-8035e1776c9a
+        """.trimIndent()
+            .lines()
+            .map { it.split(" ") }
+            .associate { it.first() to it.drop(1) }
 
     /** Three hotels per city; the photo of each one is the city photo at the same position. */
     private val HOTEL_NAMES =

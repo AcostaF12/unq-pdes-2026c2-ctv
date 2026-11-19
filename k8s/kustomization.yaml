@@ -1,20 +1,26 @@
+# Kustomize: arma todos los manifiestos de la app en uno solo y les aplica cambios comunes sin
+# tocar los archivos. `kubectl apply -k k8s/` despliega todo; `kubectl kustomize k8s/` muestra
+# el resultado sin aplicarlo.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Every object lives in the ctv namespace, so `kubectl delete namespace ctv` removes the whole app.
+# Todo objeto queda en el namespace ctv, así `kubectl delete namespace ctv` borra la app entera.
 namespace: ctv
 
+# Label común agregada a todos los objetos para identificarlos como parte de CTV.
 labels:
   - pairs:
       app.kubernetes.io/part-of: ctv
+    # No se suma a los selectors: los selectors de un Deployment no se pueden cambiar después.
     includeSelectors: false
-    # Also on the pods, so `kubectl logs -l app.kubernetes.io/part-of=ctv` finds them all.
+    # Sí va en los pods, así `kubectl logs -l app.kubernetes.io/part-of=ctv` los encuentra a todos.
     includeTemplates: true
 
+# Archivos que forman la app. El orden no importa para kubectl, pero se lee de base a frontend.
 resources:
   - namespace.yaml
   - config.yaml
-  # Demo credentials only. See docs/kubernetes.md to create a real Secret instead.
+  # Solo credenciales de demo. Ver docs/kubernetes.md para crear un Secret real en su lugar.
   - secret-demo.yaml
   - backend-postgres.yaml
   - flights-postgres.yaml
@@ -22,15 +28,15 @@ resources:
   - backend.yaml
   - frontend.yaml
 
-# Image tags are set here, not in the manifests. Override them with `kustomize edit set image`
-# or with an overlay (the Kubernetes CI workflow loads its own builds this way).
+# Los tags de las imágenes se fijan acá, no en los manifiestos. Se cambian con
+# `kustomize edit set image` o con un overlay (el workflow de Kubernetes del CI carga sus builds así).
 images:
   - name: ghcr.io/acostaf12/ctv-backend
     newTag: latest
   - name: ghcr.io/acostaf12/ctv-flights-service
     newTag: latest
-  # The published frontend image has the VM URL baked in (VITE_API_BASE_URL), so the cluster
-  # uses a local build that points the browser at http://localhost:8080.
+  # La imagen publicada del frontend trae fija la URL de la VM (VITE_API_BASE_URL), así que el
+  # cluster usa un build local que apunta el navegador a http://localhost:8080.
   - name: ghcr.io/acostaf12/ctv-frontend
     newName: ctv-frontend
     newTag: local

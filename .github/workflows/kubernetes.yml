@@ -9,6 +9,7 @@ on:
       - "flights-service/**"
       - "frontend/**"
       - "scripts/ci-build-images.sh"
+      - "scripts/k8s-job-summary.sh"
       - ".github/workflows/kubernetes.yml"
   push:
     branches: [main, dev]
@@ -18,6 +19,7 @@ on:
       - "flights-service/**"
       - "frontend/**"
       - "scripts/ci-build-images.sh"
+      - "scripts/k8s-job-summary.sh"
       - ".github/workflows/kubernetes.yml"
   workflow_dispatch:
 
@@ -35,16 +37,18 @@ jobs:
     env:
       NAMESPACE: ctv
       CLUSTER: ctv
+      # Snapshots for the run summary (last step).
+      SUMMARY_DIR: k8s-summary
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # Exposes the cache service variables so Bake can use type=gha.
       - name: Expose GitHub Actions runtime
-        uses: crazy-max/ghaction-github-runtime@v3
+        uses: crazy-max/ghaction-github-runtime@v4
 
       # Builds the commit under test (frontend with VITE_API_BASE_URL=http://localhost:8080).
       - name: Build images with cache and retry
@@ -99,43 +103,62 @@ jobs:
             kubectl -n "$NAMESPACE" rollout status "$workload" --timeout=300s
           done
           kubectl -n "$NAMESPACE" get pods -o wide
+          mkdir -p "$SUMMARY_DIR"
+          kubectl -n "$NAMESPACE" get pods -o json > "$SUMMARY_DIR/pods-rollout.json"
+          date +%s > "$SUMMARY_DIR/pods-rollout.at"
 
       - name: Smoke test
         run: |
+          mkdir -p "$SUMMARY_DIR"
           status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o login.json -w '%{http_code}' -X POST http://localhost:8080/auth/login \
             -H 'Content-Type: application/json' -d '{"username":"buyer","password":"buyer123"}')
           echo "POST /auth/login -> $status"
+          printf '%s\t%s\n' 'POST /auth/login' "$status" >> "$SUMMARY_DIR/smoke.tsv"
           test "$status" = 200
           token=$(jq -r .token login.json)
           status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" http://localhost:8080/packages)
           echo "GET /packages -> $status"
+          printf '%s\t%s\n' 'GET /packages' "$status" >> "$SUMMARY_DIR/smoke.tsv"
           test "$status" = 200
           status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' http://localhost:8090/)
           echo "GET frontend / -> $status"
+          printf '%s\t%s\n' 'GET frontend /' "$status" >> "$SUMMARY_DIR/smoke.tsv"
           test "$status" = 200
 
       - name: Self-healing (delete a backend pod)
         run: |
           selector=app.kubernetes.io/name=backend
+          mkdir -p "$SUMMARY_DIR"
           kubectl -n "$NAMESPACE" get pods -l "$selector"
+          kubectl -n "$NAMESPACE" get pods -l "$selector" -o json > "$SUMMARY_DIR/pods-before.json"
+          date +%s > "$SUMMARY_DIR/pods-before.at"
           victim=$(kubectl -n "$NAMESPACE" get pods -l "$selector" -o jsonpath='{.items[0].metadata.name}')
+          echo "$victim" > "$SUMMARY_DIR/victim"
           echo "Deleting $victim"
+          date +%s > "$SUMMARY_DIR/deleted.at"
           kubectl -n "$NAMESPACE" delete pod "$victim" --wait=false
           # The other replica keeps serving while the Deployment replaces the deleted pod.
           status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/auth/login \
             -H 'Content-Type: application/json' -d '{"username":"buyer","password":"buyer123"}')
           echo "POST /auth/login while replacing -> $status"
+          echo "$status" > "$SUMMARY_DIR/login-during.status"
           test "$status" = 200
           kubectl -n "$NAMESPACE" wait --for=delete "pod/$victim" --timeout=120s
           for _ in $(seq 1 60); do
             ready=$(kubectl -n "$NAMESPACE" get deployment backend -o jsonpath='{.status.readyReplicas}')
             if [ "${ready:-0}" = 2 ]; then
               kubectl -n "$NAMESPACE" get pods -l "$selector"
+              kubectl -n "$NAMESPACE" get pods -l "$selector" -o json > "$SUMMARY_DIR/pods-after.json"
+              date +%s > "$SUMMARY_DIR/pods-after.at"
+              echo yes > "$SUMMARY_DIR/recovered"
               echo "The Deployment replaced $victim and has 2 ready replicas again."
               exit 0
             fi
             sleep 5
           done
+          kubectl -n "$NAMESPACE" get pods -l "$selector" -o json > "$SUMMARY_DIR/pods-after.json"
+          date +%s > "$SUMMARY_DIR/pods-after.at"
+          echo no > "$SUMMARY_DIR/recovered"
           echo "::error::The backend did not recover 2 ready replicas."
           exit 1
 
@@ -146,3 +169,8 @@ jobs:
           kubectl -n "$NAMESPACE" describe pods || true
           kubectl -n "$NAMESPACE" get events --sort-by=.lastTimestamp || true
           kubectl -n "$NAMESPACE" logs -l app.kubernetes.io/part-of=ctv --all-containers --prefix --tail=200 --max-log-requests=20 || true
+
+      # One-screen evidence (cluster, objects, pods, smoke test, self-healing), also when the job fails.
+      - name: Run summary
+        if: always()
+        run: scripts/k8s-job-summary.sh

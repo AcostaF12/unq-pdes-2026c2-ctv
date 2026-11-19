@@ -206,7 +206,10 @@ end
 %w[backend flights-service].each do |mod|
   dockerfile = File.read(File.join(ROOT, mod, 'Dockerfile'))
   check(dockerfile.match?(/^USER (?!root\b|0\b)\S+/), "#{mod} image must run as a non-root user")
-  check(dockerfile.index('gradlew dependencies').to_i.between?(1, dockerfile.index('COPY src').to_i), "#{mod} must resolve dependencies before copying sources")
+  check(dockerfile.index('gradlew resolveDependencies').to_i.between?(1, dockerfile.index('COPY src').to_i), "#{mod} must download dependency jars before copying sources")
+  check(dockerfile.match?(/^COPY .*\bgradle\.properties\b.*\n(?:.*\n)*RUN \.\/gradlew resolveDependencies/), "#{mod} must copy gradle.properties before downloading dependencies")
+  check(dockerfile.match?(/^RUN --network=none \.\/gradlew bootJar .*--offline/), "#{mod} must compile offline from the dependency layer")
+  check(File.read(File.join(ROOT, mod, 'build.gradle.kts')).include?('tasks.register("resolveDependencies")'), "#{mod} must define resolveDependencies")
 end
 check(File.read(File.join(ROOT, 'frontend/Dockerfile')).include?('nginx-unprivileged'), 'frontend image must run nginx as non-root')
 %w[docker-compose.yml acceptance-tests/docker-compose.yml backend/Dockerfile flights-service/Dockerfile frontend/Dockerfile].each do |file|

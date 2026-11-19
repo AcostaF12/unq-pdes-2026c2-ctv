@@ -34,7 +34,7 @@ jobs:
       BASE_URL: ${{ inputs.target == 'vm' && format('http://{0}:8080', secrets.VM_HOST) || 'http://localhost:8080' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up k6
         uses: grafana/setup-k6-action@v1

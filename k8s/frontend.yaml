@@ -1,11 +1,14 @@
-# React SPA served by nginx-unprivileged. The browser calls the backend at the URL baked into the
-# image (VITE_API_BASE_URL=http://localhost:8080), so both Services are exposed on the host.
+# Frontend: la SPA de React servida por nginx-unprivileged. Un Service expuesto + un Deployment
+# con 2 réplicas. El navegador llama al backend con la URL que quedó fija en la imagen al
+# compilarla (VITE_API_BASE_URL=http://localhost:8080), por eso los dos Services se exponen al host.
+
+# Service: punto de entrada del navegador.
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
 spec:
-  # Docker Desktop: localhost:8090. kind: nodePort 30090 mapped to host port 8090.
+  # Docker Desktop: localhost:8090. kind: nodePort 30090 mapeado al puerto 8090 del host.
   type: LoadBalancer
   selector:
     app.kubernetes.io/name: frontend
@@ -20,7 +23,9 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
+  # Dos réplicas: si una cae, la otra sigue sirviendo la página.
   replicas: 2
+  # Rolling update sin bajar de 2 pods disponibles (igual que el backend).
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -35,7 +40,8 @@ spec:
         app.kubernetes.io/name: frontend
     spec:
       securityContext:
-        # The nginx user of nginx-unprivileged (uid 101).
+        # El usuario nginx de nginx-unprivileged (uid 101); por eso escucha en 8080 y no en 80,
+        # ya que los puertos menores a 1024 requieren root.
         runAsNonRoot: true
         runAsUser: 101
         runAsGroup: 101
@@ -43,29 +49,36 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
+          # El tag (y el nombre de la imagen local) los fija kustomization.yaml.
           image: ghcr.io/acostaf12/ctv-frontend
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
+          # nginx arranca en milisegundos, así que no hace falta startupProbe.
+          # liveness: si nginx no responde, se reinicia el contenedor.
           livenessProbe:
             httpGet: { path: /, port: http }
             periodSeconds: 10
+          # readiness: el pod recibe tráfico del Service solo cuando sirve la página.
           readinessProbe:
             httpGet: { path: /, port: http }
             periodSeconds: 5
+          # Archivos estáticos: alcanza con muy poca CPU y memoria.
           resources:
             requests: { cpu: 10m, memory: 16Mi }
             limits: { cpu: 200m, memory: 64Mi }
+          # Sin escalar privilegios, sin capabilities y con el sistema de archivos de solo lectura.
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
           volumeMounts:
-            # nginx keeps its pid file and temporary files in /tmp.
+            # nginx guarda su pid y sus archivos temporales en /tmp: único lugar escribible.
             - name: tmp
               mountPath: /tmp
       volumes:
+        # emptyDir: carpeta vacía que vive lo que vive el pod.
         - name: tmp
           emptyDir: {}
