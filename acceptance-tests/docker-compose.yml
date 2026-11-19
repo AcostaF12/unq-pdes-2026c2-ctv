@@ -39,7 +39,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       SERVER_PORT: 8081
-      MANAGEMENT_TRACING_ENABLED: "false"
+      MANAGEMENT_TRACING_EXPORT_ENABLED: "false"
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     ports:
       - "8081:8081"
@@ -65,7 +65,7 @@ services:
       DB_PASSWORD: postgres
       FLIGHTS_SERVICE_URL: http://flights-service:8081
       CORS_ALLOWED_ORIGIN_PATTERNS: http://localhost:*,http://127.0.0.1:*
-      MANAGEMENT_TRACING_ENABLED: "false"
+      MANAGEMENT_TRACING_EXPORT_ENABLED: "false"
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
     ports:
       - "8080:8080"
