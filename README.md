@@ -177,7 +177,7 @@ Con el perfil `monitoring`:
 
 - **Grafana** carga el datasource de Prometheus y el dashboard `CTV - Overview` (servicios activos, uptime, memoria JVM y tasa de requests).
 - **Zipkin** muestra cada llamada del backend a flights-service como una sola traza con los dos servicios; la pestaña Dependencies dibuja el arco backend → flights-service.
-- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin (flights-service casi no escribe logs por request).
+- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin. flights-service loguea cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, así que esa búsqueda trae líneas de los dos servicios.
 
 ### Usuarios de demo
 
