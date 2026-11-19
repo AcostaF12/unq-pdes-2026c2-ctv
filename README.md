@@ -79,6 +79,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - flights-service loguea cada request (método, ruta, status y duración, sin `/actuator/**`) y las ventas registradas, canceladas y rechazadas, con `traceId`: en Kibana una traza trae líneas de los dos servicios ([#43](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/43)).
 - Despliegue en Kubernetes con Kustomize (`k8s/`): PostgreSQL en `StatefulSet`, 2 réplicas de backend y frontend, probes de Actuator, `ConfigMap`/`Secret`, y el workflow "Kubernetes CI", que levanta un cluster kind, hace un smoke test y comprueba que se repone un pod borrado ([#44](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/44), [guía](docs/kubernetes.md)).
 - `.gitattributes` fuerza LF en scripts y configuraciones de contenedores, para que `kibana-setup` y `scripts/check-ci.rb` funcionen también con un checkout de Windows ([#45](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/45)).
+- Migraciones `V7` (índices por precio y ruta de los paquetes, snapshots de ciudad en `varchar(255)`) y `V7.1` solo para PostgreSQL (índice trigram `pg_trgm` para buscar paquetes por nombre), que reemplazan a `schema-postgresql.sql`, que nunca corría en dev/prod ([#52](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/52)).
 
 **Pendiente:**
 
