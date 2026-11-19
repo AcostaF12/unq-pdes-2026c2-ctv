@@ -1,18 +1,23 @@
-# Local cluster for the demo and the CI: `kind create cluster --config k8s/kind-config.yaml`.
-# One node is enough; the host ports match Docker Compose, so the frontend build that calls
-# http://localhost:8080 works the same way.
+# Configuración de kind (Kubernetes IN Docker): un cluster local donde cada nodo es un
+# contenedor de Docker. Se usa en la demo y en el CI: `kind create cluster --config k8s/kind-config.yaml`.
+# Con un nodo alcanza; los puertos del host coinciden con Docker Compose, así el frontend
+# compilado para llamar a http://localhost:8080 funciona igual.
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: ctv
 nodes:
+  # Un único nodo que es a la vez control-plane y donde corren los pods.
   - role: control-plane
+    # El nodo es un contenedor: estos mapeos publican sus puertos en el host, igual que `-p` en
+    # docker run. Llevan a los nodePort fijos de los Services LoadBalancer.
     extraPortMappings:
-      # backend Service (nodePort 30080) -> http://localhost:8080
+      # Service backend (nodePort 30080) -> http://localhost:8080
       - containerPort: 30080
         hostPort: 8080
+        # Solo en loopback: la app no queda expuesta a la red local.
         listenAddress: 127.0.0.1
         protocol: TCP
-      # frontend Service (nodePort 30090) -> http://localhost:8090
+      # Service frontend (nodePort 30090) -> http://localhost:8090
       - containerPort: 30090
         hostPort: 8090
         listenAddress: 127.0.0.1

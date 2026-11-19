@@ -1,12 +1,17 @@
-# Database of flights-service. A StatefulSet keeps a stable name (flights-postgres-0) and its own
-# PersistentVolumeClaim, so the data survives when the pod is deleted or rescheduled.
+# Base de datos de flights-service: un Service headless + un StatefulSet con un PostgreSQL.
+# Es StatefulSet y no Deployment porque una base tiene estado: el pod conserva un nombre estable
+# (flights-postgres-0) y su propio PersistentVolumeClaim, así que los datos sobreviven aunque el
+# pod se borre o se reprograme en otro nodo. Un Deployment trata a sus pods como intercambiables.
+
+# Service: nombre DNS estable (flights-postgres) por el que flights-service encuentra la base.
 apiVersion: v1
 kind: Service
 metadata:
   name: flights-postgres
 spec:
-  # Headless: the DNS name resolves straight to the database pod, only inside the cluster.
+  # Headless (sin IP virtual): el DNS resuelve directo a la IP del pod, y solo dentro del cluster.
   clusterIP: None
+  # El Service manda tráfico a los pods que tengan esta label (la del template de abajo).
   selector:
     app.kubernetes.io/name: flights-postgres
   ports:
@@ -18,30 +23,39 @@ kind: StatefulSet
 metadata:
   name: flights-postgres
 spec:
+  # Service headless que gobierna el StatefulSet y le da DNS a cada pod.
   serviceName: flights-postgres
+  # Una sola instancia: Postgres no se replica solo agregando pods.
   replicas: 1
+  # Qué pods le pertenecen al StatefulSet; tiene que coincidir con las labels del template.
   selector:
     matchLabels:
       app.kubernetes.io/name: flights-postgres
+  # Plantilla con la que se crea cada pod.
   template:
     metadata:
       labels:
         app.kubernetes.io/name: flights-postgres
     spec:
+      # Seguridad a nivel pod: nada corre como root.
       securityContext:
-        # The postgres user of the official image.
+        # El usuario postgres de la imagen oficial (uid 999).
         runAsNonRoot: true
         runAsUser: 999
         runAsGroup: 999
+        # El volumen queda con grupo 999, así Postgres puede escribir en él sin ser root.
         fsGroup: 999
+        # Filtro de syscalls por defecto del runtime: bloquea llamadas al kernel poco usadas.
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: postgres
+          # Tag fijo (no latest) para que cada despliegue use exactamente la misma versión.
           image: postgres:16.16
           ports:
             - name: postgres
               containerPort: 5432
+          # Nombre de la base y usuario salen del ConfigMap; la contraseña, del Secret.
           env:
             - name: POSTGRES_DB
               valueFrom:
@@ -52,21 +66,28 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef: { name: ctv-secrets, key: FLIGHTS_DB_PASSWORD }
-            # A subdirectory, because the volume root may contain lost+found.
+            # Un subdirectorio, porque la raíz del volumen puede traer lost+found y initdb la rechaza.
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+          # Readiness: el Service solo le manda conexiones cuando Postgres acepta conexiones.
           readinessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
             periodSeconds: 5
+          # Liveness: si deja de responder, Kubernetes reinicia el contenedor. Espera 30 s para
+          # no matarlo mientras inicializa la base por primera vez.
           livenessProbe:
             exec:
               command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
             initialDelaySeconds: 30
             periodSeconds: 10
+          # requests: lo que el scheduler reserva en el nodo para ubicar el pod.
+          # limits: el techo; si supera la memoria el contenedor se reinicia (OOMKilled), la CPU se frena.
           resources:
             requests: { cpu: 50m, memory: 128Mi }
             limits: { cpu: 500m, memory: 256Mi }
+          # Seguridad a nivel contenedor: no puede ganar privilegios y se le quitan todas las
+          # capabilities de Linux. Sin readOnlyRootFilesystem: Postgres escribe sockets y locks.
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -74,10 +95,12 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+  # Por cada pod, el StatefulSet crea un PVC (data-flights-postgres-0) que no se borra con el pod.
   volumeClaimTemplates:
     - metadata:
         name: data
       spec:
+        # ReadWriteOnce: lo monta un solo nodo a la vez, suficiente para una instancia.
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:

@@ -1,21 +1,29 @@
-# Non-sensitive configuration. Passwords and the JWT key live in the ctv-secrets Secret.
+# ConfigMaps: configuración NO sensible que los pods reciben como variables de entorno (envFrom)
+# o como archivos montados. Separarla de la imagen permite cambiarla sin reconstruir nada.
+# Las contraseñas y la clave JWT van en el Secret ctv-secrets (secret-demo.yaml), no acá.
+
+# ctv-common: variables compartidas por backend y flights-service.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ctv-common
 data:
   SPRING_PROFILES_ACTIVE: prod
-  # Demo data is loaded once; the seed is idempotent and safe with several replicas.
+  # Los datos de demo se cargan una vez; el seed es idempotente y no se duplica con varias réplicas.
   SEED_ENABLED: "true"
+  # La JVM usa hasta el 75% del límite de memoria del contenedor (resources.limits.memory).
   JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75 -Duser.timezone=America/Argentina/Buenos_Aires
-  # Monitoring (Zipkin, ELK) stays in Docker Compose: no spans are sampled and logs only go to
-  # stdout (`kubectl logs`), through the console-only Logback file mounted from ctv-logback.
+  # El monitoreo (Zipkin, ELK) queda en Docker Compose: acá no se muestrean spans y los logs solo
+  # van a stdout (`kubectl logs`), con el Logback de solo consola montado desde ctv-logback.
   TRACING_SAMPLING_PROBABILITY: "0"
   LOGGING_CONFIG: /etc/ctv/logback.xml
-  # Liveness only checks the JVM; readiness also needs the database.
+  # Habilita /actuator/health/liveness y /readiness, que usan las probes de los Deployments.
+  # Liveness solo mira la JVM; readiness además exige que la base responda.
   MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
   MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db
 ---
+# backend-config: a qué base y a qué servicio de vuelos se conecta el backend.
+# Los hosts son nombres de Services: el DNS interno del cluster los resuelve a los pods.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -26,8 +34,10 @@ data:
   DB_NAME: backend
   DB_USERNAME: ctv
   FLIGHTS_SERVICE_URL: http://flights-service:8081
+  # El navegador abre el frontend en localhost, así que el backend acepta ese origen (CORS).
   CORS_ALLOWED_ORIGIN_PATTERNS: http://localhost:*,http://127.0.0.1:*
 ---
+# flights-service-config: base de datos y puerto del servicio de vuelos.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -39,12 +49,14 @@ data:
   DB_USERNAME: ctv
   SERVER_PORT: "8081"
 ---
+# ctv-logback: un archivo completo (no variables). Los Deployments lo montan como volumen en
+# /etc/ctv/logback.xml y LOGGING_CONFIG (arriba) le dice a Spring que lo use.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ctv-logback
 data:
-  # Same console format as the images, without the Logstash appender.
+  # Mismo formato de consola que las imágenes, sin el appender de Logstash.
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <configuration>
