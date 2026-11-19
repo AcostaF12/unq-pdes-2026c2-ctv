@@ -109,3 +109,19 @@ sonar {
 tasks.named("sonar") {
     dependsOn(tasks.test, tasks.jacocoTestReport)
 }
+
+// Downloads the jars of every external dependency (not only their metadata, as `dependencies`
+// does), including the Kotlin compiler and Spring Boot's productionRuntimeClasspath, so the Docker
+// dependency layer holds everything `bootJar --offline` needs.
+tasks.register("resolveDependencies") {
+    description = "Downloads the artifacts of every external dependency."
+    val external =
+        files(
+            configurations.filter { it.isCanBeResolved }.map { configuration ->
+                configuration.incoming
+                    .artifactView { componentFilter { it is org.gradle.api.artifacts.component.ModuleComponentIdentifier } }
+                    .files
+            },
+        )
+    doLast { logger.lifecycle("Resolved ${external.files.size} files") }
+}
