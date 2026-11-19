@@ -114,7 +114,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 
 **Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
 **Frontend:** React 19 + TypeScript 6 + Vite 8 + TanStack Query  
-**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway (`V1` a `V6` en el backend, `V1` y `V2` en flights-service)  
+**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway (`V1` a `V7` más `V7.1` solo para PostgreSQL en el backend, `V1` y `V2` en flights-service)  
 **Seguridad:** Spring Security + JWT  
 **Resiliencia:** Resilience4j (reintentos y circuit breaker hacia el servicio de vuelos)  
 **Pruebas:** JUnit 5 + H2 en memoria + Testcontainers (PostgreSQL) + ArchUnit + JaCoCo · Vitest · Cucumber · Cypress · k6  

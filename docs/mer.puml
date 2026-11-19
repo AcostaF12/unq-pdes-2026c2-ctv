@@ -11,8 +11,8 @@ legend top left
   Conceptual names are singular (city, hotel, package).
   Physical tables are plural (cities, hotels, packages, purchases...)
   because "package" is a reserved SQL word.
-  Schemas are created by Flyway (backend V1..V6, flights V1..V2);
-  Hibernate only validates them (ddl-auto=validate).
+  Schemas are created by Flyway (backend V1..V7 + V7.1 PostgreSQL-only,
+  flights V1..V2); Hibernate only validates them (ddl-auto=validate).
   Cross-service: package flight ids and purchase sale ids are LOGICAL
   references to flights-service (no DB foreign key).
 endlegend
@@ -80,8 +80,12 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     * price : numeric(12,2) <<NOT NULL>>
     .. unique ..
     (agency_id, name)
-    .. index ..
+    .. indexes ..
     (active, destination_city_code)
+    (price)
+    (origin_city_code, destination_city_code, price)
+    (destination_city_code, price)
+    GIN lower(name) gin_trgm_ops  -- pg_trgm, PostgreSQL only (V7.1)
   }
 
   entity "favorite" as favorite {
@@ -122,9 +126,9 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     package_snapshot_id, _name(160), _price numeric(12,2)
     agency_snapshot_id, _name(160)
     hotel_snapshot_id, _name(160), _city_code(3),
-      _city_name(100), _photo_url(500)
-    origin_snapshot_code(3), _name(100)
-    destination_snapshot_code(3), _name(100)
+      _city_name(255), _photo_url(500)
+    origin_snapshot_code(3), _name(255)
+    destination_snapshot_code(3), _name(255)
     outbound_flight_snapshot_id, return_flight_snapshot_id
     .. check ..
     ck_purchases_status:
