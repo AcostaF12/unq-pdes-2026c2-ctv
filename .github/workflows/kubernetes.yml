@@ -1,0 +1,142 @@
+name: Kubernetes CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "k8s/**"
+      - "scripts/ci-build-images.sh"
+      - ".github/workflows/kubernetes.yml"
+  push:
+    branches: [main, dev]
+    paths:
+      - "k8s/**"
+      - "scripts/ci-build-images.sh"
+      - ".github/workflows/kubernetes.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kubernetes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kind:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NAMESPACE: ctv
+      CLUSTER: ctv
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Exposes the cache service variables so Bake can use type=gha.
+      - name: Expose GitHub Actions runtime
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      # Builds the commit under test (frontend with VITE_API_BASE_URL=http://localhost:8080).
+      - name: Build images with cache and retry
+        run: scripts/ci-build-images.sh k8s/docker-bake.hcl ctv-k8s
+
+      - name: Pull PostgreSQL with retry
+        run: |
+          for attempt in 1 2 3; do
+            docker pull postgres:16.16 && exit 0
+            echo "::warning::docker pull failed (attempt $attempt/3)."
+            sleep $((attempt * 20))
+          done
+          exit 1
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.15.2
+        with:
+          version: v0.33.0
+          cluster_name: ${{ env.CLUSTER }}
+          config: k8s/kind-config.yaml
+
+      # The node cannot see the runner's Docker images: kind copies them in.
+      - name: Load images into the cluster
+        run: kind load docker-image --name "$CLUSTER" ctv-k8s-backend ctv-k8s-flights-service ctv-k8s-frontend postgres:16.16
+
+      # Same manifests, with the images built above instead of the published ones.
+      - name: Apply manifests
+        run: |
+          mkdir -p ci-overlay
+          cat > ci-overlay/kustomization.yaml <<'EOF'
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - ../k8s
+          images:
+            - name: ghcr.io/acostaf12/ctv-backend
+              newName: ctv-k8s-backend
+              newTag: latest
+            - name: ghcr.io/acostaf12/ctv-flights-service
+              newName: ctv-k8s-flights-service
+              newTag: latest
+            - name: ctv-frontend
+              newName: ctv-k8s-frontend
+              newTag: latest
+          EOF
+          kubectl apply -k ci-overlay
+
+      - name: Wait for rollouts
+        run: |
+          for workload in statefulset/backend-postgres statefulset/flights-postgres \
+                          deployment/flights-service deployment/backend deployment/frontend; do
+            kubectl -n "$NAMESPACE" rollout status "$workload" --timeout=300s
+          done
+          kubectl -n "$NAMESPACE" get pods -o wide
+
+      - name: Smoke test
+        run: |
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o login.json -w '%{http_code}' -X POST http://localhost:8080/auth/login \
+            -H 'Content-Type: application/json' -d '{"username":"buyer","password":"buyer123"}')
+          echo "POST /auth/login -> $status"
+          test "$status" = 200
+          token=$(jq -r .token login.json)
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" http://localhost:8080/packages)
+          echo "GET /packages -> $status"
+          test "$status" = 200
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' http://localhost:8090/)
+          echo "GET frontend / -> $status"
+          test "$status" = 200
+
+      - name: Self-healing (delete a backend pod)
+        run: |
+          selector=app.kubernetes.io/name=backend
+          kubectl -n "$NAMESPACE" get pods -l "$selector"
+          victim=$(kubectl -n "$NAMESPACE" get pods -l "$selector" -o jsonpath='{.items[0].metadata.name}')
+          echo "Deleting $victim"
+          kubectl -n "$NAMESPACE" delete pod "$victim" --wait=false
+          # The other replica keeps serving while the Deployment replaces the deleted pod.
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/auth/login \
+            -H 'Content-Type: application/json' -d '{"username":"buyer","password":"buyer123"}')
+          echo "POST /auth/login while replacing -> $status"
+          test "$status" = 200
+          kubectl -n "$NAMESPACE" wait --for=delete "pod/$victim" --timeout=120s
+          for _ in $(seq 1 60); do
+            ready=$(kubectl -n "$NAMESPACE" get deployment backend -o jsonpath='{.status.readyReplicas}')
+            if [ "${ready:-0}" = 2 ]; then
+              kubectl -n "$NAMESPACE" get pods -l "$selector"
+              echo "The Deployment replaced $victim and has 2 ready replicas again."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The backend did not recover 2 ready replicas."
+          exit 1
+
+      - name: Show cluster state on failure
+        if: failure()
+        run: |
+          kubectl -n "$NAMESPACE" get all,pvc,configmap,secret -o wide || true
+          kubectl -n "$NAMESPACE" describe pods || true
+          kubectl -n "$NAMESPACE" get events --sort-by=.lastTimestamp || true
+          kubectl -n "$NAMESPACE" logs -l app.kubernetes.io/part-of=ctv --all-containers --prefix --tail=200 --max-log-requests=20 || true
