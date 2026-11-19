@@ -75,11 +75,16 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - flights-service responde 400 (en lugar de 500) a cuerpos mal formados y parámetros de tipo inválido ([#38](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/38)).
 - Traza distribuida: el backend usa el `RestClient.Builder` de Spring Boot, que propaga `traceparent`, y en Zipkin una llamada a flights-service queda como una sola traza con los dos servicios. Kibana arranca con el data view `ctv-logs-*` creado por el job `kibana-setup` ([#39](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/39)).
 - Documentación en español, `.env.example` con las variables de configuración y limpieza de documentos de la Entrega 2 ya cubiertos por el release `ctv-version-2` ([#35](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/35)).
+- CI más estable ante Maven Central: la caché de Gradle se guarda solo en `main` y `dev`, `scripts/ci-gradle.sh` reintenta el build solo ante errores transitorios (429, 5xx, timeouts) y `gradle.properties` le da a Gradle más reintentos por request ([#42](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/42)).
+- flights-service loguea cada request (método, ruta, status y duración, sin `/actuator/**`) y las ventas registradas, canceladas y rechazadas, con `traceId`: en Kibana una traza trae líneas de los dos servicios ([#43](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/43)).
+- Despliegue en Kubernetes con Kustomize (`k8s/`): PostgreSQL en `StatefulSet`, 2 réplicas de backend y frontend, probes de Actuator, `ConfigMap`/`Secret`, y el workflow "Kubernetes CI", que levanta un cluster kind, hace un smoke test y comprueba que se repone un pod borrado ([#44](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/44), [guía](docs/kubernetes.md)).
+- `.gitattributes` fuerza LF en scripts y configuraciones de contenedores, para que `kibana-setup` y `scripts/check-ci.rb` funcionen también con un checkout de Windows ([#45](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/45)).
 
 **Pendiente:**
 
-- Deploy final verificado.
+- Deploy final de la demo en la VM, verificado.
 - Guion del happy path final.
+- Release `ctv-version-3`.
 
 ---
 
@@ -92,10 +97,10 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 │   └── cypress/              # Tests de interfaz (Cypress)
 ├── acceptance-tests/         # Tests de aceptación (Cucumber)
 ├── load-tests/               # Tests de carga y stress (k6)
-├── monitoring/               # Configuración de Prometheus, Grafana y Logstash
+├── monitoring/               # Configuración de Prometheus, Grafana, Logstash y el data view de Kibana
 ├── k8s/                      # Manifiestos de Kubernetes (Kustomize) y cluster kind
-├── docs/                     # MER, guion de demo, administración y seed
-├── scripts/                  # Validaciones de la CI y build de imágenes
+├── docs/                     # MER, flujo, guion de demo, administración, seed, carga y Kubernetes
+├── scripts/                  # Validaciones de la CI, build de imágenes y reintentos de Gradle
 ├── .github/workflows/        # CI, publicación de imágenes y deploy
 ├── docker-compose.yml        # Entorno local completo
 ├── docker-compose.prod.yml   # Overlay para la VM: imágenes de GHCR
@@ -109,15 +114,15 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 
 **Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
 **Frontend:** React 19 + TypeScript 6 + Vite 8 + TanStack Query  
-**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway  
+**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway (`V1` a `V6` en el backend, `V1` y `V2` en flights-service)  
 **Seguridad:** Spring Security + JWT  
 **Resiliencia:** Resilience4j (reintentos y circuit breaker hacia el servicio de vuelos)  
-**Pruebas:** JUnit 5 + H2 en memoria + Testcontainers (PostgreSQL) + ArchUnit + JaCoCo · Vitest · Cucumber · Cypress  
+**Pruebas:** JUnit 5 + H2 en memoria + Testcontainers (PostgreSQL) + ArchUnit + JaCoCo · Vitest · Cucumber · Cypress · k6  
 **Calidad:** SonarCloud · ktlint · ESLint  
 **Documentación de la API:** Swagger/OpenAPI (springdoc), solo backend  
 **Observabilidad:** Spring Boot Actuator + Prometheus (métricas) + Grafana (dashboards) + Zipkin (trazas) + ELK / Elasticsearch + Logstash + Kibana (logs)  
 **CI/CD:** GitHub Actions + GitHub Container Registry  
-**Containerización:** Docker + Docker Compose  
+**Containerización:** Docker + Docker Compose · Kubernetes (Kustomize, kind)  
 **Nube:** Azure (VM)
 
 ---
@@ -233,6 +238,8 @@ En la VM la define el deploy a partir del secreto `JWT_SECRET` del repositorio e
 | `SEED_ENABLED` | `true` en `dev`, `false` en `prod` | `false` | Carga de datos de ejemplo |
 | `DDL_AUTO` | `validate` | `validate` | Modo de Hibernate. El esquema lo maneja Flyway; Hibernate solo lo valida |
 
+Los valores por defecto de la base son los del perfil `dev`. Con `prod`, el backend usa `5432` y la base `backend`, y flights-service usa la base `flights` (el puerto sigue en `5434`). Compose y Kubernetes definen `DB_HOST`, `DB_PORT` y `DB_NAME` siempre, así que esos valores solo cuentan fuera de Docker.
+
 ### Flights Service
 
 | Variable | Por defecto | Ejemplo | Para qué |
@@ -277,7 +284,7 @@ Cada módulo propio tiene un Dockerfile multi-stage: se compila en una imagen (J
 - Los Dockerfiles de Kotlin resuelven las dependencias de Gradle en una capa propia antes de copiar `src`: cambiar código no vuelve a descargarlas.
 - Todas las imágenes base y de terceros usan versiones fijas: Temurin `25.0.5_8-jdk`/`25.0.5_8-jre`, Node `24.22-alpine` y `nginxinc/nginx-unprivileged:1.31-alpine` en los Dockerfiles, y las de la tabla en Compose.
 
-`docker-compose.yml` define **11 contenedores**. Por defecto levanta los 5 de la aplicación; los 6 de monitoreo están en el perfil `monitoring`:
+`docker-compose.yml` define **12 servicios** y **5 redes**. Por defecto levanta los 5 de la aplicación; los 7 de monitoreo están en el perfil `monitoring` (6 quedan corriendo y `kibana-setup` es un job que termina al crear el data view):
 
 | Contenedor | Imagen | Puerto local | En la VM | Rol |
 |------------|--------|--------------|----------|-----|
@@ -289,9 +296,10 @@ Cada módulo propio tiene un Dockerfile multi-stage: se compila en una imagen (J
 | `prometheus` | `prom/prometheus:v3.16.0` | 9090 | no se publica | Métricas |
 | `grafana` | `grafana/grafana:13.3.1` | 3001 | 3001 | Dashboards |
 | `zipkin` | `openzipkin/zipkin:3.6.1` | 9411 | 9411 | Trazas |
-| `elasticsearch` | `elasticsearch:8.15.3` | 9200 | no se publica | Índice de logs |
-| `logstash` | `logstash:8.15.3` | 5000 | no se publica | Recibe los logs |
-| `kibana` | `kibana:8.15.3` | 5601 | 5601 | Consulta de logs |
+| `elasticsearch` | `docker.elastic.co/elasticsearch/elasticsearch:8.15.3` | 9200 | no se publica | Índice de logs |
+| `logstash` | `docker.elastic.co/logstash/logstash:8.15.3` | 5000 | no se publica | Recibe los logs |
+| `kibana` | `docker.elastic.co/kibana/kibana:8.15.3` | 5601 | 5601 | Consulta de logs |
+| `kibana-setup` | `curlimages/curl:8.17.0` | — | — | Job de una sola vez: crea el data view `ctv-logs-*` y termina |
 
 En la VM, `docker-compose.prod.yml` quita los puertos de las bases, Elasticsearch, Logstash y Prometheus (`ports: !reset []`): solo se alcanzan por las redes internas (Grafana llega a Prometheus por la red interna).
 
@@ -303,7 +311,7 @@ Las redes aíslan quién habla con quién:
 | `backend-net` | backend, su Postgres, Prometheus, Grafana, Logstash | El servicio de vuelos no accede a la base del negocio |
 | `flights-net` | flights-service, su Postgres, backend, Prometheus, Logstash | El stock de vuelos |
 | `tracing-net` | backend, flights-service, Zipkin | Las trazas |
-| `logging-net` | Logstash, Elasticsearch, Kibana | El índice de logs |
+| `logging-net` | Logstash, Elasticsearch, Kibana, kibana-setup | El índice de logs |
 
 El arranque respeta las dependencias con healthchecks: las bases, después vuelos, después el backend. Los datos viven en volúmenes nombrados.
 
@@ -343,7 +351,19 @@ Frontend en http://localhost:8090 y backend en http://localhost:8080, igual que 
 | Interfaz (E2E) | Cypress | `frontend/cypress/` | Ver [frontend/README.md](frontend/README.md#pruebas-e2e) |
 | Carga y stress | k6 | `load-tests/` | Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
 
-Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker.
+Cantidad de pruebas por tipo:
+
+| Tipo | Backend | Flights Service | Frontend | Total |
+|------|---------|-----------------|----------|-------|
+| Unitarios (incluye 5 reglas ArchUnit por servicio) | 163 | 32 | 236 (Vitest, 37 archivos) | 431 |
+| Integración (Spring, H2 y Testcontainers) | 298 | 47 | — | 345 |
+| Aceptación (Cucumber) | 14 escenarios | | | 14 |
+| Interfaz (Cypress) | | | 14 tests en 7 archivos | 14 |
+| Carga y stress (k6) | 4 escenarios | | | 4 |
+
+Los números de backend y flights-service cuentan métodos de test; con los casos de los tests parametrizados, JUnit ejecuta 464 y 86.
+
+Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker; sin Docker se omiten.
 
 En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci-build-images.sh`: usa `docker buildx bake` con la caché de GitHub Actions por servicio y reintenta hasta 3 veces (por ejemplo, ante un 429 de Maven Central). Después levantan el entorno con `docker compose up --no-build`.
 
@@ -353,17 +373,17 @@ En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci
 
 | Workflow | Cuándo | Qué hace |
 |----------|--------|----------|
-| Backend CI / Flights Service CI | PR y push a `dev` o `main`, si cambia el módulo | Build, tests, ktlint y SonarCloud. En `main` espera el Quality Gate |
-| Frontend CI | PR y push a `dev` o `main`, si cambia el frontend | Lint, Vitest y build |
+| Backend CI / Flights Service CI | PR y push a `dev` o `main`, si cambia el módulo, su workflow o `scripts/ci-gradle.sh` | Build, tests, ktlint y SonarCloud. En `main` espera el Quality Gate y, en un push, publica la imagen |
+| Frontend CI | PR y push a `dev` o `main`, si cambia el frontend o su workflow | Lint, Vitest y build. En un push a `main`, publica la imagen |
 | Acceptance and E2E CI | PR y push a `dev` o `main` | Cucumber y Cypress contra la aplicación en Docker |
 | Workflow Validation CI | PR y push a `dev` o `main` | actionlint y `scripts/check-ci.rb` |
-| Kubernetes CI | PR y push a `dev` o `main`, si cambia `k8s/`; también manual | Cluster kind con las imágenes del commit: aplica `k8s/`, smoke test (login, paquetes, frontend) y borra un pod del backend para comprobar que se repone |
+| Kubernetes CI | PR y push a `dev` o `main`, si cambia `k8s/`, `scripts/ci-build-images.sh` o su workflow; también manual | Cluster kind con las imágenes del commit: aplica `k8s/`, smoke test (login, paquetes, frontend) y borra un pod del backend para comprobar que se repone |
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
 | Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
 
 Backend CI y Flights Service CI guardan la caché de dependencias de Gradle solo en `main` y `dev` (las demás ramas y los PR la leen sin escribirla). El build corre con `scripts/ci-gradle.sh`, que reintenta hasta 3 veces solo ante errores transitorios del repositorio (429, 5xx, timeouts); una falla de compilación, de tests o de ktlint corta en el primer intento. Además, `gradle.properties` le da a Gradle más reintentos por request antes de descartar Maven Central.
 
-En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. La publicación usa el `GITHUB_TOKEN` del workflow, sin secretos adicionales. Un PR nunca publica ni despliega.
+En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. La publicación se autentica con el `GITHUB_TOKEN` del workflow; la imagen del frontend se construye con `VITE_API_BASE_URL` apuntando a la VM (secreto `VM_HOST`). Un PR nunca publica ni despliega.
 
 ### Flujo de Git
 
@@ -380,7 +400,7 @@ La app corre en una VM de Azure que permanece **apagada** la mayor parte del tie
 **Prender y desplegar:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → elegir la rama → `action: deploy`
 
-El workflow primero valida el secreto `JWT_SECRET` (job `preflight`) y repite los controles; si pasan, publica las imágenes con el SHA del commit y prende la VM. En la VM sincroniza `docker-compose.yml`, `docker-compose.prod.yml` y `monitoring/` desde el commit desplegado (con permisos de lectura para todos, así Grafana puede leer el provisioning), actualiza `JWT_SECRET` en `/opt/ctv/.env`, levanta esa versión con el perfil `monitoring` y verifica la salud del backend. Si cambió `monitoring/`, reinicia Prometheus, Grafana y Logstash.
+El workflow valida el secreto `JWT_SECRET` (job `preflight`) y, en paralelo, repite los controles (backend, flights-service, frontend, aceptación, e2e y validación de workflows); si todo pasa, publica las imágenes con el SHA del commit y prende la VM. En la VM sincroniza `docker-compose.yml`, `docker-compose.prod.yml` y `monitoring/` desde el commit desplegado (con permisos de lectura para todos, así Grafana puede leer el provisioning), actualiza `JWT_SECRET` en `/opt/ctv/.env`, levanta esa versión con el perfil `monitoring` y verifica la salud del backend. Si cambió `monitoring/`, reinicia Prometheus, Grafana y Logstash.
 
 **Apagar al terminar la demo:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → `action: stop`
