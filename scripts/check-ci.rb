@@ -129,6 +129,9 @@ check(script.include?('set -eu'), 'Remote deploy must stop if image pull fails')
 # The JWT secret travels as an SSH environment variable, never inside the script text.
 check(!script.include?('secrets.'), 'Remote deploy script must not embed secrets')
 check(ssh.dig('env', 'JWT_SECRET') == '${{ secrets.JWT_SECRET }}' && ssh.dig('with', 'envs').to_s.split(',').include?('JWT_SECRET'), 'Deploy must pass JWT_SECRET to the VM')
+check(ssh.dig('env', 'VM_HOST') == '${{ secrets.VM_HOST }}' && ssh.dig('with', 'envs').to_s.split(',').include?('VM_HOST'), 'Deploy must pass VM_HOST to the VM for CORS')
+health = jobs.fetch('deploy')['steps'].find { |step| step['name'] == 'Health check' }.to_h['run'].to_s
+check(health.include?('Origin: $origin') && health.include?('access-control-allow-origin: $origin') && health.include?('exit 1'), 'Deploy must fail when the API rejects the VM frontend origin')
 preflight = jobs.fetch('preflight').fetch('steps').map { |step| step['run'].to_s }.join("\n")
 check(preflight.include?('JWT_SECRET') && preflight.include?('exit 1'), 'Deploy must fail early without JWT_SECRET')
 
@@ -152,7 +155,7 @@ Dir.mktmpdir do |dir|
     File.write(File.join(vm, 'monitoring/prometheus.yml'), "old-prometheus\n")
     # The VM had private config directories that Grafana (uid 472) could not read.
     FileUtils.chmod(0o700, File.join(vm, 'monitoring'))
-    File.write(File.join(vm, '.env'), "CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*\nJWT_SECRET='old'\n")
+    File.write(File.join(vm, '.env'), "CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*\nSEED_ENABLED=false\nJWT_SECRET='old'\n")
     log = File.join(dir, "calls-#{name}.log")
     stubs = <<~SH
       curl() { echo "curl $*" >> "#{log}"; cat "#{tarball}"; }
@@ -164,11 +167,18 @@ Dir.mktmpdir do |dir|
     [vm, File.exist?(log) ? File.read(log) : '', result]
   end
 
-  vm, log, status = run_deploy.call('missing', { 'JWT_SECRET' => '' })
+  vm, log, status = run_deploy.call('missing', { 'JWT_SECRET' => '', 'VM_HOST' => '203.0.113.7' })
   check(!status.success? && log.empty?, 'Deploy must stop before touching the VM without JWT_SECRET')
   check(File.read(File.join(vm, 'docker-compose.yml')) == "old-compose\n", 'Deploy without JWT_SECRET must not sync files')
 
-  vm, log, status = run_deploy.call('release', { 'JWT_SECRET' => 'local-test-secret-with-at-least-32-bytes' })
+  jwt = 'local-test-secret-with-at-least-32-bytes'
+  [['nohost', ''], ['badhost', "203.0.113.7\nJWT_SECRET=x"]].each do |name, host|
+    vm, log, status = run_deploy.call(name, { 'JWT_SECRET' => jwt, 'VM_HOST' => host })
+    check(!status.success? && log.empty?, "Deploy must stop before touching the VM with VM_HOST=#{host.inspect}")
+    check(File.read(File.join(vm, '.env')).include?("JWT_SECRET='old'"), 'Deploy with an invalid VM_HOST must not rewrite .env')
+  end
+
+  vm, log, status = run_deploy.call('release', { 'JWT_SECRET' => jwt, 'VM_HOST' => '203.0.113.7' })
   check(status.exitstatus == 17, 'Failed pull must fail the deploy')
   check(log.lines.grep(/^docker /).size == 1 && log.include?('pull'), 'Failed pull must prevent up')
   check(log.include?("codeload.github.com/AcostaF12/unq-pdes-2026c2-ctv/tar.gz/#{sha}"), 'Deploy must download the deployed commit')
@@ -178,8 +188,10 @@ Dir.mktmpdir do |dir|
   check(File.read(File.join(vm, 'monitoring/prometheus.yml')) == "new-prometheus\n" &&
         File.read(File.join(vm, 'monitoring/grafana/x.yml')) == "new-grafana\n", 'Deploy must sync the monitoring config')
   env_file = File.read(File.join(vm, '.env'))
-  check(env_file.include?('CORS_ALLOWED_ORIGIN_PATTERNS=http://vm:*') && env_file.scan(/^JWT_SECRET=/).size == 1 &&
-        env_file.include?("JWT_SECRET='local-test-secret-with-at-least-32-bytes'"), 'Deploy must store JWT_SECRET in .env keeping other settings')
+  check(env_file.include?("SEED_ENABLED=false\n") && env_file.scan(/^JWT_SECRET=/).size == 1 &&
+        env_file.include?("JWT_SECRET='#{jwt}'"), 'Deploy must store JWT_SECRET in .env keeping other settings')
+  check(env_file.scan(/^CORS_ALLOWED_ORIGIN_PATTERNS=.*$/) == ['CORS_ALLOWED_ORIGIN_PATTERNS=http://203.0.113.7:8090'],
+        'Deploy must allow the VM frontend origin in .env')
   unless Gem.win_platform?
     check(File.stat(File.join(vm, '.env')).mode & 0o777 == 0o600, '.env must only be readable by the deploy user')
     readable = Dir.glob(File.join(vm, 'monitoring', '**', '*')).push(File.join(vm, 'monitoring')).all? do |path|
