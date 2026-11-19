@@ -1,0 +1,84 @@
+# Database of the backend. A StatefulSet keeps a stable name (backend-postgres-0) and its own
+# PersistentVolumeClaim, so the data survives when the pod is deleted or rescheduled.
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-postgres
+spec:
+  # Headless: the DNS name resolves straight to the database pod, only inside the cluster.
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: backend-postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: backend-postgres
+spec:
+  serviceName: backend-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend-postgres
+    spec:
+      securityContext:
+        # The postgres user of the official image.
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: postgres:16.16
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: backend-config, key: DB_NAME }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: backend-config, key: DB_USERNAME }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: ctv-secrets, key: BACKEND_DB_PASSWORD }
+            # A subdirectory, because the volume root may contain lost+found.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

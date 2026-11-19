@@ -1,0 +1,71 @@
+# React SPA served by nginx-unprivileged. The browser calls the backend at the URL baked into the
+# image (VITE_API_BASE_URL=http://localhost:8080), so both Services are exposed on the host.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  # Docker Desktop: localhost:8090. kind: nodePort 30090 mapped to host port 8090.
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: frontend
+  ports:
+    - name: http
+      port: 8090
+      targetPort: http
+      nodePort: 30090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+    spec:
+      securityContext:
+        # The nginx user of nginx-unprivileged (uid 101).
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          image: ghcr.io/acostaf12/ctv-frontend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 200m, memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            # nginx keeps its pid file and temporary files in /tmp.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

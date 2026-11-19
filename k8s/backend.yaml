@@ -1,0 +1,112 @@
+# CTV API. Two replicas behind one Service: if a pod dies, the other keeps answering while the
+# Deployment creates a replacement.
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  # Docker Desktop publishes LoadBalancer Services on localhost:8080. kind leaves the external IP
+  # pending and the host reaches the fixed nodePort through extraPortMappings (kind-config.yaml).
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      nodePort: 30080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Never go below the desired replicas during an update.
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+    spec:
+      securityContext:
+        # The app user created in the image (uid 10001).
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Same role as depends_on/service_healthy in Compose: start once the database answers.
+        # -U skips looking up uid 10001, which has no user entry in the postgres image.
+        - name: wait-for-db
+          image: postgres:16.16
+          command: ["sh", "-c", "until pg_isready -h backend-postgres -p 5432 -U ctv; do sleep 2; done"]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      containers:
+        - name: backend
+          image: ghcr.io/acostaf12/ctv-backend
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ctv-common
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: ctv-secrets, key: BACKEND_DB_PASSWORD }
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef: { name: ctv-secrets, key: JWT_SECRET }
+          # Gives the JVM up to 3 minutes to start before liveness can restart it.
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          # A pod only receives traffic from the Service while this probe passes.
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 100m, memory: 384Mi }
+            limits: { cpu: "1", memory: 768Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logback
+              mountPath: /etc/ctv
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logback
+          configMap:
+            name: ctv-logback
