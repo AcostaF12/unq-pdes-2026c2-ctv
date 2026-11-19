@@ -79,6 +79,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - flights-service loguea cada request (método, ruta, status y duración, sin `/actuator/**`) y las ventas registradas, canceladas y rechazadas, con `traceId`: en Kibana una traza trae líneas de los dos servicios ([#43](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/43)).
 - Despliegue en Kubernetes con Kustomize (`k8s/`): PostgreSQL en `StatefulSet`, 2 réplicas de backend y frontend, probes de Actuator, `ConfigMap`/`Secret`, y el workflow "Kubernetes CI", que levanta un cluster kind, hace un smoke test y comprueba que se repone un pod borrado ([#44](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/44), [guía](docs/kubernetes.md)).
 - `.gitattributes` fuerza LF en scripts y configuraciones de contenedores, para que `kibana-setup` y `scripts/check-ci.rb` funcionen también con un checkout de Windows ([#45](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/45)).
+- Migraciones `V7` (índices por precio y ruta de los paquetes, snapshots de ciudad en `varchar(255)`) y `V7.1` solo para PostgreSQL (índice trigram `pg_trgm` para buscar paquetes por nombre), que reemplazan a `schema-postgresql.sql`, que nunca corría en dev/prod ([#52](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/52)).
 
 **Pendiente:**
 
@@ -114,7 +115,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 
 **Backend / Flights Service:** Spring Boot 4.1.0 + Kotlin 2.3.21 + Java 25 (Gradle 9.5.1)  
 **Frontend:** React 19 + TypeScript 6 + Vite 8 + TanStack Query  
-**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway (`V1` a `V6` en el backend, `V1` y `V2` en flights-service)  
+**BD:** PostgreSQL 16 (2 instancias), con migraciones Flyway (`V1` a `V7` más `V7.1` solo para PostgreSQL en el backend, `V1` y `V2` en flights-service)  
 **Seguridad:** Spring Security + JWT  
 **Resiliencia:** Resilience4j (reintentos y circuit breaker hacia el servicio de vuelos)  
 **Pruebas:** JUnit 5 + H2 en memoria + Testcontainers (PostgreSQL) + ArchUnit + JaCoCo · Vitest · Cucumber · Cypress · k6  
