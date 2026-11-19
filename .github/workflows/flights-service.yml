@@ -15,11 +15,13 @@ on:
     paths:
       - "flights-service/**"
       - ".github/workflows/flights-service.yml"
+      - "scripts/ci-gradle.sh"
   pull_request:
     branches: [main, dev]
     paths:
       - "flights-service/**"
       - ".github/workflows/flights-service.yml"
+      - "scripts/ci-gradle.sh"
 
 defaults:
   run:
@@ -45,13 +47,18 @@ jobs:
           java-version: "25"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v4.4.4
+        with:
+          # Caches ~/.gradle (dependencies and wrapper). main and dev save it, so new dependencies
+          # are downloaded once and PRs reuse them instead of hitting Maven Central again.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
       - name: Build and test
-        run: ./gradlew build
+        # Retries only transient repository errors such as HTTP 429 from Maven Central.
+        run: ../scripts/ci-gradle.sh build
 
       - name: SonarCloud analysis and Quality Gate
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
