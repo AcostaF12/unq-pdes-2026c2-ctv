@@ -251,4 +251,67 @@ end
   check(steps.none? { |step| step['run'].to_s.match?(/compose .*up .*--build/) }, "#{suite} must not rebuild images without cache")
 end
 
+# Kubernetes: the manifests are tested in a kind cluster built from the commit under test.
+kube = YAML.load_file(File.join(ROOT, '.github/workflows/kubernetes.yml'))
+kube_events = kube['on'] || kube[true]
+check(kube_events.key?('workflow_dispatch'), 'Kubernetes CI must be runnable manually')
+%w[pull_request push].each do |event|
+  check(kube_events.dig(event, 'branches').sort == %w[dev main], "Kubernetes CI must run on #{event} to dev and main")
+  check((%w[k8s/** .github/workflows/kubernetes.yml] - kube_events.dig(event, 'paths').to_a).empty?, "Kubernetes CI must run when k8s/ or the workflow change")
+end
+check(kube['permissions'] == { 'contents' => 'read' }, 'Kubernetes CI must use a read-only token')
+kube_steps = kube.fetch('jobs').fetch('kind').fetch('steps')
+kind_step = kube_steps.find { |step| step['uses'].to_s.start_with?('helm/kind-action@') }
+check(!kind_step.nil? && kind_step['uses'].match?(/@v\d+\.\d+\.\d+\z/), 'kind-action must be pinned to an exact version')
+check(kind_step.dig('with', 'version').to_s.match?(/\Av\d+\.\d+\.\d+\z/), 'The kind version must be pinned')
+check(kind_step.dig('with', 'config') == 'k8s/kind-config.yaml', 'The CI cluster must use k8s/kind-config.yaml')
+check(kube_steps.any? { |step| step['run'].to_s.include?('scripts/ci-build-images.sh') }, 'Kubernetes CI must build images with cache and retry')
+check(kube_steps.any? { |step| step['uses'].to_s.start_with?('crazy-max/ghaction-github-runtime@') }, 'Kubernetes CI must expose the cache runtime')
+check(kube_steps.any? { |step| step['run'].to_s.include?('kubectl apply -k') }, 'Kubernetes CI must apply the Kustomize manifests')
+check(kube_steps.any? { |step| step['run'].to_s.include?('rollout status') }, 'Kubernetes CI must wait for the rollouts')
+check(kube_steps.any? { |step| step['run'].to_s.include?('delete pod') }, 'Kubernetes CI must prove that a deleted pod is replaced')
+check(kube_steps.any? { |step| step['if'] == 'failure()' && step['run'].to_s.include?('logs') }, 'Kubernetes CI must print logs on failure')
+check(kube_steps.none? { |step| step['continue-on-error'] }, 'Kubernetes CI must propagate failures')
+check(kube_steps.none? { |step| step['uses'].to_s.start_with?('actions/upload-artifact@') }, 'CI must use logs only')
+
+kustomization = YAML.load_file(File.join(ROOT, 'k8s/kustomization.yaml'))
+check(kustomization['namespace'] == 'ctv', 'Kubernetes objects must live in the ctv namespace')
+app_images = kustomization.fetch('images').to_h { |image| [image['name'], image] }
+%w[backend flights-service frontend].each do |service|
+  image = app_images["ghcr.io/acostaf12/ctv-#{service}"]
+  check(!image.nil? && !image['newTag'].to_s.empty?, "kustomization.yaml must set the #{service} image tag")
+end
+manifests = kustomization.fetch('resources').flat_map { |file| YAML.load_stream(File.read(File.join(ROOT, 'k8s', file))).compact }
+workloads = manifests.select { |doc| %w[Deployment StatefulSet].include?(doc['kind']) }
+check(workloads.map { |doc| doc.dig('metadata', 'name') }.sort == %w[backend backend-postgres flights-postgres flights-service frontend], 'Missing Kubernetes workloads')
+workloads.each do |doc|
+  name = doc.dig('metadata', 'name')
+  pod = doc.dig('spec', 'template', 'spec')
+  check(pod.dig('securityContext', 'runAsNonRoot') == true, "#{name} must run as non-root")
+  (pod['initContainers'].to_a + pod.fetch('containers')).each do |container|
+    image = container.fetch('image')
+    # Application images get their tag from kustomization.yaml; third-party images are pinned here.
+    check(image.start_with?('ghcr.io/acostaf12/ctv-') || (image.match?(%r{:[^/]+\z}) && !image.end_with?(':latest')), "k8s/#{name} must pin #{image}")
+    check(container.dig('resources', 'requests') && container.dig('resources', 'limits'), "#{name}/#{container['name']} must set requests and limits")
+    check(container.dig('securityContext', 'allowPrivilegeEscalation') == false, "#{name}/#{container['name']} must not escalate privileges")
+  end
+  pod.fetch('containers').each do |container|
+    check(container['readinessProbe'] && container['livenessProbe'], "#{name} must define readiness and liveness probes")
+  end
+end
+check(workloads.select { |doc| doc['kind'] == 'StatefulSet' }.all? { |doc| doc.dig('spec', 'volumeClaimTemplates') }, 'Databases must keep their data in a PersistentVolumeClaim')
+%w[backend frontend].each do |name|
+  check(workloads.find { |doc| doc.dig('metadata', 'name') == name }.dig('spec', 'replicas').to_i >= 2, "#{name} must run at least 2 replicas")
+end
+flights_svc = manifests.find { |doc| doc['kind'] == 'Service' && doc.dig('metadata', 'name') == 'flights-service' }
+check(flights_svc.dig('spec', 'type') == 'ClusterIP', 'flights-service must only be reachable inside the cluster')
+secret = manifests.find { |doc| doc['kind'] == 'Secret' }
+check(secret.dig('stringData', 'JWT_SECRET').to_s.bytesize >= 32, 'The demo JWT_SECRET must have at least 32 bytes')
+kind_ports = YAML.load_file(File.join(ROOT, 'k8s/kind-config.yaml')).fetch('nodes').flat_map { |node| node['extraPortMappings'].to_a }
+{ 'backend' => 8080, 'frontend' => 8090 }.each do |name, host_port|
+  svc = manifests.find { |doc| doc['kind'] == 'Service' && doc.dig('metadata', 'name') == name }
+  node_port = svc.dig('spec', 'ports', 0, 'nodePort')
+  check(kind_ports.any? { |m| m['containerPort'] == node_port && m['hostPort'] == host_port }, "kind must map #{name} to localhost:#{host_port}")
+end
+
 puts 'CI contract checks passed'

@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Every object lives in the ctv namespace, so `kubectl delete namespace ctv` removes the whole app.
+namespace: ctv
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: ctv
+    includeSelectors: false
+    # Also on the pods, so `kubectl logs -l app.kubernetes.io/part-of=ctv` finds them all.
+    includeTemplates: true
+
+resources:
+  - namespace.yaml
+  - config.yaml
+  # Demo credentials only. See docs/kubernetes.md to create a real Secret instead.
+  - secret-demo.yaml
+  - backend-postgres.yaml
+  - flights-postgres.yaml
+  - flights-service.yaml
+  - backend.yaml
+  - frontend.yaml
+
+# Image tags are set here, not in the manifests. Override them with `kustomize edit set image`
+# or with an overlay (the Kubernetes CI workflow loads its own builds this way).
+images:
+  - name: ghcr.io/acostaf12/ctv-backend
+    newTag: latest
+  - name: ghcr.io/acostaf12/ctv-flights-service
+    newTag: latest
+  # The published frontend image has the VM URL baked in (VITE_API_BASE_URL), so the cluster
+  # uses a local build that points the browser at http://localhost:8080.
+  - name: ghcr.io/acostaf12/ctv-frontend
+    newName: ctv-frontend
+    newTag: local

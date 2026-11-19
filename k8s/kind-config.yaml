@@ -1,0 +1,19 @@
+# Local cluster for the demo and the CI: `kind create cluster --config k8s/kind-config.yaml`.
+# One node is enough; the host ports match Docker Compose, so the frontend build that calls
+# http://localhost:8080 works the same way.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ctv
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # backend Service (nodePort 30080) -> http://localhost:8080
+      - containerPort: 30080
+        hostPort: 8080
+        listenAddress: 127.0.0.1
+        protocol: TCP
+      # frontend Service (nodePort 30090) -> http://localhost:8090
+      - containerPort: 30090
+        hostPort: 8090
+        listenAddress: 127.0.0.1
+        protocol: TCP

@@ -33,6 +33,10 @@ Proyecto de la materia Prácticas de Desarrollo de Software – UNQ, 2do semestr
 [![Acceptance and E2E CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/e2e.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/e2e.yml)
 [![Workflow Validation CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/workflow-validation.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/workflow-validation.yml)
 
+### Kubernetes
+
+[![Kubernetes CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/kubernetes.yml/badge.svg)](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/workflows/kubernetes.yml)
+
 ---
 
 ## 📝 Release Notes - Entrega 1
@@ -89,6 +93,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 ├── acceptance-tests/         # Tests de aceptación (Cucumber)
 ├── load-tests/               # Tests de carga y stress (k6)
 ├── monitoring/               # Configuración de Prometheus, Grafana y Logstash
+├── k8s/                      # Manifiestos de Kubernetes (Kustomize) y cluster kind
 ├── docs/                     # MER, guion de demo, administración y seed
 ├── scripts/                  # Validaciones de la CI y build de imágenes
 ├── .github/workflows/        # CI, publicación de imágenes y deploy
@@ -310,6 +315,21 @@ Otros archivos de Compose:
 
 ---
 
+## ☸️ Kubernetes
+
+`k8s/` despliega la misma aplicación en un cluster de Kubernetes con Kustomize: PostgreSQL como `StatefulSet` con volumen persistente, backend y frontend con 2 réplicas cada uno, flights-service solo interno, probes de Actuator y configuración en `ConfigMap`/`Secret`. El cluster repone solo los pods que se caen. El monitoreo sigue en Compose.
+
+```bash
+kind create cluster --config k8s/kind-config.yaml
+docker build -t ctv-frontend:local --build-arg VITE_API_BASE_URL=http://localhost:8080 frontend
+kind load docker-image --name ctv ctv-frontend:local
+kubectl apply -k k8s/
+```
+
+Frontend en http://localhost:8090 y backend en http://localhost:8080, igual que con Compose. El paso a paso (también con el Kubernetes de Docker Desktop), la demo de autorecuperación y escalado y las decisiones están en [docs/kubernetes.md](docs/kubernetes.md).
+
+---
+
 ## 🧪 Pruebas
 
 | Suite | Herramienta | Dónde | Cómo correrla |
@@ -337,8 +357,11 @@ En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci
 | Frontend CI | PR y push a `dev` o `main`, si cambia el frontend | Lint, Vitest y build |
 | Acceptance and E2E CI | PR y push a `dev` o `main` | Cucumber y Cypress contra la aplicación en Docker |
 | Workflow Validation CI | PR y push a `dev` o `main` | actionlint y `scripts/check-ci.rb` |
+| Kubernetes CI | PR y push a `dev` o `main`, si cambia `k8s/`; también manual | Cluster kind con las imágenes del commit: aplica `k8s/`, smoke test (login, paquetes, frontend) y borra un pod del backend para comprobar que se repone |
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
 | Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
+
+Backend CI y Flights Service CI guardan la caché de dependencias de Gradle solo en `main` y `dev` (las demás ramas y los PR la leen sin escribirla). El build corre con `scripts/ci-gradle.sh`, que reintenta hasta 3 veces solo ante errores transitorios del repositorio (429, 5xx, timeouts); una falla de compilación, de tests o de ktlint corta en el primer intento. Además, `gradle.properties` le da a Gradle más reintentos por request antes de descartar Maven Central.
 
 En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. La publicación usa el `GITHUB_TOKEN` del workflow, sin secretos adicionales. Un PR nunca publica ni despliega.
 
@@ -389,5 +412,6 @@ En la VM solo se publican 8080, 8090, 3001, 5601 y 9411; las bases (5433, 5434),
 - [Funciones del administrador](docs/admin.md)
 - [Seed y ciclo de vida de los datos](docs/seed-y-ciclo-de-vida.md)
 - [Tests de carga](docs/load-tests.md)
+- [Kubernetes](docs/kubernetes.md)
 - [Migración de agencias](docs/agency-migration.md)
 - READMEs de [frontend](frontend/README.md), [flights-service](flights-service/README.md) y [tests de aceptación](acceptance-tests/README.md)
