@@ -7,11 +7,13 @@ skinparam roundcorner 8
 skinparam shadowing false
 
 legend top left
-  PK = Primary Key   FK = Foreign Key   UK = Unique Key
+  PK = Primary Key   FK = Foreign Key   UK = Unique Key   CK = Check constraint
   Conceptual names are singular (city, hotel, package).
-  Physical JPA tables are plural (cities, hotels, packages)
+  Physical tables are plural (cities, hotels, packages, purchases...)
   because "package" is a reserved SQL word.
-  Cross-service: package outbound/return flight ids are LOGICAL
+  Schemas are created by Flyway (backend V1..V6, flights V1..V2);
+  Hibernate only validates them (ddl-auto=validate).
+  Cross-service: package flight ids and purchase sale ids are LOGICAL
   references to flights-service (no DB foreign key).
 endlegend
 
@@ -21,59 +23,65 @@ endlegend
 package "Base de Datos Backend - CTV" #F7F9FC {
 
   entity "demo_seed_run" as demo_seed_run {
-    * id : varchar(60) <<PK>>
+    * id : varchar(60) <<PK>>  -- seed version, e.g. ctv-demo-v1
     --
-      completed_at : timestamp
+      completed_at : timestamp  -- null until the seed commits
   }
 
   entity "city" as city {
-    * code : char(3) <<PK>>  -- IATA city code (e.g. BUE)
+    * code : varchar(3) <<PK>>  -- IATA city code (e.g. BUE)
     --
-    * name : varchar <<NOT NULL>>
+    * name : varchar(255) <<NOT NULL>>
   }
 
   entity "agency" as agency {
     * id : bigint <<PK>>
     --
-    * name : varchar <<NOT NULL>>
-    * active : boolean <<NOT NULL>>
+    * name : varchar(160) <<NOT NULL>>
+    * active : boolean <<NOT NULL>>  -- default true
   }
 
   entity "user" as user {
     * id : bigint <<PK>>
     --
-    * user_type : varchar <<NOT NULL>>  -- JPA discriminator: STANDARD | AGENCY (User / AgencyUser)
-    * username : varchar <<UK>> <<NOT NULL>>
-    * password : varchar <<NOT NULL>>
-    * role : varchar <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
-    * enabled : boolean <<NOT NULL>>
-    * first_name : varchar <<NOT NULL>>
-    * last_name : varchar <<NOT NULL>>
+    * user_type : varchar(31) <<NOT NULL>>  -- JPA discriminator: STANDARD | AGENCY (User / AgencyUser)
+    * username : varchar(60) <<UK>> <<NOT NULL>>
+    * password : varchar(100) <<NOT NULL>>  -- BCrypt hash
+    * role : varchar(20) <<NOT NULL>>  -- BUYER | AGENCY | ADMIN
+    * enabled : boolean <<NOT NULL>>  -- default true
+    * first_name : varchar(80) <<NOT NULL>>
+    * last_name : varchar(80) <<NOT NULL>>
       agency_id : bigint <<FK>>  -- only when role = AGENCY (AgencyUser)
+    .. check ..
+    ck_users_role_agency:
+    AGENCY = user_type AGENCY + agency_id NOT NULL
+    BUYER | ADMIN = user_type STANDARD + agency_id NULL
   }
 
   entity "hotel" as hotel {
     * id : bigint <<PK>>
     --
-    * name : varchar <<NOT NULL>>
-    * city_code : char(3) <<FK>> <<NOT NULL>>
-    * photo_url : varchar <<NOT NULL>>
+    * name : varchar(160) <<NOT NULL>>
+    * city_code : varchar(3) <<FK>> <<NOT NULL>>
+    * photo_url : varchar(500) <<NOT NULL>>
   }
 
   entity "package" as package {
     * id : bigint <<PK>>
-    * active : boolean <<NOT NULL>>
+    * active : boolean <<NOT NULL>>  -- published / archived, default true
     --
     * agency_id : bigint <<FK>> <<NOT NULL>>
     * hotel_id : bigint <<FK>> <<NOT NULL>>
-    * origin_city_code : char(3) <<FK>> <<NOT NULL>>
-    * destination_city_code : char(3) <<FK>> <<NOT NULL>>
-    * name : varchar <<NOT NULL>>  -- keyword search
+    * origin_city_code : varchar(3) <<FK>> <<NOT NULL>>
+    * destination_city_code : varchar(3) <<FK>> <<NOT NULL>>
+    * name : varchar(160) <<NOT NULL>>  -- keyword search
     * outbound_flight_id : bigint <<NOT NULL>>  -- logical ref -> flights
     * return_flight_id : bigint <<NOT NULL>>    -- logical ref -> flights
-    * price : numeric <<NOT NULL>>
+    * price : numeric(12,2) <<NOT NULL>>
     .. unique ..
     (agency_id, name)
+    .. index ..
+    (active, destination_city_code)
   }
 
   entity "favorite" as favorite {
@@ -102,8 +110,30 @@ package "Base de Datos Backend - CTV" #F7F9FC {
     * buyer_id : bigint <<FK>> <<NOT NULL>>
     * package_id : bigint <<FK>> <<NOT NULL>>
     * agency_id : bigint <<FK>> <<NOT NULL>>  -- denormalized at purchase time
-    * purchase_price : numeric <<NOT NULL>>  -- price at purchase time
+    * purchase_price : numeric(12,2) <<NOT NULL>>  -- price at purchase time
     * purchased_at : timestamp <<NOT NULL>>
+    * status : varchar(20) <<NOT NULL>>  -- PurchaseStatus: ACTIVE | CANCELLED (default ACTIVE)
+      cancelled_at : timestamp  -- set only when CANCELLED
+      outbound_sale_id : bigint  -- logical ref -> flight_sale (null in legacy rows)
+      return_sale_id : bigint    -- logical ref -> flight_sale (null in legacy rows)
+    .. snapshot at purchase time (all NOT NULL) ..
+    buyer_snapshot_id, _username(60), _role(20),
+      _first_name(80), _last_name(80)
+    package_snapshot_id, _name(160), _price numeric(12,2)
+    agency_snapshot_id, _name(160)
+    hotel_snapshot_id, _name(160), _city_code(3),
+      _city_name(100), _photo_url(500)
+    origin_snapshot_code(3), _name(100)
+    destination_snapshot_code(3), _name(100)
+    outbound_flight_snapshot_id, return_flight_snapshot_id
+    .. check ..
+    ck_purchases_status:
+    ACTIVE = cancelled_at NULL / CANCELLED = cancelled_at NOT NULL
+    .. indexes ..
+    (buyer_id, purchased_at DESC, id DESC)
+    (agency_id, purchased_at DESC, id DESC)
+    (agency_id, buyer_snapshot_username, purchased_at DESC, id DESC)
+    (buyer_id, package_id, status)
   }
 }
 
@@ -114,23 +144,25 @@ package "Base de Datos - API de Vuelos" #FCF7F2 {
 
   entity "flight" as flight {
     * id : bigint <<PK>>
-      seed_key : varchar <<UK>>  -- nullable, stable demo key
+      seed_key : varchar(80) <<UK>>  -- nullable, stable demo key
     --
-    * airline : varchar <<NOT NULL>>
+    * airline : varchar(120) <<NOT NULL>>
     * flight_date : date <<NOT NULL>>
     * departure_time : time <<NOT NULL>>
-    * origin : char(3) <<NOT NULL>>       -- IATA city code
-    * destination : char(3) <<NOT NULL>>  -- IATA city code
-    * capacity : int <<NOT NULL>>
-    * availability : int <<NOT NULL>>
+    * origin : varchar(3) <<NOT NULL>>       -- IATA city code
+    * destination : varchar(3) <<NOT NULL>>  -- IATA city code
+    * capacity : integer <<NOT NULL>>
+    * availability : integer <<NOT NULL>>
   }
 
   entity "flight_sale" as flight_sale {
     * id : bigint <<PK>>
-      seed_key : varchar <<UK>>  -- nullable, idempotent demo reservation
+      seed_key : varchar(300) <<UK>>  -- nullable, idempotent demo reservation
     --
     * flight_id : bigint <<FK>> <<NOT NULL>>
-    * passenger_name : varchar <<NOT NULL>>
+    * passenger_name : varchar(160) <<NOT NULL>>
+    .. index ..
+    (flight_id)
   }
 }
 
@@ -140,7 +172,7 @@ package "Base de Datos - API de Vuelos" #FCF7F2 {
 city    ||--o{ hotel    : "tiene"
 city    ||--o{ package  : "ORIGEN"
 city    ||--o{ package  : "DESTINO"
-agency  ||--o{ user     : "EMPLEA"
+agency  |o--o{ user     : "EMPLEA"
 agency  ||--o{ package  : "OFRECE"
 agency  ||--o{ purchase : "vendida por"
 hotel   ||--o{ package  : "incluido en"
@@ -153,7 +185,8 @@ package ||--o{ review   : "RESEÑADO EN"
 
 flight  ||--o{ flight_sale : "VENDIDO EN"
 
-' Cross-service logical link (no physical FK)
+' Cross-service logical links (no physical FK)
 package ..> flight : "IDA / VUELTA\n(logical ref)"
+purchase ..> flight_sale : "ASIENTOS IDA / VUELTA\n(logical ref)"
 
 @enduml
