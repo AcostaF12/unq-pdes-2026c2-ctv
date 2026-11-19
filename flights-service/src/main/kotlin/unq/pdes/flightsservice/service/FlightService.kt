@@ -1,6 +1,7 @@
 package unq.pdes.flightsservice.service
 
 import jakarta.persistence.EntityNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import unq.pdes.flightsservice.model.Flight
@@ -15,6 +16,8 @@ class FlightService(
     private val flightRepository: FlightRepository,
     private val flightSaleRepository: FlightSaleRepository,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Transactional(readOnly = true)
     fun findAll(): List<Flight> = flightRepository.findAll()
 
@@ -69,16 +72,22 @@ class FlightService(
         val flight =
             flightRepository.findForUpdate(flightId)
                 ?: throw EntityNotFoundException("There is no Flight with id: $flightId.")
-        require(flight.availability > 0) { "The flight has no availability." }
+        if (flight.availability <= 0) {
+            logger.warn("Sale rejected for flight {}: no availability left", flightId)
+            throw IllegalArgumentException("The flight has no availability.")
+        }
         flight.availability = flight.availability - 1
         flightRepository.save(flight)
-        return flightSaleRepository.save(
-            FlightSale
-                .Builder()
-                .flight(flight)
-                .passengerName(passengerName)
-                .build(),
-        )
+        val sale =
+            flightSaleRepository.save(
+                FlightSale
+                    .Builder()
+                    .flight(flight)
+                    .passengerName(passengerName)
+                    .build(),
+            )
+        logger.info("Sale {} registered for flight {}; remaining availability {}", sale.id, flightId, flight.availability)
+        return sale
     }
 
     @Transactional
@@ -90,5 +99,6 @@ class FlightService(
         flight.availability = flight.availability + 1
         flightRepository.save(flight)
         flightSaleRepository.delete(sale)
+        logger.info("Sale {} cancelled for flight {}; remaining availability {}", saleId, flight.id, flight.availability)
     }
 }
