@@ -55,7 +55,7 @@ El navegador habla con los dos Services porque el frontend es una SPA: el JavaSc
 - **frontend**: la imagen publicada tiene horneada la URL de la VM (`VITE_API_BASE_URL=http://<VM_HOST>:8080`), así que no sirve en local. El cluster usa `ctv-frontend:local`, construida con `VITE_API_BASE_URL=http://localhost:8080`.
 - **CI**: construye las 3 imágenes del commit con `k8s/docker-bake.hcl` (vía `scripts/ci-build-images.sh`, con caché y reintentos), las carga con `kind load docker-image` y las aplica con un overlay de Kustomize que solo cambia `images:`.
 
-Para probar otra versión sin editar archivos:
+Para probar otra versión (por ejemplo, la imagen de un commit de `main`), cambiar el tag con el binario [`kustomize`](https://kubectl.docs.kubernetes.io/installation/kustomize/) (`kubectl` no trae `edit`), que reescribe `images:` en `kustomization.yaml`:
 
 ```bash
 cd k8s
