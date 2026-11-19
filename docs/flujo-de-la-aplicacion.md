@@ -83,7 +83,7 @@ Un comprador que abre `/admin` ve “Sin permiso” en la pantalla. Si llama igu
 3. Marcar favorito es `POST /favorites` con `{ "packageId": … }`.
 4. Comprar es `POST /purchases` con el mismo campo. El detalle de esa compra está más abajo.
 5. `/purchases` lee `GET /purchases/me`. El precio es el que se pagó, guardado en la compra. Si mañana cambia el paquete, el ticket no cambia.
-6. Cancelar es `DELETE /purchases/{id}`. Es una baja lógica: la compra pasa a `CANCELLED`, sigue en el historial y los asientos de ida y vuelta vuelven a vuelos.
+6. Cancelar es `DELETE /purchases/{id}`, desde el detalle de la compra (`/purchases/:id`). Lo puede hacer el comprador o un administrador, solo antes de que salga el vuelo de ida. Es una baja lógica: la compra pasa a `CANCELLED`, sigue en el historial y los asientos de ida y vuelta vuelven a vuelos.
 
 ### Agencia
 
@@ -134,7 +134,7 @@ Flyway versiona cada esquema por su lado. Los datos de demo se cargan una sola v
 | Salud | http://localhost:8080/actuator/health | Si el corte de protección hacia vuelos está abierto |
 | Grafana | http://localhost:3001 (`admin` / `admin`) | Servicios vivos, memoria y pedidos por segundo |
 | Zipkin | http://localhost:9411 | El recorrido de una compra: entra al backend y sigue a vuelos |
-| Kibana | http://localhost:5601 | Logs de los dos programas. La primera vez hay que crear la vista `ctv-logs-*` |
+| Kibana | http://localhost:5601 | Logs de los dos programas en el data view `ctv-logs-*`, que crea el job `kibana-setup`. Se puede buscar por el `traceId` de Zipkin |
 
 ## Si preguntan, abrís
 
