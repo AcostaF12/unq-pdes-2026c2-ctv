@@ -6,7 +6,7 @@ set -u
 
 NAMESPACE=${NAMESPACE:-ctv}
 DIR=${SUMMARY_DIR:-k8s-summary}
-OUT=${GITHUB_STEP_SUMMARY:-/dev/stdout}
+MD=$(mktemp)
 NA='_No disponible (el job no llegó a este paso o falló antes)._'
 
 # Prints a file's first line, or nothing if it is missing.
@@ -173,4 +173,11 @@ pods_table() {
     pods_table "$DIR/pods-after.json" "$(val pods-after.at)" "$victim" "$new_pod"
   fi
   echo
-} >>"$OUT"
+} >"$MD"
+
+# Also in the log, so the text can be read or copied without opening the Summary tab.
+echo '::group::Run summary (Markdown)'
+cat "$MD"
+echo '::endgroup::'
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then cat "$MD" >>"$GITHUB_STEP_SUMMARY"; fi
+rm -f "$MD"
