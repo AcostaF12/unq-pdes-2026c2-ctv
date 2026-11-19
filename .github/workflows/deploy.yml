@@ -160,20 +160,26 @@ jobs:
           echo "Timed out waiting for SSH"
           exit 1
 
-      # The secret reaches the VM as an environment variable of the SSH session
-      # (never inside the script text) and is stored in /opt/ctv/.env with mode 600.
+      # The secrets reach the VM as environment variables of the SSH session
+      # (never inside the script text) and are stored in /opt/ctv/.env with mode 600.
+      # The frontend (:8090) calls the API (:8080) cross-origin, so the backend must allow its origin.
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          VM_HOST: ${{ secrets.VM_HOST }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: JWT_SECRET
+          envs: JWT_SECRET,VM_HOST
           script: |
             set -eu
             : "${JWT_SECRET:?JWT_SECRET did not reach the VM}"
+            : "${VM_HOST:?VM_HOST did not reach the VM}"
+            case "$VM_HOST" in
+              *[!A-Za-z0-9.-]*) echo "VM_HOST must be a plain host name or IPv4 address" >&2; exit 1 ;;
+            esac
             cd /opt/ctv
             # Older releases left files owned by root; the deploy user must own the release files.
             if [ ! -w . ] || [ -n "$(find . ! -user "$(id -u)" -print -quit)" ]; then
@@ -194,11 +200,15 @@ jobs:
             cp -R "$tmp/$release/monitoring/." monitoring/
             chmod -R a+rX docker-compose.yml docker-compose.prod.yml monitoring
 
-            # Keep other settings of .env (CORS, seed) and replace only the JWT secret.
+            # Keep other settings of .env (seed, ...) and replace only the managed lines.
             touch .env
             (
               umask 077
-              { grep -v '^JWT_SECRET=' .env || true; printf "JWT_SECRET='%s'\n" "$JWT_SECRET"; } > .env.new
+              {
+                grep -v -e '^JWT_SECRET=' -e '^CORS_ALLOWED_ORIGIN_PATTERNS=' .env || true
+                printf "JWT_SECRET='%s'\n" "$JWT_SECRET"
+                printf 'CORS_ALLOWED_ORIGIN_PATTERNS=http://%s:8090\n' "$VM_HOST"
+              } > .env.new
             )
             chmod 600 .env.new
             mv .env.new .env
@@ -222,14 +232,33 @@ jobs:
             fi
 
       - name: Health check
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
         run: |
+          healthy=false
           for i in $(seq 1 20); do
-            if curl -sf "http://${{ secrets.VM_HOST }}:8080/actuator/health" | grep -q '"status":"UP"'; then
+            if curl -sf "http://$VM_HOST:8080/actuator/health" | grep -q '"status":"UP"'; then
               echo "Backend healthy"
-              exit 0
+              healthy=true
+              break
             fi
             echo "Waiting for backend health... ($i/20)"
             sleep 15
           done
-          echo "Backend did not become healthy in time"
-          exit 1
+          if [ "$healthy" != true ]; then
+            echo "Backend did not become healthy in time"
+            exit 1
+          fi
+
+          # Browsers only let the VM frontend log in if the API accepts its origin.
+          origin="http://$VM_HOST:8090"
+          if curl -s -o /dev/null -D - -X OPTIONS "http://$VM_HOST:8080/auth/login" \
+              -H "Origin: $origin" \
+              -H "Access-Control-Request-Method: POST" \
+              -H "Access-Control-Request-Headers: content-type" \
+              | tr -d '\r' | grep -qixF "access-control-allow-origin: $origin"; then
+            echo "CORS allows $origin"
+          else
+            echo "::error::The backend rejects CORS requests from the VM frontend ($origin)"
+            exit 1
+          fi

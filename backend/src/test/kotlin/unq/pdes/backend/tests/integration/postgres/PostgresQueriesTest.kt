@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.jdbc.core.ConnectionCallback
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -36,8 +37,6 @@ import java.time.LocalDate
     properties = [
         "spring.datasource.driver-class-name=org.postgresql.Driver",
         "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
-        "spring.sql.init.mode=always",
-        "spring.sql.init.platform=postgresql",
     ],
 )
 class PostgresQueriesTest {
@@ -90,14 +89,62 @@ class PostgresQueriesTest {
     }
 
     @Test
-    fun `01 - flyway migrations match the entities and the postgres-only script runs`() {
-        val trigramIndexes =
-            jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM pg_indexes WHERE indexname = 'idx_packages_name_trgm'",
+    fun `01 - flyway runs the common and the postgres-only migrations and creates every index`() {
+        val indexes =
+            jdbcTemplate.queryForList(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'packages'",
+                String::class.java,
+            )
+        assertTrue(
+            indexes.containsAll(
+                listOf(
+                    "idx_packages_price",
+                    "idx_packages_route_price",
+                    "idx_packages_destination_price",
+                    "idx_packages_active_destination",
+                    "idx_packages_name_trgm",
+                ),
+            ),
+            "missing package indexes, found: $indexes",
+        )
+        val appliedVersions =
+            jdbcTemplate.queryForList(
+                "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank",
+                String::class.java,
+            )
+        assertTrue(appliedVersions.containsAll(listOf("7", "7.1")), "applied versions: $appliedVersions")
+    }
+
+    @Test
+    fun `01b - the package name filter can be served by the trigram index`() {
+        val plan =
+            jdbcTemplate.execute(
+                ConnectionCallback { connection ->
+                    connection.createStatement().use { statement ->
+                        // Tiny test tables always favour a sequential scan; disabling it shows the index is usable.
+                        statement.execute("SET enable_seqscan = off")
+                        try {
+                            statement.executeQuery("EXPLAIN SELECT id FROM packages WHERE lower(name) LIKE '%par%'").use { rows ->
+                                generateSequence { if (rows.next()) rows.getString(1) else null }.joinToString(" | ")
+                            }
+                        } finally {
+                            statement.execute("RESET enable_seqscan")
+                        }
+                    }
+                },
+            )!!
+        assertTrue(plan.contains("idx_packages_name_trgm"), plan)
+    }
+
+    @Test
+    fun `01c - purchase city name snapshots are as wide as cities name`() {
+        val lengths =
+            jdbcTemplate.queryForList(
+                "SELECT character_maximum_length FROM information_schema.columns WHERE table_name = 'purchases' " +
+                    "AND column_name IN ('hotel_snapshot_city_name', 'origin_snapshot_name', 'destination_snapshot_name')",
                 Int::class.java,
             )
-
-        assertEquals(1, trigramIndexes)
+        assertEquals(listOf(255, 255, 255), lengths)
     }
 
     @Test

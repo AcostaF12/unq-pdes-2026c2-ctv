@@ -47,12 +47,12 @@ Para volver a los datos iniciales entre ensayos: `docker compose --profile monit
 - **Swagger.** Contrato completo de la API.
 - **Resiliencia.** El backend protege las llamadas a `flights-service` con Resilience4j (reintentos, timeout y circuit breaker). El estado del breaker figura en `http://localhost:8080/actuator/health`.
 - **Grafana.** Dashboard *CTV - Overview*: servicios activos, uptime, memoria de la JVM y requests por segundo.
-- **Zipkin.** Buscar trazas del servicio `backend` y abrir una.
-- **Kibana.** La primera vez no hay vista de datos: *Stack Management → Data Views → Create*, nombre y patrón `ctv-logs-*`, campo de tiempo `@timestamp`. Luego, en *Discover*, filtrar por `service`.
+- **Zipkin.** Buscar trazas del servicio `backend` y abrir una que llame a vuelos (por ejemplo, una compra): la misma traza muestra `backend` y `flights-service`. La pestaña *Dependencies* dibuja el arco backend → flights-service.
+- **Kibana.** El data view `ctv-logs-*` ya viene creado por el job `kibana-setup`. En *Discover*, filtrar por `service` o pegar el `traceId` de la traza de Zipkin: aparecen las líneas de los dos servicios.
 
 ## 5. Calidad
 
-- **Tests.** Suites de backend, vuelos y frontend, 14 escenarios de aceptación con Cucumber, 15 tests end-to-end con Cypress en siete suites y 4 escenarios de carga con k6 ([resultados](load-tests.md#resultados)). Consultar los logs de CI para los resultados de la versión presentada.
+- **Tests.** Suites de backend, vuelos y frontend (ver la sección *Pruebas* del README), 14 escenarios de aceptación con Cucumber, 14 tests end-to-end con Cypress en siete archivos y 4 escenarios de carga con k6 ([resultados](load-tests.md#resultados)). Consultar los logs de CI para los resultados de la versión presentada.
 - **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
 - **Ejecutar las pruebas.** Ver la sección *Pruebas* del README.
 

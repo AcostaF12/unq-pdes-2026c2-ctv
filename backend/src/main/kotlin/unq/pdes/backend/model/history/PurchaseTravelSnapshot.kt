@@ -33,7 +33,7 @@ class PurchaseTravelSnapshot private constructor(
     @Column(name = "hotel_snapshot_city_code", nullable = false, length = 3)
     var hotelCityCode: String = travelPackage.hotel.city.code
 
-    @Column(name = "hotel_snapshot_city_name", nullable = false, length = 100)
+    @Column(name = "hotel_snapshot_city_name", nullable = false, length = 255)
     var hotelCityName: String = travelPackage.hotel.city.name
 
     @Column(name = "hotel_snapshot_photo_url", nullable = false, length = 500)
@@ -42,13 +42,13 @@ class PurchaseTravelSnapshot private constructor(
     @Column(name = "origin_snapshot_code", nullable = false, length = 3)
     var originCode: String = travelPackage.origin.code
 
-    @Column(name = "origin_snapshot_name", nullable = false, length = 100)
+    @Column(name = "origin_snapshot_name", nullable = false, length = 255)
     var originName: String = travelPackage.origin.name
 
     @Column(name = "destination_snapshot_code", nullable = false, length = 3)
     var destinationCode: String = travelPackage.destination.code
 
-    @Column(name = "destination_snapshot_name", nullable = false, length = 100)
+    @Column(name = "destination_snapshot_name", nullable = false, length = 255)
     var destinationName: String = travelPackage.destination.name
 
     @Column(name = "outbound_flight_snapshot_id", nullable = false)

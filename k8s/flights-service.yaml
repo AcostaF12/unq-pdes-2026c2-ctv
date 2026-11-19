@@ -1,0 +1,98 @@
+# Flights API. Only the backend uses it, so its Service is ClusterIP: no access from outside.
+apiVersion: v1
+kind: Service
+metadata:
+  name: flights-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: flights-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flights-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flights-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flights-service
+    spec:
+      securityContext:
+        # The app user created in the image (uid 10001).
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Same role as depends_on/service_healthy in Compose: start once the database answers.
+        # -U skips looking up uid 10001, which has no user entry in the postgres image.
+        - name: wait-for-db
+          image: postgres:16.16
+          command: ["sh", "-c", "until pg_isready -h flights-postgres -p 5432 -U ctv; do sleep 2; done"]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      containers:
+        - name: flights-service
+          image: ghcr.io/acostaf12/ctv-flights-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: ctv-common
+            - configMapRef:
+                name: flights-service-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: ctv-secrets, key: FLIGHTS_DB_PASSWORD }
+          # Gives the JVM up to 3 minutes to start before liveness can restart it.
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 100m, memory: 320Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logback
+              mountPath: /etc/ctv
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logback
+          configMap:
+            name: ctv-logback

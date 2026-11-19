@@ -8,7 +8,7 @@ React 19 + TypeScript + Vite. Consume la API del backend (`http://localhost:8080
 npm ci            # instala dependencias según el lock
 npm run dev       # servidor de desarrollo en http://localhost:5173
 npm run lint
-npm test          # Vitest + Testing Library
+npm test          # Vitest + Testing Library (236 tests en 37 archivos)
 npm run build     # tsc -b + vite build; deja el reporte de bundle en dist/stats.html
 ```
 
@@ -77,7 +77,7 @@ npm run e2e:open
 `e2e:open` abre la interfaz de Cypress para ver las acciones en el navegador.
 `npm run e2e:run` ejecuta los tests sin abrir la interfaz, como en CI.
 El entorno Docker anterior debe estar levantado. Los tests están en
-`frontend/cypress/e2e/`, en archivos terminados en `.cy.js`: siete suites con 15 tests.
+`frontend/cypress/e2e/`, en archivos terminados en `.cy.js`: siete archivos con 14 tests.
 Verifican login/búsqueda/detalle, compra/historial, creación/edición/eliminación
 de hoteles, contraseña incorrecta y permisos del comprador. Se usan servicios reales.
 `admin-users.cy.js` cubre usuarios, vendedores y agencias, las consultas y los cuatro

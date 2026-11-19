@@ -32,11 +32,17 @@ La ruta anterior `POST /flights/{id}/sales`, con `passengerName` en el cuerpo, s
 - `POST /flights`: alta de un vuelo (el backend la expone solo al administrador).
 - `/internal/demo/*`: catálogo y reservas de la seed de demo. Solo se habilitan con la seed y no se publican desde el backend.
 
+## Logs
+
+Cada request se loguea en una línea INFO con método, ruta, status y duración (por ejemplo, `GET /flights -> 200 (67 ms)`), salvo `/actuator/**`. Las ventas registradas y canceladas también quedan en INFO, y las rechazadas por falta de lugar en WARN, sin el nombre del pasajero. Cada línea lleva el `traceId` del backend, así que en Kibana una misma traza trae los logs de los dos servicios.
+
 ## Pruebas
 
 Desde esta carpeta, con Java 25: `bash gradlew test ktlintCheck`.
 
-Con Docker abierto también se ejecutan nueve casos de búsqueda contra PostgreSQL 16
-mediante Testcontainers. Cubren las combinaciones de origen, destino y fecha, el orden
-de los resultados y la exclusión de vuelos sin lugares. Sin Docker, esos casos se omiten;
-el resto de los tests usa H2. En GitHub Actions hay Docker disponible.
+Con Docker abierto también corren dos suites contra PostgreSQL 16 mediante Testcontainers:
+
+- Nueve casos de búsqueda: las combinaciones de origen, destino y fecha, el orden de los resultados y la exclusión de vuelos sin lugares.
+- Cinco casos del ciclo de vida: Flyway y la seed sobre una base real, el contrato de las reservas de demo y la venta simultánea del último asiento.
+
+Sin Docker, esas suites se omiten; el resto de los tests usa H2. En GitHub Actions hay Docker disponible.

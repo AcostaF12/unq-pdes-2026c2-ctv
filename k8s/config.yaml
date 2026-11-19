@@ -1,0 +1,56 @@
+# Non-sensitive configuration. Passwords and the JWT key live in the ctv-secrets Secret.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ctv-common
+data:
+  SPRING_PROFILES_ACTIVE: prod
+  # Demo data is loaded once; the seed is idempotent and safe with several replicas.
+  SEED_ENABLED: "true"
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75 -Duser.timezone=America/Argentina/Buenos_Aires
+  # Monitoring (Zipkin, ELK) stays in Docker Compose: no spans are sampled and logs only go to
+  # stdout (`kubectl logs`), through the console-only Logback file mounted from ctv-logback.
+  TRACING_SAMPLING_PROBABILITY: "0"
+  LOGGING_CONFIG: /etc/ctv/logback.xml
+  # Liveness only checks the JVM; readiness also needs the database.
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  DB_HOST: backend-postgres
+  DB_PORT: "5432"
+  DB_NAME: backend
+  DB_USERNAME: ctv
+  FLIGHTS_SERVICE_URL: http://flights-service:8081
+  CORS_ALLOWED_ORIGIN_PATTERNS: http://localhost:*,http://127.0.0.1:*
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flights-service-config
+data:
+  DB_HOST: flights-postgres
+  DB_PORT: "5432"
+  DB_NAME: flights
+  DB_USERNAME: ctv
+  SERVER_PORT: "8081"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ctv-logback
+data:
+  # Same console format as the images, without the Logstash appender.
+  logback.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </configuration>
