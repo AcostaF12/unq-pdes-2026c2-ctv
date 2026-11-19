@@ -361,6 +361,8 @@ En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
 | Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
 
+Backend CI y Flights Service CI guardan la caché de dependencias de Gradle solo en `main` y `dev` (las demás ramas y los PR la leen sin escribirla). El build corre con `scripts/ci-gradle.sh`, que reintenta hasta 3 veces solo ante errores transitorios del repositorio (429, 5xx, timeouts); una falla de compilación, de tests o de ktlint corta en el primer intento. Además, `gradle.properties` le da a Gradle más reintentos por request antes de descartar Maven Central.
+
 En cada push a `main`, después de los controles, las imágenes de `backend`, `flights-service` y `frontend` se publican en GitHub Container Registry (`ghcr.io/acostaf12/ctv-*`) con `latest` y el SHA del commit. La publicación usa el `GITHUB_TOKEN` del workflow, sin secretos adicionales. Un PR nunca publica ni despliega.
 
 ### Flujo de Git
