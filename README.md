@@ -80,6 +80,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Despliegue en Kubernetes con Kustomize (`k8s/`): PostgreSQL en `StatefulSet`, 2 réplicas de backend y frontend, probes de Actuator, `ConfigMap`/`Secret`, y el workflow "Kubernetes CI", que levanta un cluster kind, hace un smoke test y comprueba que se repone un pod borrado ([#44](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/44), [guía](docs/kubernetes.md)).
 - `.gitattributes` fuerza LF en scripts y configuraciones de contenedores, para que `kibana-setup` y `scripts/check-ci.rb` funcionen también con un checkout de Windows ([#45](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/45)).
 - Migraciones `V7` (índices por precio y ruta de los paquetes, snapshots de ciudad en `varchar(255)`) y `V7.1` solo para PostgreSQL (índice trigram `pg_trgm` para buscar paquetes por nombre), que reemplazan a `schema-postgresql.sql`, que nunca corría en dev/prod ([#52](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/52)).
+- El backend también loguea cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, incluidas las rechazadas por seguridad (401/403): en Kibana una compra trae líneas de backend y de flights-service también en `prod` ([#53](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/53)).
 
 **Pendiente:**
 
@@ -183,7 +184,7 @@ Con el perfil `monitoring`:
 
 - **Grafana** carga el datasource de Prometheus y el dashboard `CTV - Overview` (servicios activos, uptime, memoria JVM y tasa de requests).
 - **Zipkin** muestra cada llamada del backend a flights-service como una sola traza con los dos servicios; la pestaña Dependencies dibuja el arco backend → flights-service.
-- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin. flights-service loguea cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, así que esa búsqueda trae líneas de los dos servicios.
+- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin. El backend y flights-service loguean cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, así que esa búsqueda trae líneas de los dos servicios.
 
 ### Usuarios de demo
 
