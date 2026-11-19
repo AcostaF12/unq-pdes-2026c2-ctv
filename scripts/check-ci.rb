@@ -208,6 +208,41 @@ prod = File.read(File.join(ROOT, 'docker-compose.prod.yml'))
 end
 check(prod.include?('JWT_SECRET: ${JWT_SECRET:?'), 'Production must require JWT_SECRET')
 
+# Gradle jobs cache ~/.gradle between runs and retry only transient repository errors (HTTP 429).
+%w[backend flights-service].each do |mod|
+  steps = YAML.load_file(File.join(ROOT, ".github/workflows/#{mod}.yml")).dig('jobs', 'build', 'steps')
+  setup = steps.find { |step| step['uses'].to_s.start_with?('gradle/actions/setup-gradle@') }
+  check(!setup.nil? && setup['uses'].match?(/@v\d+\.\d+\.\d+\z/), "#{mod} must cache Gradle with a pinned setup-gradle")
+  check(setup.dig('with', 'cache-disabled') != true, "#{mod} must keep the Gradle cache enabled")
+  check(steps.none? { |step| step['uses'].to_s.start_with?('actions/setup-java@') && step.dig('with', 'cache') }, "#{mod} must not duplicate the Gradle cache")
+  build = steps.find { |step| step['name'] == 'Build and test' }
+  check(build && build['run'] == '../scripts/ci-gradle.sh build', "#{mod} must build through the retrying Gradle wrapper")
+  props = File.read(File.join(ROOT, mod, 'gradle.properties'))
+  check(props.include?('systemProp.org.gradle.internal.repository.max.tentatives='), "#{mod} must extend Gradle's repository retries")
+end
+# Exercise the retry loop with a fake wrapper: transient errors retry, real failures do not.
+Dir.mktmpdir do |dir|
+  run_gradle = lambda do |outputs|
+    File.write(File.join(dir, 'outputs'), outputs.join("\n") + "\n")
+    File.write(File.join(dir, 'calls'), '')
+    File.write(File.join(dir, 'gradlew'), <<~SH)
+      #!/usr/bin/env bash
+      echo "$*" >> calls
+      line=$(sed -n "$(wc -l < calls)p" outputs)
+      echo "$line"
+      [ "$line" = ok ]
+    SH
+    FileUtils.chmod(0o755, File.join(dir, 'gradlew'))
+    env = { 'GRADLE_ATTEMPTS' => '3', 'GRADLE_RETRY_DELAY' => '0' }
+    _, _, status = Open3.capture3(env, 'bash', File.join(ROOT, 'scripts/ci-gradle.sh'), 'build', chdir: dir)
+    [status.exitstatus, File.read(File.join(dir, 'calls')).lines.size]
+  end
+  rate_limited = 'Could not GET x. Received status code 429 from server: Too Many Requests'
+  check(run_gradle.call([rate_limited, 'ok']) == [0, 2], 'Gradle builds must retry HTTP 429')
+  check(run_gradle.call([rate_limited] * 3) == [1, 3], 'Gradle retries must be bounded')
+  check(run_gradle.call(["e: Unresolved reference 'foo'", 'ok']) == [1, 1], 'Compilation failures must not be retried')
+end
+
 # CI image builds share cached layers and retry transient registry errors.
 %w[acceptance e2e].each do |suite|
   steps = tests.fetch('jobs').fetch(suite).fetch('steps')
