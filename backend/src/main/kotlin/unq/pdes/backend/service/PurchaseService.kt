@@ -1,12 +1,18 @@
 package unq.pdes.backend.service
 
+import jakarta.annotation.PreDestroy
+import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
+import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.model.Purchase
 import unq.pdes.backend.model.PurchaseStatus
@@ -19,6 +25,12 @@ import unq.pdes.backend.search.PurchaseHistorySort
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+private const val FLIGHT_CALL_THREADS = 16
 
 @Service
 class PurchaseService(
@@ -26,7 +38,22 @@ class PurchaseService(
     private val travelPackageService: TravelPackageService,
     private val userService: UserService,
     private val flightsClient: FlightsClient,
+    private val entityManager: EntityManager,
+    transactionManager: PlatformTransactionManager,
 ) {
+    private val transactions = TransactionTemplate(transactionManager)
+
+    // Ida y vuelta pegan a vuelos distintos: se pueden hacer a la vez. El pool acota los hilos.
+    private val flightCalls: ExecutorService =
+        Executors.newFixedThreadPool(FLIGHT_CALL_THREADS) { runnable ->
+            Thread(runnable, "flight-call").apply { isDaemon = true }
+        }
+
+    @PreDestroy
+    fun shutdownFlightCalls() {
+        flightCalls.shutdown()
+    }
+
     @Transactional(readOnly = true)
     @Suppress("LongParameterList")
     fun findMine( // NOSONAR kotlin:S107, flat history filters
@@ -144,7 +171,12 @@ class PurchaseService(
         require(size in 1..100) { "Page size must be between 1 and 100." }
     }
 
-    @Transactional
+    /**
+     * Sells both seats before taking the package row lock. The lock only covers the re-check and the
+     * insert, so concurrent buyers of a package with seats left do not queue on the flight HTTP.
+     * Oversell is still prevented by the flight row lock in flights-service. If the package was archived
+     * or its flights changed while the seats were being sold, both sales are cancelled.
+     */
     fun purchase(
         username: String,
         packageId: Long,
@@ -153,32 +185,37 @@ class PurchaseService(
         if (buyer.role != Role.BUYER) {
             throw AccessDeniedException("Only buyers can purchase packages.")
         }
-        val travelPackage = travelPackageService.findForUpdate(packageId)
-        require(travelPackage.agency.active) { "This agency is inactive. The package is not available for purchase." }
-        require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
+        val preview = travelPackageService.findById(packageId)
+        require(preview.agency.active) { "This agency is inactive. The package is not available for purchase." }
+        require(preview.active) { "Este paquete está archivado y no admite nuevas compras." }
+        val outboundFlightId = preview.outboundFlightId
+        val returnFlightId = preview.returnFlightId
         val passengerName = "${buyer.firstName} ${buyer.lastName}"
 
-        val outboundSale = flightsClient.sell(travelPackage.outboundFlightId, passengerName)
-        val returnSale =
-            try {
-                flightsClient.sell(travelPackage.returnFlightId, passengerName)
-            } catch (ex: Exception) {
-                outboundSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
-                throw ex
-            }
+        val (outboundSale, returnSale) = sellSeats(outboundFlightId, returnFlightId, passengerName)
 
         return try {
-            purchaseRepository.save(
-                Purchase
-                    .Builder()
-                    .buyer(buyer)
-                    .travelPackage(travelPackage)
-                    .agency(travelPackage.agency)
-                    .purchasePrice(travelPackage.price)
-                    .purchasedAt(LocalDateTime.now())
-                    .flightSales(outboundSale.id, returnSale.id)
-                    .build(),
-            )
+            transactions.execute<Purchase> {
+                val travelPackage = travelPackageService.findForUpdate(packageId)
+                entityManager.refresh(travelPackage, LockModeType.PESSIMISTIC_WRITE)
+                require(travelPackage.agency.active) { "This agency is inactive. The package is not available for purchase." }
+                require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
+                require(travelPackage.outboundFlightId == outboundFlightId && travelPackage.returnFlightId == returnFlightId) {
+                    "El paquete cambió de vuelos durante la compra."
+                }
+                val currentBuyer = userService.findByUsername(username)
+                purchaseRepository.save(
+                    Purchase
+                        .Builder()
+                        .buyer(currentBuyer)
+                        .travelPackage(travelPackage)
+                        .agency(travelPackage.agency)
+                        .purchasePrice(travelPackage.price)
+                        .purchasedAt(LocalDateTime.now())
+                        .flightSales(outboundSale.id, returnSale.id)
+                        .build(),
+                )
+            }
         } catch (ex: Exception) {
             outboundSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
             returnSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
@@ -187,18 +224,18 @@ class PurchaseService(
     }
 
     /**
-     * Logical delete. Order: validate locally, check the outbound departure, release both seats in
-     * flights-service and only then mark the purchase CANCELLED. Any failure rolls back the local change,
-     * so the purchase stays ACTIVE; a retry is safe because an already released sale (404) counts as released.
+     * Logical delete. The flight calls happen before the purchase row is locked: releasing a sale is
+     * idempotent (an already released sale answers 404), and only one transaction can mark the row
+     * CANCELLED. A retry is safe when the seats were released but the local update did not commit.
      */
-    @Transactional
     fun cancel(
         username: String,
         id: Long,
     ): Purchase {
         val purchase =
-            purchaseRepository.findForUpdate(id)
-                ?: throw EntityNotFoundException("There is no Purchase with id: $id.")
+            purchaseRepository.findById(id).orElseThrow {
+                EntityNotFoundException("There is no Purchase with id: $id.")
+            }
         val requester = userService.findByUsername(username)
         if (purchase.buyer.id != requester.id && requester.role != Role.ADMIN) {
             throw AccessDeniedException("Only the buyer or an admin can cancel this purchase.")
@@ -209,9 +246,55 @@ class PurchaseService(
         require(LocalDateTime.of(outbound.flightDate, outbound.departureTime).isAfter(now)) {
             "El vuelo de ida ya partió. La compra no puede cancelarse."
         }
-        listOfNotNull(purchase.outboundSaleId, purchase.returnSaleId).forEach(::releaseSeat)
-        purchase.cancel(now)
-        return purchaseRepository.save(purchase)
+        releaseSeats(listOfNotNull(purchase.outboundSaleId, purchase.returnSaleId))
+        return transactions.execute<Purchase> {
+            val locked =
+                purchaseRepository.findForUpdate(id)
+                    ?: throw EntityNotFoundException("There is no Purchase with id: $id.")
+            // OSIV already holds this row. Refresh under the lock so only one cancel commits.
+            entityManager.refresh(locked, LockModeType.PESSIMISTIC_WRITE)
+            require(locked.isActive) { "La compra ya fue cancelada." }
+            locked.cancel(now)
+            purchaseRepository.save(locked)
+        }
+    }
+
+    private fun sellSeats(
+        outboundFlightId: Long,
+        returnFlightId: Long,
+        passengerName: String,
+    ): Pair<ExternalFlightSaleDto, ExternalFlightSaleDto> {
+        val outboundFuture = inFlightContext { flightsClient.sell(outboundFlightId, passengerName) }
+        val returnFuture = inFlightContext { flightsClient.sell(returnFlightId, passengerName) }
+        val outbound = unwrap(runCatching { outboundFuture.join() })
+        val returning = unwrap(runCatching { returnFuture.join() })
+        if (outbound.isFailure || returning.isFailure) {
+            outbound.getOrNull()?.id?.let { runCatching { flightsClient.cancelSale(it) } }
+            returning.getOrNull()?.id?.let { runCatching { flightsClient.cancelSale(it) } }
+            throw outbound.exceptionOrNull() ?: returning.exceptionOrNull()!!
+        }
+        return outbound.getOrThrow() to returning.getOrThrow()
+    }
+
+    private fun <T> inFlightContext(block: () -> T): CompletableFuture<T> = CompletableFuture.supplyAsync(block, flightCalls)
+
+    private fun <T> unwrap(result: Result<T>): Result<T> =
+        result.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { error -> Result.failure((error as? CompletionException)?.cause ?: error) },
+        )
+
+    private fun releaseSeats(saleIds: List<Long>) {
+        if (saleIds.size < 2) {
+            saleIds.forEach(::releaseSeat)
+            return
+        }
+        val first = CompletableFuture.runAsync({ releaseSeat(saleIds[0]) }, flightCalls)
+        val second = CompletableFuture.runAsync({ releaseSeat(saleIds[1]) }, flightCalls)
+        val firstError = runCatching { first.join() }.exceptionOrNull()
+        val secondError = runCatching { second.join() }.exceptionOrNull()
+        val error = firstError ?: secondError ?: return
+        throw (error as? CompletionException)?.cause ?: error
     }
 
     private fun releaseSeat(saleId: Long) {

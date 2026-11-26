@@ -177,6 +177,7 @@ class PurchaseCancellationControllerTest {
             .andExpect(jsonPath("$.errorData.description").value("La compra ya fue cancelada."))
 
         Mockito.verify(flightsClient, Mockito.times(1)).cancelSale(10L)
+        Mockito.verify(flightsClient, Mockito.times(1)).cancelSale(11L)
     }
 
     @Test

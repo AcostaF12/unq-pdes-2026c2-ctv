@@ -15,6 +15,7 @@ import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.helpers.factory.PersistentObjectsFactory
 import unq.pdes.backend.helpers.service.DataServiceH2
+import unq.pdes.backend.persistence.jpa.PurchaseRepository
 import unq.pdes.backend.persistence.jpa.TravelPackageRepository
 import unq.pdes.backend.service.PurchaseService
 import java.time.LocalDate
@@ -32,6 +33,9 @@ class PurchaseServiceTest {
 
     @Autowired
     private lateinit var travelPackageRepository: TravelPackageRepository
+
+    @Autowired
+    private lateinit var purchaseRepository: PurchaseRepository
 
     @MockitoBean
     private lateinit var flightsClient: FlightsClient
@@ -97,6 +101,27 @@ class PurchaseServiceTest {
 
         assertEquals("The flight has no availability.", exception.message)
         Mockito.verify(flightsClient).cancelSale(10L)
+    }
+
+    @Test
+    fun `02b - purchase should release both seats when the package is archived while they are sold`() {
+        val buyer = factory.buyerNamed("buyer")
+        val travelPackage = factory.packageNamed("París Romántico")
+        Mockito.`when`(flightsClient.sell(2L, "Bruno Buyer")).thenAnswer {
+            travelPackage.active = false
+            travelPackageRepository.saveAndFlush(travelPackage)
+            ExternalFlightSaleDto(11L, 2L, "Bruno Buyer")
+        }
+
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                purchaseService.purchase(buyer.username, travelPackage.id!!)
+            }
+
+        assertEquals("Este paquete está archivado y no admite nuevas compras.", exception.message)
+        Mockito.verify(flightsClient).cancelSale(10L)
+        Mockito.verify(flightsClient).cancelSale(11L)
+        assertEquals(0, purchaseRepository.count())
     }
 
     @Test

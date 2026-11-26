@@ -146,7 +146,9 @@ class PurchaseController(
         summary = "Comprar paquete",
         description =
             "Única ruta pública que vende asientos.\n\n" +
-                "Vende la ida y después la vuelta. Si la vuelta falla, cancela la ida y no guarda la compra. " +
+                "Vende la ida y la vuelta en paralelo, sin bloquear la fila del paquete durante esas llamadas. " +
+                "Si la vuelta falla, o el paquete se archiva o cambia de vuelos antes de guardar, " +
+                "cancela los asientos y no guarda la compra. " +
                 "El ticket conserva el precio de ese momento.\n\n" +
                 "**Quién:** comprador\n" +
                 "**201** compra creada\n" +
