@@ -1,13 +1,23 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 5s
+  scrape_timeout: 4s
 
 scrape_configs:
   - job_name: backend
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["backend:8080"]
+    metric_relabel_configs: &dashboard_series
+      # Overview y Load. El resto del scrape se descarta: en la VM el TSDB tiene 64 MB.
+      - source_labels: [__name__]
+        regex: process_uptime_seconds|jvm_memory_(used|max)_bytes|http_server_requests_seconds_(bucket|count)|hikaricp_connections_(active|pending|max)|resilience4j_circuitbreaker_state|package_search_duration_seconds_bucket
+        action: keep
+      - source_labels: [__name__, area]
+        regex: jvm_memory_(used|max)_bytes;nonheap
+        action: drop
 
   - job_name: flights-service
     metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["flights-service:8081"]
+    metric_relabel_configs: *dashboard_series
