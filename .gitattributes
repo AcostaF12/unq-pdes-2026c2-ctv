@@ -1,6 +1,7 @@
 # Files executed or parsed inside Linux containers and CI must keep LF line endings,
 # also when the repo is checked out on Windows (core.autocrlf=true).
 *.sh text eol=lf
+*.mjs text eol=lf
 *.rb text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
