@@ -59,7 +59,7 @@ El catálogo y el lote interno de demo están en `/internal/demo/*` del servicio
 
 `PUT /packages/{id}/status` recibe `{ "active": false }` para archivar y `true` para publicar. `GET /admin/packages` incluye ambos estados y admite `active=true/false`. Estas operaciones están protegidas en la API.
 
-Compra y cambio de estado bloquean la misma fila del paquete para resolver carreras. La venta de asientos bloquea el vuelo en PostgreSQL: dos compradores no pueden vender el último asiento simultáneamente. Cancelar una reserva también bloquea la venta y el vuelo antes de devolver stock.
+La venta de asientos bloquea el vuelo en PostgreSQL: dos compradores no pueden vender el último asiento a la vez, aunque la compra llegue a pods distintos. La fila del paquete se bloquea solo al guardar la compra, después de vender ida y vuelta, para no encolar a los demás compradores durante ese HTTP. Si en ese momento el paquete se archivó o cambió de vuelos, las dos ventas se cancelan. Cancelar una compra libera los asientos antes de bloquear la fila: devolver una venta ya devuelta responde 404 y cuenta como liberada, y una sola transacción puede marcarla CANCELLED. Archivar o editar el paquete sigue bloqueando esa misma fila.
 
 ## Reiniciar y reinicializar
 
