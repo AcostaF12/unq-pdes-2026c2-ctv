@@ -49,6 +49,9 @@ services:
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: WARN
+      LOGGING_LEVEL_ORG_HIBERNATE: WARN
     depends_on:
       flights-postgres:
         condition: service_healthy
@@ -77,6 +80,10 @@ services:
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000
       JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: WARN
+      LOGGING_LEVEL_ORG_HIBERNATE: WARN
+      SERVER_TOMCAT_ACCESSLOG_ENABLED: "false"
     ports:
       - "8080:8080"
     depends_on:
@@ -96,7 +103,7 @@ services:
       - tracing-net
 
   zipkin:
-    profiles: ["monitoring"]
+    profiles: ["traces", "monitoring"]
     image: openzipkin/zipkin:3.6.1
     ports:
       - "9411:9411"
@@ -113,7 +120,7 @@ services:
       - frontend-net
 
   prometheus:
-    profiles: ["monitoring"]
+    profiles: ["metrics", "monitoring"]
     image: prom/prometheus:v3.16.0
     ports:
       - "9090:9090"
@@ -127,13 +134,28 @@ services:
       - flights-net
 
   grafana:
-    profiles: ["monitoring"]
+    profiles: ["metrics", "monitoring"]
     image: grafana/grafana:13.3.1
     ports:
       - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_X_XSS_PROTECTION: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/ctv-overview.json
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 5s
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_ANALYTICS_FEEDBACK_LINKS_ENABLED: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_SNAPSHOTS_EXTERNAL_ENABLED: "false"
+      GF_DATAPROXY_LOGGING: "false"
+      GF_LOG_MODE: console
+      GF_LOG_LEVEL: warn
+      # Avisos de Grafana 13 sin efecto: el watcher de manifests vacío y los plugins core duplicados.
+      GF_LOG_FILTERS: search-manifest-watcher:error,plugins.dedupe:error
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -144,7 +166,7 @@ services:
       - backend-net
 
   elasticsearch:
-    profiles: ["monitoring"]
+    profiles: ["logs", "monitoring"]
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     environment:
       - discovery.type=single-node
@@ -163,7 +185,7 @@ services:
       - logging-net
 
   logstash:
-    profiles: ["monitoring"]
+    profiles: ["logs", "monitoring"]
     image: docker.elastic.co/logstash/logstash:8.15.3
     volumes:
       - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline:ro
@@ -180,7 +202,7 @@ services:
       - logging-net
 
   kibana:
-    profiles: ["monitoring"]
+    profiles: ["logs", "monitoring"]
     image: docker.elastic.co/kibana/kibana:8.15.3
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -194,7 +216,7 @@ services:
 
   # One-shot job: creates the ctv-logs-* data view in Kibana (idempotent).
   kibana-setup:
-    profiles: ["monitoring"]
+    profiles: ["logs", "monitoring"]
     image: curlimages/curl:8.17.0
     entrypoint: ["sh", "/setup/setup-data-view.sh"]
     volumes:
