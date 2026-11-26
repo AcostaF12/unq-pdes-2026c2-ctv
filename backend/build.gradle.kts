@@ -125,6 +125,7 @@ tasks.named("sonar") {
 // does), including the Kotlin compiler and Spring Boot's productionRuntimeClasspath, so the Docker
 // dependency layer holds everything `bootJar --offline` needs.
 tasks.register("resolveDependencies") {
+    group = "build setup"
     description = "Downloads the artifacts of every external dependency."
     val external =
         files(
