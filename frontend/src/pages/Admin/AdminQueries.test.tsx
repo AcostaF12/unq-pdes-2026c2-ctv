@@ -27,6 +27,7 @@ describe('Administrative queries', () => {
     expect(await screen.findByText('buyer')).toBeInTheDocument()
     expect(screen.getByText('Ana Perez')).toBeInTheDocument()
     expect(screen.getByText('Comprador')).toBeInTheDocument()
+    expect(screen.getByTestId('admin-query-summary')).toHaveTextContent('1 usuario')
     expect(screen.queryByRole('button', { name: /Editar|Eliminar|Crear/ })).not.toBeInTheDocument()
   })
   it('shows who saved a package and its agency', async () => {
@@ -53,6 +54,7 @@ describe('Administrative queries', () => {
     vi.mocked(getAdminUsers).mockImplementation(async (number) => ({ ...page([{ ...buyer, username: number ? 'second' : 'first' }]), page: number, totalElements: 21, totalPages: 2 }))
     renderPage(<AdminUsers />)
     await screen.findByText('first')
+    expect(screen.getByTestId('admin-query-summary')).toHaveTextContent('21 usuarios')
     await user.click(screen.getByRole('button', { name: 'Siguiente' }))
     expect(await screen.findByText('second')).toBeInTheDocument()
     expect(getAdminUsers).toHaveBeenLastCalledWith(1)

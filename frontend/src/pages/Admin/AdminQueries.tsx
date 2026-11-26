@@ -13,19 +13,28 @@ import './AdminQueries.css'
 interface ReadPageProps<T extends { id: number }> {
   title: string
   resource: string
+  singular: string
+  plural: string
   load: (page: number) => Promise<PagedResult<T>>
   headings: string[]
   cells: (row: T) => ReactNode[]
 }
 
-function ReadPage<T extends { id: number }>({ title, resource, load, headings, cells }: ReadPageProps<T>) {
+function ReadPage<T extends { id: number }>({ title, resource, singular, plural, load, headings, cells }: ReadPageProps<T>) {
   const [page, setPage] = useState(0)
   const query = useQuery({ queryKey: ['admin', resource, page], queryFn: () => load(page) })
+  const total = query.data?.totalElements
   return (
     <section className="page">
       <Link className="catalog__back" to="/admin">← Administración</Link>
       <h1 className="page__title">{title}</h1>
       <p className="catalog__muted">Consulta de sólo lectura.</p>
+      {total !== undefined ? (
+        <p className="admin-query-summary" data-testid="admin-query-summary">
+          <strong>{total}</strong>
+          <span>{` ${total === 1 ? singular : plural}`}</span>
+        </p>
+      ) : null}
       {query.isPending ? <ListSkeleton variant="rows" count={4} label={`Cargando ${title.toLowerCase()}`} /> : query.isError ? (
         <EmptyState tone="error" title="No se pudo cargar la consulta"
           message={getApiErrorMessage(query.error) ?? 'Intentá de nuevo.'}
@@ -51,26 +60,26 @@ const amount = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'US
 const date = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
 
 export function AdminUsers() {
-  return <ReadPage title="Usuarios" resource="users" load={getAdminUsers}
+  return <ReadPage title="Usuarios" resource="users" singular="usuario" plural="usuarios" load={getAdminUsers}
     headings={['Usuario', 'Nombre', 'Rol', 'Agencia']}
     cells={(row) => [row.username, `${row.firstName} ${row.lastName}`, roleNames[row.role] ?? row.role,
       row.agency ? `${row.agency.name}${row.agency.active === false ? ' (inactiva)' : ''}` : '—']} />
 }
 
 export function AdminFavorites() {
-  return <ReadPage title="Favoritos" resource="favorites" load={getAdminFavorites}
+  return <ReadPage title="Favoritos" resource="favorites" singular="favorito" plural="favoritos" load={getAdminFavorites}
     headings={['Comprador', 'Paquete', 'Agencia']}
     cells={(row) => [row.buyerUsername, row.packageName, row.agencyName]} />
 }
 
 export function AdminReviews() {
-  return <ReadPage title="Reseñas" resource="reviews" load={getAdminReviews}
+  return <ReadPage title="Reseñas" resource="reviews" singular="reseña" plural="reseñas" load={getAdminReviews}
     headings={['Comprador', 'Paquete', 'Puntaje', 'Comentario']}
     cells={(row) => [row.buyerUsername, row.packageName, `${row.score} / 10`, row.comment || 'Sin comentario']} />
 }
 
 export function AdminPurchases() {
-  return <ReadPage title="Compras" resource="purchases" load={getAdminPurchases}
+  return <ReadPage title="Compras" resource="purchases" singular="compra" plural="compras" load={getAdminPurchases}
     headings={['Compra', 'Comprador', 'Paquete', 'Agencia', 'Fecha', 'Precio abonado']}
     cells={(row) => [row.id, row.buyer.username, row.travelPackage.name, row.travelPackage.agency.name,
       date.format(new Date(row.purchasedAt)), amount.format(row.purchasePrice)]} />
