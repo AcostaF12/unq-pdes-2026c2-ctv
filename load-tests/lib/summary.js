@@ -50,6 +50,20 @@ export function markdownSummary(title, data) {
     `| Latencia máxima | ${ms(duration.max)} |`,
   ];
 
+  ['purchase_duration', 'rebuy_duration', 'cancel_duration'].forEach((name) => {
+    const values = metricValues(data, name);
+    if (values['p(95)'] !== undefined) {
+      lines.push(`| \`${name}\` p95 | ${ms(values['p(95)'])} |`);
+    }
+  });
+
+  Object.keys(data.metrics)
+    .filter((name) => name.startsWith('http_req_duration{'))
+    .sort()
+    .forEach((name) => {
+      lines.push(`| \`${name}\` p95 | ${ms(metricValues(data, name)['p(95)'])} |`);
+    });
+
   Object.keys(data.metrics)
     .filter((name) => data.metrics[name].type === 'counter' && !BUILTIN_COUNTERS.includes(name))
     .forEach((name) => lines.push(`| \`${name}\` | ${metricValues(data, name).count} |`));

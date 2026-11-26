@@ -4,7 +4,7 @@
 import http from 'k6/http';
 import exec from 'k6/execution';
 import { check } from 'k6';
-import { Counter } from 'k6/metrics';
+import { Counter, Trend } from 'k6/metrics';
 import { ADMIN, BASE_URL, loginOrFail, params, queryString, requestOrFail } from './lib/common.js';
 import { summaryOutputs } from './lib/summary.js';
 
@@ -17,6 +17,7 @@ const succeeded = new Counter('purchases_succeeded');
 const rejected = new Counter('purchases_rejected');
 const unexpected = new Counter('purchases_unexpected');
 const seatsLeft = new Counter('seats_left_after');
+const purchaseDuration = new Trend('purchase_duration', true);
 
 export const options = {
   setupTimeout: '3m',
@@ -26,16 +27,9 @@ export const options = {
       executor: 'per-vu-iterations',
       vus: BUYERS,
       iterations: 1,
-      maxDuration: '45s',
+      maxDuration: '30s',
+      gracefulStop: '2s',
       exec: 'purchase',
-    },
-    // Al terminar, revisa el stock de los dos vuelos en flights-service.
-    verify: {
-      executor: 'shared-iterations',
-      vus: 1,
-      iterations: 1,
-      startTime: '50s',
-      exec: 'verify',
     },
   },
   thresholds: {
@@ -126,6 +120,7 @@ export function purchase(data) {
     JSON.stringify({ packageId: data.packageId }),
     params('POST /purchases', token, { responseCallback: http.expectedStatuses(201, 400) }),
   );
+  purchaseDuration.add(res.timings.duration);
   succeeded.add(res.status === 201 ? 1 : 0);
   rejected.add(res.status === 400 ? 1 : 0);
   const isUnexpected = res.status !== 201 && res.status !== 400;
@@ -152,6 +147,7 @@ function flightAvailability(id, token) {
 // Deja la demo como estaba: cancela las compras de la corrida (libera los asientos y las saca de los
 // reportes) y archiva el paquete para que no aparezca en el catálogo.
 export function teardown(data) {
+  verify(data);
   const sales = http.get(
     `${BASE_URL}/admin/sales?${queryString({ packageName: data.packageName, size: 100 })}`,
     params('GET /admin/sales', data.adminToken),
