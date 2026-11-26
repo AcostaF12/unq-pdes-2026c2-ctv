@@ -53,8 +53,17 @@ function renderPicker(destinationCode: string | null) {
   )
 }
 
-function optionLabels(select: HTMLElement): string[] {
-  return within(select).getAllByRole('option').map((option) => option.textContent ?? '')
+function flightGroup(name: string) {
+  return screen.getByRole('radiogroup', { name })
+}
+
+function radioLabels(name: string): string[] {
+  return within(flightGroup(name)).queryAllByRole('radio').map((radio) => radio.getAttribute('aria-label') ?? '')
+}
+
+function checkedValue(name: string): string {
+  const checked = within(flightGroup(name)).queryByRole('radio', { checked: true })
+  return checked instanceof HTMLInputElement ? checked.value : ''
 }
 
 describe('FlightPicker', () => {
@@ -70,8 +79,8 @@ describe('FlightPicker', () => {
   it('asks for a hotel first and does not load flights without a destination', () => {
     renderPicker(null)
 
-    expect(screen.getByLabelText('Vuelo de ida')).toBeDisabled()
-    expect(screen.getByLabelText('Vuelo de ida')).toHaveDisplayValue('Elegí un hotel primero')
+    expect(flightGroup('Vuelo de ida')).toHaveAttribute('aria-disabled', 'true')
+    expect(flightGroup('Vuelo de ida')).toHaveTextContent('Elegí un hotel primero')
     expect(mockedListFlights).not.toHaveBeenCalled()
   })
 
@@ -79,23 +88,20 @@ describe('FlightPicker', () => {
     const user = userEvent.setup()
     renderPicker('PAR')
 
-    const outbound = screen.getByLabelText('Vuelo de ida')
     await waitFor(() => {
-      expect(optionLabels(outbound)).toEqual([
-        'Elegí un vuelo de ida',
-        flightChoiceLabel(outboundToParis),
-        flightChoiceLabel(laterOutboundToParis),
+      expect(radioLabels('Vuelo de ida')).toEqual([
+        describeFlight(outboundToParis),
+        describeFlight(laterOutboundToParis),
       ])
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ destination: 'PAR' })
-    expect(screen.getByLabelText('Vuelo de vuelta')).toBeDisabled()
+    expect(flightGroup('Vuelo de vuelta')).toHaveAttribute('aria-disabled', 'true')
 
-    await user.selectOptions(outbound, String(outboundToParis.id))
+    await user.click(screen.getByRole('radio', { name: describeFlight(outboundToParis) }))
 
-    const inbound = screen.getByLabelText('Vuelo de vuelta')
     await waitFor(() => {
-      expect(optionLabels(inbound)).toEqual(['Elegí un vuelo de vuelta', flightChoiceLabel(returnFromParis)])
-      expect(inbound).toHaveValue(String(returnFromParis.id))
+      expect(radioLabels('Vuelo de vuelta')).toEqual([describeFlight(returnFromParis)])
+      expect(screen.getByRole('radio', { name: describeFlight(returnFromParis) })).toBeChecked()
     })
     expect(mockedListFlights).toHaveBeenCalledWith({ origin: 'PAR', destination: 'BUE' })
   })
@@ -104,24 +110,23 @@ describe('FlightPicker', () => {
     const user = userEvent.setup()
     renderPicker('PAR')
 
-    const outbound = screen.getByLabelText('Vuelo de ida')
-    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
-    await user.selectOptions(outbound, String(outboundToParis.id))
-    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
+    await screen.findByRole('radio', { name: describeFlight(outboundToParis) })
+    await user.click(screen.getByRole('radio', { name: describeFlight(outboundToParis) }))
+    await screen.findByRole('radio', { name: describeFlight(returnFromParis) })
     await waitFor(() => {
-      expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
+      expect(checkedValue('Vuelo de vuelta')).toBe(String(returnFromParis.id))
     })
 
-    await user.selectOptions(outbound, String(laterOutboundToParis.id))
+    await user.click(screen.getByRole('radio', { name: describeFlight(laterOutboundToParis) }))
 
-    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue(String(returnFromParis.id))
+    expect(checkedValue('Vuelo de vuelta')).toBe(String(returnFromParis.id))
   })
 
   it('tells the admin when there are no flights to the destination', async () => {
     mockedListFlights.mockResolvedValue([])
     renderPicker('PAR')
 
-    expect(await screen.findByRole('option', { name: 'No hay vuelos hacia PAR' })).toBeInTheDocument()
+    expect(await screen.findByText('No hay vuelos hacia PAR')).toBeInTheDocument()
   })
 
   it('shows the server message when flights cannot be loaded', async () => {
@@ -146,23 +151,19 @@ describe('FlightPicker', () => {
     await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
       destination: 'PAR', origin: 'BUE', date: '2026-12-01',
     }))
-    await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toEqual([
-      'Elegí un vuelo de ida', flightChoiceLabel(outboundToParis),
-    ]))
+    await waitFor(() => expect(radioLabels('Vuelo de ida')).toEqual([describeFlight(outboundToParis)]))
 
     await user.selectOptions(screen.getByLabelText('Origen de ida'), '')
     fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '' } })
-    await waitFor(() => expect(optionLabels(screen.getByLabelText('Vuelo de ida'))).toHaveLength(3))
+    await waitFor(() => expect(radioLabels('Vuelo de ida')).toHaveLength(2))
     expect(screen.getByLabelText('Origen de ida')).toHaveValue('')
   })
 
   it.each(['Origen de ida', 'Fecha de ida'])('clears both selected flights when %s changes', async (label) => {
     const user = userEvent.setup()
     renderPicker('PAR')
-    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    await user.click(await screen.findByRole('radio', { name: describeFlight(outboundToParis) }))
+    await screen.findByRole('radio', { name: describeFlight(returnFromParis) })
 
     if (label === 'Origen de ida') {
       await user.selectOptions(screen.getByLabelText(label), 'MAD')
@@ -170,9 +171,9 @@ describe('FlightPicker', () => {
       fireEvent.change(screen.getByLabelText(label), { target: { value: '2026-12-05' } })
     }
 
-    expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('')
-    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
-    expect(screen.getByLabelText('Vuelo de vuelta')).toBeDisabled()
+    expect(checkedValue('Vuelo de ida')).toBe('')
+    expect(checkedValue('Vuelo de vuelta')).toBe('')
+    expect(flightGroup('Vuelo de vuelta')).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('filters the reverse route by return date and clears only the selected return flight', async () => {
@@ -183,21 +184,19 @@ describe('FlightPicker', () => {
       && (!params?.date || flight.flightDate === params.date),
     ))
     renderPicker('PAR')
-    await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
-    await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })
-    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    await user.click(await screen.findByRole('radio', { name: describeFlight(outboundToParis) }))
+    await user.click(await screen.findByRole('radio', { name: describeFlight(returnFromParis) }))
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-11' } })
 
     await waitFor(() => expect(mockedListFlights).toHaveBeenLastCalledWith({
       origin: 'PAR', destination: 'BUE', date: '2026-12-11',
     }))
-    expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('1')
-    expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('')
-    expect(await screen.findByRole('option', { name: 'No hay vuelos de regreso para esa ruta' })).toBeInTheDocument()
+    expect(checkedValue('Vuelo de ida')).toBe('1')
+    expect(checkedValue('Vuelo de vuelta')).toBe('')
+    expect(await screen.findByText('No hay vuelos de regreso para esa ruta')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '' } })
-    expect(await screen.findByRole('option', { name: flightChoiceLabel(returnFromParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('radio', { name: describeFlight(returnFromParis) })).toBeInTheDocument()
   })
 
   it('shows city loading errors without blocking unfiltered flight selection', async () => {
@@ -206,6 +205,6 @@ describe('FlightPicker', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar las ciudades')
     expect(screen.getByLabelText('Origen de ida')).toBeDisabled()
-    expect(await screen.findByRole('option', { name: flightChoiceLabel(outboundToParis) })).toBeInTheDocument()
+    expect(await screen.findByRole('radio', { name: describeFlight(outboundToParis) })).toBeInTheDocument()
   })
 })

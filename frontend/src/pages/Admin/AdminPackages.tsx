@@ -13,6 +13,7 @@ import {
   type TravelPackagePayload,
 } from '../../api/packages'
 import { Button } from '../../components/Button/Button'
+import { Input } from '../../components/Input/Input'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { PackageForm } from '../../components/PackageForm/PackageForm'
@@ -20,6 +21,7 @@ import { Pagination } from '../../components/Pagination/Pagination'
 import { Select } from '../../components/Select/Select'
 import { queryKeys } from '../../query/keys'
 import { ADMIN_PATH } from '../../router/paths'
+import { AdminFlow } from './AdminFlow'
 import '../Packages/packages.css'
 import './admin.css'
 
@@ -67,6 +69,8 @@ export function AdminPackages() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(0)
   const [status, setStatus] = useState('all')
+  const [nameDraft, setNameDraft] = useState('')
+  const [name, setName] = useState('')
   const [form, setForm] = useState<FormState>({ mode: 'closed' })
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -76,6 +80,7 @@ export function AdminPackages() {
     size: PAGE_SIZE,
     sort: 'name,asc',
     ...(status === 'all' ? {} : { active: status === 'active' }),
+    ...(name ? { name } : {}),
   }
   const packagesQuery = useQuery({
     queryKey: [...queryKeys.packages.all, 'admin', searchParams],
@@ -232,6 +237,7 @@ export function AdminPackages() {
       <Link className="catalog__back" to={ADMIN_PATH}>
         ← Administración
       </Link>
+      <AdminFlow current="packages" />
       <div className="page__header">
         <h1 className="page__title">Paquetes</h1>
         {form.mode === 'closed' ? (
@@ -247,6 +253,17 @@ export function AdminPackages() {
         </p>
       ) : null}
 
+      <form
+        className="admin-filters"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setName(nameDraft.trim())
+          setPage(0)
+        }}
+      >
+        <Input label="Buscar paquete" value={nameDraft} onChange={(event) => setNameDraft(event.target.value)} />
+        <Button type="submit">Buscar</Button>
+      </form>
       <Select
         label="Estado del paquete"
         value={status}

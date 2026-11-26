@@ -7,7 +7,7 @@ import type { Flight } from '../../api/packages'
 import { queryKeys } from '../../query/keys'
 import { Input } from '../Input/Input'
 import { Select } from '../Select/Select'
-import { describeFlight, flightChoiceLabel, outboundOptions, returnOptions } from './flightOptions'
+import { describeFlight, describeSeats, outboundOptions, returnOptions } from './flightOptions'
 import './FlightPicker.css'
 
 const flightDateFormat = new Intl.DateTimeFormat('es-AR', {
@@ -41,13 +41,6 @@ function flightsByDate(flights: Flight[]): { date: string; flights: Flight[] }[]
   return groups
 }
 
-function listRows(flights: Flight[]): number | undefined {
-  if (flights.length === 0) {
-    return undefined
-  }
-  return Math.min(flights.length + 1 + flightsByDate(flights).length, 8)
-}
-
 export interface FlightSelection {
   outboundFlightId: string
   returnFlightId: string
@@ -58,6 +51,77 @@ interface FlightPickerProps extends FlightSelection {
   onChange: (selection: FlightSelection) => void
   outboundError?: string
   returnError?: string
+}
+
+interface FlightChoicesProps {
+  label: string
+  testId: string
+  flights: Flight[]
+  value: string
+  disabled: boolean
+  placeholder: string
+  error?: string
+  onSelect: (flightId: string) => void
+}
+
+function FlightChoices({
+  label,
+  testId,
+  flights,
+  value,
+  disabled,
+  placeholder,
+  error,
+  onSelect,
+}: FlightChoicesProps) {
+  return (
+    <div
+      className="flight-picker__group"
+      role="radiogroup"
+      aria-label={label}
+      aria-disabled={disabled || undefined}
+      aria-invalid={Boolean(error) || undefined}
+      data-testid={testId}
+    >
+      <p className="flight-picker__group-title">{label}</p>
+      {disabled || flights.length === 0 ? <p className="flight-picker__placeholder">{placeholder}</p> : (
+        flightsByDate(flights).map((group) => (
+          <div key={group.date} className="flight-picker__day">
+            <p className="flight-picker__day-label">{formatFlightDate(group.date)}</p>
+            {group.flights.map((flight) => (
+              <label
+                key={flight.id}
+                className={value === String(flight.id) ? 'choice-card choice-card--selected' : 'choice-card'}
+                title={describeFlight(flight)}
+              >
+                <input
+                  type="radio"
+                  name={testId}
+                  value={flight.id}
+                  aria-label={describeFlight(flight)}
+                  checked={value === String(flight.id)}
+                  onChange={() => onSelect(String(flight.id))}
+                />
+                <span className="choice-card__title">{flight.airline}</span>
+                <span className="choice-card__meta">
+                  {flight.origin} → {flight.destination}
+                </span>
+                <span className="choice-card__meta">
+                  {formatFlightDate(flight.flightDate)} · {flight.departureTime.slice(0, 5)}
+                </span>
+                <span className="choice-card__meta">{describeSeats(flight.availability)}</span>
+              </label>
+            ))}
+          </div>
+        ))
+      )}
+      {error ? (
+        <p className="flight-picker__error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
 }
 
 export function FlightPicker({
@@ -150,9 +214,6 @@ export function FlightPicker({
     returnPlaceholder = 'No hay vuelos de regreso para esa ruta'
   }
 
-  const outboundRows = listRows(outbound)
-  const returnRows = listRows(inbound)
-
   return (
     <div className="flight-picker" data-testid="flight-picker">
       <div className="flight-picker__filters" role="group" aria-label="Filtrar vuelos">
@@ -193,16 +254,15 @@ export function FlightPicker({
           }}
         />
       </div>
-      <Select
+      <FlightChoices
         label="Vuelo de ida"
-        data-testid="package-outbound-flight"
-        className={outboundRows ? 'field__select--list' : undefined}
-        size={outboundRows}
+        testId="package-outbound-flight"
+        flights={outbound}
         value={outboundFlightId}
-        disabled={destinationCode === null}
+        disabled={destinationCode === null || outboundQuery.isPending}
+        placeholder={outboundPlaceholder}
         error={outboundError}
-        onChange={(event) => {
-          const nextId = event.target.value
+        onSelect={(nextId) => {
           const nextFlight = outbound.find((flight) => String(flight.id) === nextId)
           const sameRoute = Boolean(
             selectedOutbound &&
@@ -215,39 +275,17 @@ export function FlightPicker({
             returnFlightId: sameRoute ? returnFlightId : '',
           })
         }}
-      >
-        <option value="">{outboundPlaceholder}</option>
-        {flightsByDate(outbound).map((group) => (
-          <optgroup key={group.date} label={formatFlightDate(group.date)}>
-            {group.flights.map((flight) => (
-              <option key={flight.id} value={flight.id} title={describeFlight(flight)}>
-                {flightChoiceLabel(flight)}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </Select>
-      <Select
+      />
+      <FlightChoices
         label="Vuelo de vuelta"
-        data-testid="package-return-flight"
-        className={returnRows ? 'field__select--list' : undefined}
-        size={returnRows}
+        testId="package-return-flight"
+        flights={inbound}
         value={returnFlightId}
-        disabled={!selectedOutbound}
+        disabled={!selectedOutbound || returnQuery.isPending}
+        placeholder={returnPlaceholder}
         error={returnError}
-        onChange={(event) => onChange({ outboundFlightId, returnFlightId: event.target.value })}
-      >
-        <option value="">{returnPlaceholder}</option>
-        {flightsByDate(inbound).map((group) => (
-          <optgroup key={group.date} label={formatFlightDate(group.date)}>
-            {group.flights.map((flight) => (
-              <option key={flight.id} value={flight.id} title={describeFlight(flight)}>
-                {flightChoiceLabel(flight)}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </Select>
+        onSelect={(nextId) => onChange({ outboundFlightId, returnFlightId: nextId })}
+      />
       {loadError ? (
         <p className="flight-picker__error" role="alert">
           {getApiErrorMessage(loadError) ?? 'No pudimos cargar los vuelos. Intentá de nuevo.'}

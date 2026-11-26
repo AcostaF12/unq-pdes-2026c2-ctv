@@ -14,7 +14,8 @@ import {
   updatePackage,
   setPackageActive,
 } from '../../api/packages'
-import { allFlights, apiError, buenosAiresHotel, parisHotel, parisPackage } from '../../test/fixtures'
+import { allFlights, apiError, buenosAiresHotel, outboundToParis, parisHotel, parisPackage, returnFromParis } from '../../test/fixtures'
+import { describeFlight } from '../../components/FlightPicker/flightOptions'
 import { fillParisPackage } from '../../test/packageFormHelpers'
 import { createTestQueryClient } from '../../test/queryClient'
 import { AdminPackages } from './AdminPackages'
@@ -86,6 +87,22 @@ describe('AdminPackages page', () => {
     vi.mocked(listHotels).mockResolvedValue([parisHotel, buenosAiresHotel])
     vi.mocked(listFlights).mockResolvedValue(allFlights)
     vi.mocked(listCities).mockResolvedValue([parisHotel.city, buenosAiresHotel.city])
+  })
+
+  it('filters the list by package name', async () => {
+    const user = userEvent.setup()
+    renderAdminPackages()
+    await screen.findByTestId('package-item')
+    await user.type(screen.getByLabelText('Buscar paquete'), 'Paris')
+    await user.click(screen.getByRole('button', { name: 'Buscar' }))
+    await waitFor(() =>
+      expect(mockedSearchPackages).toHaveBeenCalledWith({
+        page: 0,
+        size: 10,
+        sort: 'name,asc',
+        name: 'Paris',
+      }),
+    )
   })
 
   it('lists every package with its agency, route and price', async () => {
@@ -179,12 +196,11 @@ describe('AdminPackages page', () => {
     expect(screen.getByLabelText('Agencia')).toHaveValue('7')
     expect(screen.getByLabelText('Hotel')).toHaveValue('1')
     await waitFor(() => {
-      expect(screen.getByLabelText('Vuelo de ida')).toHaveValue('1')
+      expect(screen.getByRole('radio', { name: describeFlight(outboundToParis) })).toBeChecked()
     })
     await waitFor(() => {
-      expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2')
+      expect(screen.getByRole('radio', { name: describeFlight(returnFromParis) })).toBeChecked()
     })
-
     await user.clear(screen.getByLabelText('Precio'))
     await user.type(screen.getByLabelText('Precio'), '2100')
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
