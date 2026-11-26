@@ -20,6 +20,8 @@ export function AdminAgencies() {
   const [form, setForm] = useState(emptyForm)
   const [confirming, setConfirming] = useState<Agency | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const agencies = useQuery({ queryKey: queryKeys.agencies, queryFn: listAgencies })
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: queryKeys.agencies })
@@ -33,6 +35,7 @@ export function AdminAgencies() {
       setNotice(editing ? 'Agencia actualizada.' : 'Agencia creada.')
       setEditing(null)
       setForm(emptyForm)
+      setFormOpen(false)
       await refresh()
     },
   })
@@ -45,6 +48,8 @@ export function AdminAgencies() {
     },
   })
   const busy = save.isPending || toggle.isPending
+  const needle = query.trim().toLocaleLowerCase('es')
+  const listed = (agencies.data ?? []).filter((agency) => agency.name.toLocaleLowerCase('es').includes(needle))
   const openForm = (agency: Agency | null) => {
     save.reset()
     toggle.reset()
@@ -52,6 +57,13 @@ export function AdminAgencies() {
     setNotice(null)
     setEditing(agency)
     setForm({ ...emptyForm, name: agency?.name ?? '' })
+    setFormOpen(true)
+  }
+  const closeForm = () => {
+    save.reset()
+    setEditing(null)
+    setForm(emptyForm)
+    setFormOpen(false)
   }
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -69,8 +81,16 @@ export function AdminAgencies() {
     <section className="page">
       <Link className="catalog__back" to="/admin">← Administración</Link>
       <h1 className="page__title">Agencias</h1>
+      <p className="catalog__muted">
+        Crear una agencia crea también la cuenta del responsable. Con esa cuenta arma paquetes y elige vuelos que ya existen. Desactivarla oculta sus paquetes y bloquea el ingreso.
+      </p>
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
-      <form className="catalog__form" aria-label={editing ? 'Editar agencia' : 'Nueva agencia'} onSubmit={submit}>
+      {formOpen ? null : (
+        <div className="page__actions">
+          <Button type="button" onClick={() => openForm(null)}>Nueva agencia</Button>
+        </div>
+      )}
+      {formOpen ? <form className="catalog__form" aria-label={editing ? 'Editar agencia' : 'Nueva agencia'} onSubmit={submit}>
         <h2>{editing ? 'Editar agencia' : 'Nueva agencia y cuenta'}</h2>
         <fieldset className="admin-form__grid" disabled={busy}>
           <legend>{editing ? 'Datos de la agencia' : 'Datos de la agencia y su responsable'}</legend>
@@ -85,14 +105,17 @@ export function AdminAgencies() {
         {save.isError ? <p role="alert">{getApiErrorMessage(save.error) ?? 'No se pudo guardar la agencia.'}</p> : null}
         <div className="page__actions">
           <Button type="submit" loading={save.isPending} disabled={busy}>{editing ? 'Guardar cambios' : 'Crear agencia'}</Button>
-          {editing ? <Button type="button" variant="ghost" disabled={busy} onClick={() => openForm(null)}>Cancelar</Button> : null}
+          <Button type="button" variant="ghost" disabled={busy} onClick={closeForm}>Cancelar</Button>
         </div>
-      </form>
+      </form> : null}
       {toggle.isError ? <p role="alert">{getApiErrorMessage(toggle.error) ?? 'No se pudo cambiar el estado.'}</p> : null}
       {agencies.isPending ? <ListSkeleton variant="rows" count={3} label="Cargando agencias" /> : agencies.isError ? (
         <EmptyState tone="error" title="No se pudieron cargar las agencias" message="Intentá de nuevo."
           action={<Button onClick={() => void agencies.refetch()}>Reintentar</Button>} />
       ) : agencies.data.length === 0 ? <EmptyState title="Sin agencias" message="Creá la primera agencia con su cuenta." /> : (
+        <>
+        <Input label="Buscar agencia" value={query} onChange={(event) => setQuery(event.target.value)} />
+        {listed.length === 0 ? <EmptyState title="Sin coincidencias" message="Ninguna agencia coincide con esa búsqueda." /> : (
         <div className="admin-table-wrap" role="region" aria-label="Agencias registradas" tabIndex={0}>
           <table className="admin-table">
             <caption>Agencias registradas</caption>
@@ -104,7 +127,7 @@ export function AdminAgencies() {
               </tr>
             </thead>
             <tbody>
-              {agencies.data.map((agency) => {
+              {listed.map((agency) => {
                 const active = agency.active !== false
                 return (
                   <Fragment key={agency.id}>
@@ -178,6 +201,8 @@ export function AdminAgencies() {
             </tbody>
           </table>
         </div>
+        )}
+        </>
       )}
     </section>
   )

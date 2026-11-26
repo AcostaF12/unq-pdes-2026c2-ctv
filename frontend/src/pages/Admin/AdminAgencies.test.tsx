@@ -23,13 +23,14 @@ describe('AdminAgencies', () => {
     vi.mocked(createAgency).mockResolvedValue(agency)
     renderPage()
     await screen.findByText('Despegar')
+    await user.click(screen.getByRole('button', { name: 'Nueva agencia' }))
     for (const [label, value] of [['Nombre de agencia', 'Nueva'], ['Usuario', 'newagency'], ['Contraseña', 'secret123'], ['Nombre del responsable', 'Ana'], ['Apellido del responsable', 'Perez']]) {
       await user.type(screen.getByLabelText(label), value)
     }
     await user.click(screen.getByRole('button', { name: 'Crear agencia' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Agencia creada.')
     expect(createAgency).toHaveBeenCalledWith({ name: 'Nueva', username: 'newagency', password: 'secret123', firstName: 'Ana', lastName: 'Perez' })
-    expect(screen.getByLabelText('Contraseña')).toHaveValue('')
+    expect(screen.queryByLabelText('Contraseña')).not.toBeInTheDocument()
   })
   it('requires confirmation to deactivate and allows reactivation', async () => {
     const user = userEvent.setup()
