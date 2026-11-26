@@ -2,9 +2,9 @@
 
 La carpeta `k8s/` despliega la aplicación (2 bases, flights-service, backend y frontend) en un cluster de Kubernetes. A diferencia de Compose, el cluster **mantiene** el estado pedido: si un pod se cae o se borra, lo vuelve a crear; si un pod no pasa su probe, deja de recibir tráfico o se reinicia.
 
-El workflow [Kubernetes CI](../.github/workflows/kubernetes.yml) levanta un cluster [kind](https://kind.sigs.k8s.io/) en GitHub Actions, aplica estos manifiestos con las imágenes del commit, hace un smoke test y prueba la autorecuperación borrando un pod del backend.
+El workflow [Kubernetes CI](../.github/workflows/kubernetes.yml) levanta un cluster [kind](https://kind.sigs.k8s.io/) en GitHub Actions, aplica estos manifiestos con las imágenes del commit, hace un smoke test, corre la suite corta de concurrencia de k6 contra las 2 réplicas del backend (la misma que `npm run test:stress`) y prueba la autorecuperación borrando un pod del backend. El catálogo sostenido y el pico siguen en el workflow Load Tests: en kind el nodo ya está ocupado por el cluster.
 
-El resumen de cada corrida (pestaña *Summary* del job) junta en una pantalla el cluster, los Deployments, StatefulSets, Services y PVCs, los pods, el resultado del smoke test y la autorecuperación (pod borrado, pod nuevo y cuánto tardó en estar Ready).
+El resumen de cada corrida (pestaña *Summary* del job) junta en una pantalla el cluster, los Deployments, StatefulSets, Services y PVCs, los pods, el resultado del smoke test, el de cada escenario de concurrencia y la autorecuperación (pod borrado, pod nuevo, login y catálogo mientras se repone, y cuánto tardó en estar Ready).
 
 ## Objetos
 
@@ -66,7 +66,7 @@ kustomize edit set image ghcr.io/acostaf12/ctv-backend=ghcr.io/acostaf12/ctv-bac
 
 ### Monitoreo
 
-Prometheus, Grafana, Zipkin y ELK quedan en Compose. En el cluster, `TRACING_SAMPLING_PROBABILITY=0` apaga las trazas y `LOGGING_CONFIG` apunta a un Logback montado desde el ConfigMap `ctv-logback` que solo escribe a consola (sin el appender de Logstash). Los logs se ven con `kubectl logs`.
+Prometheus, Grafana, Zipkin y ELK quedan en Compose (`metrics`, `logs` y `traces`). En el cluster, `TRACING_SAMPLING_PROBABILITY=0` apaga las trazas y `LOGGING_CONFIG` apunta a un Logback montado desde el ConfigMap `ctv-logback` que solo escribe a consola (sin el appender de Logstash). Los logs se ven con `kubectl logs`.
 
 ## Correrlo en local con kind
 
@@ -187,7 +187,7 @@ kubectl apply -k k8s/
 
 ## Limitaciones
 
-- El monitoreo (Prometheus, Grafana, Zipkin, ELK) sigue en Compose; en el cluster solo hay logs por consola.
+- El monitoreo sigue en Compose, partido en `metrics`, `logs` y `traces`. En el cluster solo hay logs por consola (`kubectl logs`). No se suma Grafana al cluster: la CI de kind ya construye las tres imágenes y corre la suite corta de k6.
 - La VM de Azure sigue desplegando con Compose; Kubernetes se prueba en kind (CI y local), no en la nube.
 - No hay `HorizontalPodAutoscaler`: necesita metrics-server y se superpondría con la demo de `kubectl scale`. El escalado es manual.
 - No hay `NetworkPolicy`: dentro del cluster cualquier pod puede hablar con cualquier Service (Compose separa redes). flights-service y las bases igual quedan inaccesibles desde fuera.
