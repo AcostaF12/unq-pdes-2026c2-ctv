@@ -10,7 +10,7 @@ Desde la raíz del repo, con Docker Desktop abierto:
 npm start
 ```
 
-Eso ejecuta `docker compose up --build -d --wait`. Compila frontend, backend y vuelos, levanta las dos bases y no vuelve hasta que los chequeos de salud pasan. La primera vez tarda varios minutos. El monitoreo (Grafana, Prometheus, Zipkin, ELK) se activa con `npm run start:monitoring`.
+Eso ejecuta `docker compose up --build -d --wait`. Compila frontend, backend y vuelos, levanta las dos bases y no vuelve hasta que los chequeos de salud pasan. La primera vez tarda varios minutos. El monitoreo está en tres perfiles: `npm run start:metrics` (Grafana), `npm run start:logs` (ELK), `npm run start:traces` (Zipkin). `npm run start:observe` junta métricas y logs. `npm run start:monitoring` prende los tres, que es lo que usa la VM.
 
 | Para qué | Comando | Qué queda |
 | --- | --- | --- |
@@ -132,7 +132,7 @@ Flyway versiona cada esquema por su lado. Los datos de demo se cargan una sola v
 | App | http://localhost:8090 | El recorrido de comprador, agencia y admin |
 | Swagger | http://localhost:8080/swagger-ui/index.html | Las rutas de la API del negocio. No lista la API interna de vuelos |
 | Salud | http://localhost:8080/actuator/health | Si el corte de protección hacia vuelos está abierto |
-| Grafana | http://localhost:3001 (`admin` / `admin`) | Servicios vivos, memoria y pedidos por segundo |
+| Grafana | http://localhost:3001 (`admin` / `admin`) | Overview (servicios vivos), Load (p95, pool, circuit breaker) y Logs (las mismas líneas que Kibana) |
 | Zipkin | http://localhost:9411 | El recorrido de una compra: entra al backend y sigue a vuelos |
 | Kibana | http://localhost:5601 | Logs de los dos programas en el data view `ctv-logs-*`, que crea el job `kibana-setup`. Se puede buscar por el `traceId` de Zipkin |
 
