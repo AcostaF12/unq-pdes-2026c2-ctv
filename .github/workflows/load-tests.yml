@@ -12,6 +12,9 @@ on:
           - catalog-load
           - login-load
           - last-seat-stress
+          - purchase-throughput
+          - cancel-rebuy
+          - double-cancel
           - catalog-spike
         default: all
       target:
@@ -29,9 +32,11 @@ permissions:
 jobs:
   k6:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
       BASE_URL: ${{ inputs.target == 'vm' && format('http://{0}:8080', secrets.VM_HOST) || 'http://localhost:8080' }}
+      # Vacío en la VM: Prometheus no publica puerto ahí. El resumen de k6 sigue siendo la evidencia.
+      PROMETHEUS_URL: ${{ inputs.target == 'runner' && 'http://localhost:9090' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -43,7 +48,22 @@ jobs:
 
       - name: Start application in the runner
         if: inputs.target == 'runner'
-        run: docker compose up --build -d --wait --wait-timeout 300
+        run: |
+          docker compose up --build -d --wait --wait-timeout 300
+          # Solo Prometheus. Grafana, ELK y Zipkin no hacen falta: el resumen scrapea Prometheus.
+          docker compose --profile metrics up -d prometheus
+          ready=0
+          for _ in $(seq 1 30); do
+            if curl -sf --max-time 2 http://localhost:9090/-/ready >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != 1 ]; then
+            echo "::error::Prometheus no quedó listo en http://localhost:9090/-/ready."
+            exit 1
+          fi
 
       - name: Check target health
         id: ready
@@ -73,14 +93,26 @@ jobs:
         if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'last-seat-stress') }}
         run: bash load-tests/run.sh last-seat-stress
 
+      - name: purchase-throughput
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'purchase-throughput') }}
+        run: bash load-tests/run.sh purchase-throughput
+
+      - name: cancel-rebuy
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'cancel-rebuy') }}
+        run: bash load-tests/run.sh cancel-rebuy
+
+      - name: double-cancel
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'double-cancel') }}
+        run: bash load-tests/run.sh double-cancel
+
       - name: catalog-spike
         if: ${{ !cancelled() && steps.ready.outcome == 'success' && (inputs.scenario == 'all' || inputs.scenario == 'catalog-spike') }}
         run: bash load-tests/run.sh catalog-spike
 
       - name: Show application logs on failure
         if: failure() && inputs.target == 'runner'
-        run: docker compose logs --no-color --tail=200
+        run: docker compose --profile metrics logs --no-color --tail=200
 
       - name: Stop application
         if: always() && inputs.target == 'runner'
-        run: docker compose down -v
+        run: docker compose --profile metrics down -v
