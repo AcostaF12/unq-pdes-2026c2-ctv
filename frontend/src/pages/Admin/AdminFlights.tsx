@@ -13,10 +13,12 @@ import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import { Select } from '../../components/Select/Select'
 import { queryKeys } from '../../query/keys'
 import { ADMIN_PATH } from '../../router/paths'
+import { AdminFlow } from './AdminFlow'
 import { flightSchema, toFlightPayload, type FlightFormValues } from './flight.schema'
 import '../Packages/packages.css'
 import '../../components/PackageForm/PackageForm.css'
 import './admin.css'
+import './AdminFlights.css'
 
 const EMPTY_FORM: FlightFormValues = {
   airline: '',
@@ -29,6 +31,10 @@ const EMPTY_FORM: FlightFormValues = {
 }
 
 const EMPTY_FILTERS = { origin: '', destination: '', date: '' }
+
+function flightCount(filtered: boolean, total: number): string {
+  return filtered ? `${total} con estos filtros` : `${total} en el listado`
+}
 
 function cityLabel(cities: City[], code: string): string {
   const city = cities.find((candidate) => candidate.code === code)
@@ -124,33 +130,44 @@ export function AdminFlights() {
     )
   } else {
     list = (
-      <ul className="admin-list" aria-label="Vuelos cargados">
-        {flights.map((flight) => (
-          <li key={flight.id} className="admin-row" data-testid="flight-item">
-            <div className="admin-row__main">
-              <h3 className="admin-row__title">{flight.airline}</h3>
-              <p className="catalog__route">
-                {cityLabel(cities, flight.origin)} → {cityLabel(cities, flight.destination)}
+      <>
+        <p className="flight-index__count">{flightCount(hasFilters, flights.length)}</p>
+        <ul className="flight-index__list" aria-label="Vuelos cargados">
+          {flights.map((flight) => (
+            <li key={flight.id} className="flight-index__row" data-testid="flight-item">
+              <span className="flight-index__mark" aria-hidden="true">
+                {flight.airline.trim().charAt(0).toUpperCase() || '·'}
+              </span>
+              <div className="flight-index__main">
+                <h3>{flight.airline}</h3>
+                <p>
+                  {cityLabel(cities, flight.origin)} → {cityLabel(cities, flight.destination)}
+                </p>
+                <p className="flight-index__when">
+                  {flight.flightDate} · {flight.departureTime}
+                </p>
+              </div>
+              <p className="flight-index__seats">
+                {flight.availability} / {flight.capacity} lugares
               </p>
-              <p className="catalog__muted">
-                {flight.flightDate} · {flight.departureTime}
-              </p>
-            </div>
-            <p className="admin-row__meta">
-              {flight.availability} / {flight.capacity} lugares
-            </p>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </>
     )
   }
 
   return (
-    <section className="page">
+    <section className="page flight-index">
       <Link className="catalog__back" to={ADMIN_PATH}>
         ← Administración
       </Link>
-      <h1 className="page__title">Vuelos</h1>
+      <AdminFlow current="flights" />
+      <header className="flight-index__intro">
+        <p className="flight-index__eyebrow">Catálogo</p>
+        <h1 className="page__title">Vuelos</h1>
+        <p className="flight-index__lead">Cargá la ida y la vuelta. Después se eligen en el paquete.</p>
+      </header>
 
       <form
         className="catalog__form package-form"
