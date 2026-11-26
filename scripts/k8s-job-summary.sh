@@ -126,7 +126,42 @@ pods_table() {
   done
   echo
 
-  echo '## 5. Autorecuperación'
+  echo '## 5. Concurrencia entre réplicas'
+  echo
+  ready_replicas=$(val backend-ready)
+  if [ -n "$ready_replicas" ]; then
+    echo "Backend listo al empezar: **${ready_replicas}** réplicas. La carga es la misma que \`npm run test:stress\`."
+  else
+    echo 'La carga es la misma que `npm run test:stress`.'
+  fi
+  echo
+  if [ ! -s "$DIR/concurrency.tsv" ]; then
+    echo "$NA"
+  else
+    echo '| Escenario | Resultado |'
+    echo '|---|---|'
+    while IFS="$(printf '\t')" read -r name result; do
+      [ -n "$name" ] || continue
+      case "$result" in
+        ok) mark='✅ pasó' ;;
+        fail) mark='❌ falló' ;;
+        *) mark="$result" ;;
+      esac
+      echo "| \`$name\` | $mark |"
+    done <"$DIR/concurrency.tsv"
+    echo
+    echo '<details><summary>Resumen de k6</summary>'
+    echo
+    for summary in "$DIR"/*.md; do
+      [ -f "$summary" ] || continue
+      cat "$summary"
+      echo
+    done
+    echo '</details>'
+  fi
+  echo
+
+  echo '## 6. Autorecuperación'
   echo
   victim=$(val victim)
   if [ -z "$victim" ]; then
@@ -157,6 +192,12 @@ pods_table() {
       200) echo '| `POST /auth/login` durante el reemplazo | ✅ 200 (la otra réplica siguió atendiendo) |' ;;
       '') echo '| `POST /auth/login` durante el reemplazo | ⏭️ no se ejecutó |' ;;
       *) echo "| \`POST /auth/login\` durante el reemplazo | ❌ $login |" ;;
+    esac
+    packages=$(val packages-during.status)
+    case "$packages" in
+      200) echo '| `GET /packages` durante el reemplazo | ✅ 200 |' ;;
+      '') echo '| `GET /packages` durante el reemplazo | ⏭️ no se ejecutó |' ;;
+      *) echo "| \`GET /packages\` durante el reemplazo | ❌ $packages |" ;;
     esac
     case "$(val recovered)" in
       yes) echo '| Deployment `backend` | ✅ volvió a 2/2 réplicas listas |' ;;

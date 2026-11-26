@@ -81,7 +81,7 @@ load = YAML.load_file(File.join(ROOT, '.github/workflows/load-tests.yml'))
 load_events = load['on'] || load[true]
 check(load_events.keys == ['workflow_dispatch'], 'Load tests must only run manually')
 check(load['permissions'] == { 'contents' => 'read' }, 'Load tests must use a read-only token')
-scenarios = %w[catalog-load login-load last-seat-stress catalog-spike]
+scenarios = %w[catalog-load login-load last-seat-stress purchase-throughput cancel-rebuy double-cancel catalog-spike]
 check(load_events.dig('workflow_dispatch', 'inputs', 'scenario', 'options') == ['all'] + scenarios, 'Load tests must offer every scenario')
 check(load_events.dig('workflow_dispatch', 'inputs', 'target', 'options') == %w[runner vm], 'Load tests must target the runner or the VM')
 load_steps = load.fetch('jobs').fetch('k6').fetch('steps')
@@ -285,6 +285,16 @@ check(kube_steps.any? { |step| step['uses'].to_s.start_with?('crazy-max/ghaction
 check(kube_steps.any? { |step| step['run'].to_s.include?('kubectl apply -k') }, 'Kubernetes CI must apply the Kustomize manifests')
 check(kube_steps.any? { |step| step['run'].to_s.include?('rollout status') }, 'Kubernetes CI must wait for the rollouts')
 check(kube_steps.any? { |step| step['run'].to_s.include?('delete pod') }, 'Kubernetes CI must prove that a deleted pod is replaced')
+check(kube_steps.any? { |step| step['run'].to_s.include?('GET /packages') && step['run'].to_s.include?('while replacing') }, 'Kubernetes CI must keep serving the catalog while a pod is replaced')
+k6 = kube_steps.find { |step| step['uses'].to_s.start_with?('grafana/setup-k6-action@') }
+check(!k6.nil? && k6.dig('with', 'k6-version') == '2.4.0', 'Kubernetes CI must run the same k6 as Load Tests')
+check(kube_steps.any? { |step| step['run'].to_s.include?('scripts/k8s-concurrency.sh') }, 'Kubernetes CI must run the concurrency scenarios against the cluster')
+concurrency = File.read(File.join(ROOT, 'scripts/k8s-concurrency.sh'))
+%w[last-seat-stress purchase-throughput cancel-rebuy double-cancel].each do |scenario|
+  check(concurrency.include?(scenario), "Kubernetes concurrency must run #{scenario}")
+end
+healing = kube_steps.find { |step| step['run'].to_s.include?('delete pod') }
+check(healing['if'].to_s.include?("steps.concurrency.outcome == 'failure'"), 'Self-healing must still run when a concurrency scenario fails')
 check(kube_steps.any? { |step| step['if'] == 'failure()' && step['run'].to_s.include?('logs') }, 'Kubernetes CI must print logs on failure')
 check(kube_steps.none? { |step| step['continue-on-error'] }, 'Kubernetes CI must propagate failures')
 check(kube_steps.none? { |step| step['uses'].to_s.start_with?('actions/upload-artifact@') }, 'CI must use logs only')

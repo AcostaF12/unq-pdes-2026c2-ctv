@@ -10,6 +10,8 @@ on:
       - "frontend/**"
       - "scripts/ci-build-images.sh"
       - "scripts/k8s-job-summary.sh"
+      - "scripts/k8s-concurrency.sh"
+      - "load-tests/**"
       - ".github/workflows/kubernetes.yml"
   push:
     branches: [main, dev]
@@ -20,6 +22,8 @@ on:
       - "frontend/**"
       - "scripts/ci-build-images.sh"
       - "scripts/k8s-job-summary.sh"
+      - "scripts/k8s-concurrency.sh"
+      - "load-tests/**"
       - ".github/workflows/kubernetes.yml"
   workflow_dispatch:
 
@@ -125,7 +129,18 @@ jobs:
           printf '%s\t%s\n' 'GET frontend /' "$status" >> "$SUMMARY_DIR/smoke.tsv"
           test "$status" = 200
 
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: "2.4.0"
+
+      # Two backend replicas behind one Service. The short suite is the same as npm run test:stress.
+      - name: Concurrency across replicas
+        id: concurrency
+        run: bash scripts/k8s-concurrency.sh
+
       - name: Self-healing (delete a backend pod)
+        if: success() || steps.concurrency.outcome == 'failure'
         run: |
           selector=app.kubernetes.io/name=backend
           mkdir -p "$SUMMARY_DIR"
@@ -138,10 +153,15 @@ jobs:
           date +%s > "$SUMMARY_DIR/deleted.at"
           kubectl -n "$NAMESPACE" delete pod "$victim" --wait=false
           # The other replica keeps serving while the Deployment replaces the deleted pod.
-          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/auth/login \
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o login-during.json -w '%{http_code}' -X POST http://localhost:8080/auth/login \
             -H 'Content-Type: application/json' -d '{"username":"buyer","password":"buyer123"}')
           echo "POST /auth/login while replacing -> $status"
           echo "$status" > "$SUMMARY_DIR/login-during.status"
+          test "$status" = 200
+          token=$(jq -r .token login-during.json)
+          status=$(curl -sS --retry 5 --retry-all-errors --retry-delay 2 -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" http://localhost:8080/packages)
+          echo "GET /packages while replacing -> $status"
+          echo "$status" > "$SUMMARY_DIR/packages-during.status"
           test "$status" = 200
           kubectl -n "$NAMESPACE" wait --for=delete "pod/$victim" --timeout=120s
           for _ in $(seq 1 60); do
