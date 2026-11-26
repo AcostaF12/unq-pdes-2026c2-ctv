@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { getApiErrorMessage } from '../../api/errors'
@@ -20,47 +20,6 @@ import { AdminStatusBadge } from '../Admin/AdminStatusBadge'
 import '../Admin/admin.css'
 import '../Packages/packages.css'
 import './AgencyPackages.css'
-
-type PackageActionIcon = 'archive' | 'publish' | 'edit' | 'delete'
-
-const ACTION_ICON_PATHS: Record<PackageActionIcon, ReactNode> = {
-  archive: (
-    <>
-      <path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8z" />
-      <path d="M3 8h18" />
-      <path d="M9 4h6l1 4H8z" />
-      <path d="M10 13h4" />
-    </>
-  ),
-  publish: (
-    <>
-      <path d="M12 16V6" />
-      <path d="M8 9l4-4 4 4" />
-      <path d="M5 19h14" />
-    </>
-  ),
-  edit: (
-    <>
-      <path d="M12 20h8" />
-      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" />
-    </>
-  ),
-  delete: (
-    <>
-      <path d="M4 7h16" />
-      <path d="M9 7V5h6v2" />
-      <path d="M7 7l1 13h8l1-13" />
-    </>
-  ),
-}
-
-function PackageActionIcon({ name }: { name: PackageActionIcon }) {
-  return (
-    <svg className="agency-package__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      {ACTION_ICON_PATHS[name]}
-    </svg>
-  )
-}
 
 interface PackageRowProps {
   item: TravelPackage
@@ -94,9 +53,11 @@ function PackageRow({
           <h3 className="agency-package__title">
             <Link to={`/trips/${item.id}`}>{item.name}</Link>
           </h3>
-          {archived ? null : (
-            <AdminStatusBadge active activeLabel="Publicado" inactiveLabel="Archivado" />
-          )}
+          <AdminStatusBadge
+            active={!archivedItem}
+            activeLabel="Publicado"
+            inactiveLabel="Archivado"
+          />
         </div>
         <p className="agency-package__route">
           {item.origin.name} → {item.destination.name}
@@ -107,36 +68,31 @@ function PackageRow({
         <Button
           type="button"
           variant="ghost"
-          className="agency-package__icon-btn"
           aria-label={archivedItem ? 'Publicar' : 'Archivar'}
-          title={archivedItem ? 'Publicar' : 'Archivar'}
           disabled={statusPending}
           onClick={onStatus}
         >
-          <PackageActionIcon name={archivedItem ? 'publish' : 'archive'} />
+          {archivedItem ? 'Publicar' : 'Archivar'}
         </Button>
         <Button
           type="button"
           variant="ghost"
-          className="agency-package__icon-btn"
           aria-label={`Editar ${item.name}`}
-          title={`Editar ${item.name}`}
           disabled={savePending}
           onClick={onEdit}
         >
-          <PackageActionIcon name="edit" />
+          Editar
         </Button>
         <Button
           type="button"
           variant="ghost"
-          className="agency-package__icon-btn agency-package__icon-btn--danger"
+          className="agency-package__delete"
           aria-label="Eliminar"
-          title="Eliminar"
           disabled={savePending || editing}
           onClick={onDelete}
           loading={deleting}
         >
-          <PackageActionIcon name="delete" />
+          Eliminar
         </Button>
       </div>
     </li>
@@ -251,6 +207,7 @@ export function AgencyPackages() {
   const [editingPackage, setEditingPackage] = useState<TravelPackage | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [archiveOpen, setArchiveOpen] = useState(true)
+  const formAnchor = useRef<HTMLDivElement>(null)
 
   const packagesQuery = useQuery({
     queryKey: queryKeys.packages.agency,
@@ -277,6 +234,7 @@ export function AgencyPackages() {
   const deleteMutation = useMutation({
     mutationFn: deletePackage,
     onSuccess: async () => {
+      setMessage('Paquete eliminado. Deja de ofrecerse y sale de esta lista.')
       await invalidatePackages()
     },
   })
@@ -291,6 +249,15 @@ export function AgencyPackages() {
       await invalidatePackages()
     },
   })
+
+  useEffect(() => {
+    if (!editingPackage) {
+      return
+    }
+    if (typeof formAnchor.current?.scrollIntoView === 'function') {
+      formAnchor.current.scrollIntoView({ block: 'start' })
+    }
+  }, [editingPackage, formKey])
 
   const openForm = (travelPackage: TravelPackage | null) => {
     saveMutation.reset()
@@ -313,8 +280,28 @@ export function AgencyPackages() {
       <header className="agency-packages__intro">
         <p className="catalog__eyebrow">Tu catálogo</p>
         <h1 className="page__title">Paquetes de la agencia</h1>
-        <p className="catalog__muted">Creá viajes, publicá los que están a la venta y archivá el resto.</p>
+        <p className="catalog__muted">
+          Elegí hotel y vuelos. Al guardarlo queda publicado. Archivarlo lo saca del catálogo y conserva el historial.
+        </p>
       </header>
+      <ol className="agency-steps" aria-label="Cómo se arma un paquete">
+        <li>
+          <span>1</span>
+          Hotel
+        </li>
+        <li>
+          <span>2</span>
+          Vuelos de ida y vuelta
+        </li>
+        <li>
+          <span>3</span>
+          Publicar o archivar
+        </li>
+      </ol>
+      <p className="agency-packages__note">
+        Los vuelos los carga un administrador. Acá se eligen, no se crean.{' '}
+        <Link to="/agency/sales">Ver ventas</Link>
+      </p>
       {statusMutation.error ? (
         <p role="alert" className="catalog__error">
           {getApiErrorMessage(statusMutation.error) ?? 'No se pudo cambiar el estado.'}
@@ -326,11 +313,12 @@ export function AgencyPackages() {
         </p>
       ) : null}
       {message ? (
-        <p className="catalog__muted" role="status">
+        <p className="admin-notice" role="status">
           {message}
         </p>
       ) : null}
 
+      <div ref={formAnchor}>
       <PackageForm
         key={formKey}
         title={editingPackage ? 'Editar paquete' : 'Nuevo paquete'}
@@ -345,6 +333,7 @@ export function AgencyPackages() {
         onSubmit={onSave}
         onCancel={editingPackage ? () => openForm(null) : undefined}
       />
+      </div>
 
       {loadError ? (
         <EmptyState

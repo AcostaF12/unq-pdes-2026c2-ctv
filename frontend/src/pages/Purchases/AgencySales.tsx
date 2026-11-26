@@ -38,7 +38,7 @@ export function AgencySales({ admin = false }: { admin?: boolean }) {
 
   return (
     <section className="page history-page">
-      {admin ? <Link className="catalog__back" to="/admin">← Administración</Link> : null}
+      {admin ? <Link className="catalog__back" to="/admin">← Administración</Link> : <Link className="catalog__back" to="/agency">← Paquetes</Link>}
       <HeroScene
         compact
         eyebrow={admin ? 'Administración' : 'Tu agencia'}

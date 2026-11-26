@@ -13,7 +13,8 @@ import {
   updatePackage,
   setPackageActive,
 } from '../../api/packages'
-import { allFlights, apiError, buenosAiresHotel, parisHotel, parisPackage } from '../../test/fixtures'
+import { allFlights, apiError, buenosAiresHotel, outboundToParis, parisHotel, parisPackage, returnFromParis } from '../../test/fixtures'
+import { describeFlight } from '../../components/FlightPicker/flightOptions'
 import { fillParisPackage } from '../../test/packageFormHelpers'
 import { createTestQueryClient } from '../../test/queryClient'
 import { AgencyPackages } from './AgencyPackages'
@@ -67,13 +68,15 @@ describe('AgencyPackages page', () => {
   })
 
   it('no longer asks for raw flight ids', async () => {
+    const user = userEvent.setup()
     renderAgencyPackages()
 
-    expect(await screen.findByLabelText('Vuelo de ida')).toBeInTheDocument()
-    expect(screen.getByLabelText('Vuelo de vuelta')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Agencia')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('ID vuelo ida')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('ID vuelo vuelta')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Agencia')).not.toBeInTheDocument()
+    expect(await screen.findByRole('radiogroup', { name: 'Vuelo de ida' })).toHaveAttribute('aria-disabled', 'true')
+    await user.selectOptions(await screen.findByLabelText('Hotel'), String(parisHotel.id))
+    expect(await screen.findByRole('radio', { name: describeFlight(outboundToParis) })).toBeInTheDocument()
   })
 
   it('creates a package choosing the flights from the picker, without an agency id', async () => {
@@ -81,7 +84,7 @@ describe('AgencyPackages page', () => {
     mockedCreatePackage.mockResolvedValue(parisPackage)
     renderAgencyPackages()
 
-    await screen.findByLabelText('Vuelo de ida')
+    await screen.findByLabelText('Nombre')
     await fillParisPackage(user, 'Paris Express', '2500')
     await user.click(screen.getByRole('button', { name: 'Crear paquete' }))
 
@@ -108,26 +111,25 @@ describe('AgencyPackages page', () => {
     renderAgencyPackages()
     if (mode === 'edit') {
       await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
-      await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2'))
+      await waitFor(() => expect(screen.getByRole('radio', { name: describeFlight(returnFromParis) })).toBeChecked())
     } else {
       await user.type(await screen.findByLabelText('Nombre'), parisPackage.name)
-      await user.selectOptions(screen.getByLabelText('Hotel'), '1')
       await user.type(screen.getByLabelText('Precio'), '1800')
+      await user.selectOptions(screen.getByLabelText('Hotel'), String(parisHotel.id))
     }
 
+    await screen.findByRole('option', { name: 'Buenos Aires (BUE)' })
     await user.selectOptions(screen.getByLabelText('Origen de ida'), 'BUE')
     fireEvent.change(screen.getByLabelText('Fecha de ida'), { target: { value: '2026-12-01' } })
     fireEvent.change(screen.getByLabelText('Fecha de vuelta'), { target: { value: '2026-12-10' } })
     await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
       origin: 'BUE', destination: 'PAR', date: '2026-12-01',
     }))
-    await waitFor(() => expect(screen.getByLabelText('Vuelo de ida').querySelector('option[value="1"]')).not.toBeNull())
-    await user.selectOptions(screen.getByLabelText('Vuelo de ida'), '1')
+    await user.click(await screen.findByRole('radio', { name: describeFlight(outboundToParis) }))
     await waitFor(() => expect(listFlights).toHaveBeenCalledWith({
       origin: 'PAR', destination: 'BUE', date: '2026-12-10',
     }))
-    await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta').querySelector('option[value="2"]')).not.toBeNull())
-    await user.selectOptions(screen.getByLabelText('Vuelo de vuelta'), '2')
+    await user.click(await screen.findByRole('radio', { name: describeFlight(returnFromParis) }))
     await user.click(screen.getByRole('button', { name: mode === 'edit' ? 'Guardar cambios' : 'Crear paquete' }))
 
     const payload = {
@@ -148,7 +150,7 @@ describe('AgencyPackages page', () => {
     mockedCreatePackage.mockRejectedValue(apiError('El vuelo de vuelta debe ser la ruta inversa'))
     renderAgencyPackages()
 
-    await screen.findByLabelText('Vuelo de ida')
+    await screen.findByLabelText('Nombre')
     await fillParisPackage(user, 'Paris Express', '2500')
     await user.click(screen.getByRole('button', { name: 'Crear paquete' }))
 
@@ -179,7 +181,6 @@ describe('AgencyPackages page', () => {
     await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
     expect(screen.getByLabelText('Nombre')).toHaveValue(parisPackage.name)
     expect(screen.getByLabelText('Precio')).toHaveValue(1800)
-    await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2'))
     await user.clear(screen.getByLabelText('Precio'))
     await user.type(screen.getByLabelText('Precio'), '2300')
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
@@ -201,6 +202,7 @@ describe('AgencyPackages page', () => {
     renderAgencyPackages()
     await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
     await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.getByRole('heading', { name: 'Nuevo paquete' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Crear paquete' })).toBeInTheDocument()
     expect(screen.getByLabelText('Nombre')).toHaveValue('')
     expect(updatePackage).not.toHaveBeenCalled()
@@ -216,7 +218,6 @@ describe('AgencyPackages page', () => {
     )
     renderAgencyPackages()
     await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
-    await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2'))
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
     finish(parisPackage)
@@ -228,10 +229,9 @@ describe('AgencyPackages page', () => {
     vi.mocked(updatePackage).mockRejectedValue(apiError('No tenés permiso para editar este paquete', 403))
     renderAgencyPackages()
     await user.click(await screen.findByRole('button', { name: `Editar ${parisPackage.name}` }))
-    await waitFor(() => expect(screen.getByLabelText('Vuelo de vuelta')).toHaveValue('2'))
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('No tenés permiso para editar este paquete')
-    expect(screen.getByLabelText('Nombre')).toHaveValue(parisPackage.name)
+    expect(screen.getByTestId('package-summary')).toHaveTextContent(parisPackage.name)
     expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeInTheDocument()
   })
 })
