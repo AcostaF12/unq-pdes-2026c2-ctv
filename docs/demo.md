@@ -8,7 +8,7 @@ Recorrido de unos 8 minutos. Cada paso indica qué mostrar y qué decir.
 docker compose --profile monitoring up --build -d --wait
 ```
 
-El perfil `monitoring` suma Grafana, Zipkin y Kibana. Con todo `healthy`, abrir estas pestañas:
+El perfil `monitoring` suma los tres: `metrics` (Grafana), `logs` (Kibana) y `traces` (Zipkin). Con todo `healthy`, abrir estas pestañas:
 
 | Pestaña | URL |
 |---------|-----|
@@ -46,15 +46,15 @@ Para volver a los datos iniciales entre ensayos: `docker compose --profile monit
 
 - **Swagger.** Contrato completo de la API.
 - **Resiliencia.** El backend protege las llamadas a `flights-service` con Resilience4j (reintentos, timeout y circuit breaker). El estado del breaker figura en `http://localhost:8080/actuator/health`.
-- **Grafana.** Dashboard *CTV - Overview*: servicios activos, uptime, memoria de la JVM y requests por segundo.
+- **Grafana.** Abre en *CTV - Overview*: servicios activos, uptime, heap usado contra el máximo y requests por segundo. *CTV - Load* es la corrida de k6 (p95, 5xx, pool, circuit breaker). Los dos dashboards se enlazan arriba a la derecha. Los logs no están acá.
 - **Zipkin.** Buscar trazas del servicio `backend` y abrir una que llame a vuelos (por ejemplo, una compra): la misma traza muestra `backend` y `flights-service`. La pestaña *Dependencies* dibuja el arco backend → flights-service.
-- **Kibana.** El data view `ctv-logs-*` ya viene creado por el job `kibana-setup`. En *Discover*, filtrar por `service` o pegar el `traceId` de la traza de Zipkin: aparecen las líneas de los dos servicios.
+- **Kibana.** El data view `ctv-logs-*` ya viene creado por el job `kibana-setup`. En *Discover*, filtrar por `service` o pegar el `traceId` de la traza de Zipkin: aparecen las líneas de los dos servicios. Abrí una línea y el `traceId` es el de Zipkin.
 
 ## 5. Calidad
 
-- **Tests.** Suites de backend, vuelos y frontend (ver la sección *Pruebas* del README), 14 escenarios de aceptación con Cucumber, 14 tests end-to-end con Cypress en siete archivos y 4 escenarios de carga con k6 ([resultados](load-tests.md#resultados)). Consultar los logs de CI para los resultados de la versión presentada.
+- **Tests.** Una frase por capa, en [Cómo contarlo](../README.md#cómo-contarlo): ArchUnit mira las capas, la integración mira la regla con Spring y Postgres, Cucumber mira el HTTP de los dos servicios (14 escenarios), Cypress mira la pantalla (14 tests) y k6 mira que no se venda de más. La suite corta son 4 escenarios; con catálogo, login y pico son 7 ([resultados](load-tests.md#resultados)). En Kubernetes esa suite corta corre contra 2 réplicas, y después se borra un pod para mostrar que el otro sigue.
 - **CI.** GitHub Actions corre lint, tests y build en cada módulo, y Sonar con Quality Gate. Los badges están en el [README](../README.md).
-- **Ejecutar las pruebas.** Ver la sección *Pruebas* del README.
+- **Ejecutar las pruebas.** `npm test` corre todo menos k6. `npm run test:stress` es la concurrencia, con la app ya levantada.
 
 ## Extensión del recorrido: usuarios y ciclo de vida
 
