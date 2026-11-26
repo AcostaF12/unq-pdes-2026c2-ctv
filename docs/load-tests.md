@@ -110,15 +110,15 @@ Completar después de cada corrida contra la VM.
 
 | Fecha | Destino | Escenario | Pedidos | p95 | Errores | Resultado | Corrida |
 |-------|--------|-----------|----------|-----|---------|-----------|---------|
-| 18/11/2026 | `vm` | `catalog-load` | 2229 (18,4/s) | 106,6 ms | 0 % | Pasó | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
-| 18/11/2026 | `vm` | `login-load` | 660 (10,8/s) | 280,3 ms | 0 % | Pasó | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
-| 18/11/2026 | `vm` | `last-seat-stress` | 77 | 909,9 ms | 0 % | Pasó: 5 compras 201, 25 rechazadas 400, 0 inesperadas, 0 lugares libres | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
-| 18/11/2026 | `vm` | `catalog-spike` | 4134 (25,6/s) | 71,5 ms | 0 % | Pasó | [44224870902](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44224870902) |
+| 26/11/2026 | `vm` | `catalog-load` | 2199 (17,9/s) | 176,9 ms | 0 % | Pasó | [45822461627](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627) |
+| 26/11/2026 | `vm` | `login-load` | 639 (10,5/s) | 345,2 ms | 0 % | Pasó | [45822461627](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627) |
+| 26/11/2026 | `vm` | `last-seat-stress` | 77 | 1235,3 ms | 0 % | Pasó: 5 compras 201, 25 rechazadas 400, 0 inesperadas, 0 lugares libres | [45822461627](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627) |
+| 26/11/2026 | `vm` | `catalog-spike` | 4130 (25,6/s) | 75,1 ms | 0 % | Pasó | [45822461627](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627) |
 
-La corrida fue contra la versión de `main` `9b82daa`, desplegada con "Deploy Demo" ([44223522482](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/44223522482)), con la carga generada desde un runner de GitHub Actions. Las latencias incluyen el viaje por internet hasta la VM.
+La corrida fue contra la versión de `main` `b89de23`, desplegada con "Deploy Demo" ([45820571474](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45820571474)), con la carga generada desde un runner de GitHub Actions. Las latencias incluyen el viaje por internet hasta la VM.
 
 Lectura de los resultados:
 
-- **Catálogo y pico:** el p95 se mantuvo por debajo de 110 ms incluso con 50 usuarios simultáneos. La búsqueda paginada en PostgreSQL no se degradó con el pico.
-- **Login:** es el endpoint más caro por request (p95 280 ms) por el costo de BCrypt, y aun así quedó muy lejos del umbral de 1500 ms.
-- **Último asiento:** con 30 compras simultáneas sobre 5 lugares se vendieron exactamente 5 y no hubo sobreventa. El p95 más alto (910 ms) es esperable, porque las compras esperan el bloqueo pesimista de la fila del vuelo. Al terminar, las 5 compras se cancelaron y los vuelos volvieron a 5 lugares.
+- **Catálogo y pico:** el p95 se mantuvo por debajo de 180 ms, y en el pico de 50 usuarios simultáneos (unos 47 requests/s en Grafana) fue de 75 ms. La búsqueda paginada en PostgreSQL no se degradó con el pico.
+- **Login:** es el endpoint más caro por request (p95 345 ms) por el costo de BCrypt, y aun así quedó muy lejos del umbral de 1500 ms.
+- **Último asiento:** con 30 compras simultáneas sobre 5 lugares se vendieron exactamente 5 y no hubo sobreventa. El p95 más alto (1235 ms) es esperable, porque las compras esperan el bloqueo pesimista de la fila del vuelo. Al terminar, las 5 compras se cancelaron y los vuelos volvieron a 5 lugares.
