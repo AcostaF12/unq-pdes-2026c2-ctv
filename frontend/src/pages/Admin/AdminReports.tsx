@@ -8,13 +8,21 @@ import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { ListSkeleton } from '../../components/ListSkeleton/ListSkeleton'
 import './AdminQueries.css'
 
+interface RankBar {
+  label: string
+  value: number
+  display: string
+}
+
 interface RankingProps {
   title: string
   headings: string[]
   rows: ReactNode[][]
+  bars: RankBar[]
 }
 
-function Ranking({ title, headings, rows }: RankingProps) {
+function Ranking({ title, headings, rows, bars }: RankingProps) {
+  const max = Math.max(...bars.map((bar) => bar.value), 0)
   return (
     <section className="admin-report">
       <h2>{title}</h2>
@@ -23,8 +31,21 @@ function Ranking({ title, headings, rows }: RankingProps) {
           <table className="admin-query-table">
             <caption>{title}</caption>
             <thead><tr><th scope="col">Puesto</th>{headings.map((heading) => <th scope="col" key={heading}>{heading}</th>)}</tr></thead>
-            <tbody>{rows.map((cells, rank) => <tr key={rank}>
-              <td>{rank + 1}</td>{cells.map((cell, index) => <td key={headings[index]}>{cell}</td>)}
+            <tbody>{rows.map((cells, rank) => <tr key={bars[rank]?.label ?? rank}>
+              <th scope="row">{rank + 1}</th>
+              {cells.map((cell, index) => <td key={headings[index]}>
+                {index === 0 ? (
+                  <>
+                    <span className="admin-rank__label">{cell}</span>
+                    <span className="admin-rank__track" aria-hidden="true">
+                      <span
+                        className="admin-rank__bar"
+                        style={{ width: `${max === 0 ? 0 : ((bars[rank]?.value ?? 0) / max) * 100}%` }}
+                      />
+                    </span>
+                  </>
+                ) : cell}
+              </td>)}
             </tr>)}</tbody>
           </table>
         </div>
@@ -54,13 +75,17 @@ export function AdminReports() {
           action={<Button onClick={() => void query.refetch()}>Reintentar</Button>} />
       ) : data ? <div className="admin-report-list">
         <Ranking title="Compradores con más compras" headings={['Comprador', 'Compras']}
-          rows={data.topBuyers.map((row) => [row.name, row.total])} />
+          rows={data.topBuyers.map((row) => [row.name, row.total])}
+          bars={data.topBuyers.map((row) => ({ label: row.name, value: row.total, display: String(row.total) }))} />
         <Ranking title="Destinos mejor puntuados" headings={['Destino', 'Código', 'Promedio / 10', 'Reseñas']}
-          rows={data.topRatedDestinations.map((row) => [row.name, row.code, rating.format(row.average), row.reviewCount])} />
+          rows={data.topRatedDestinations.map((row) => [row.name, row.code, rating.format(row.average), row.reviewCount])}
+          bars={data.topRatedDestinations.map((row) => ({ label: row.name, value: row.average, display: rating.format(row.average) }))} />
         <Ranking title="Agencias con más ventas" headings={['Agencia', 'Ventas']}
-          rows={data.topAgencies.map((row) => [row.name, row.total])} />
+          rows={data.topAgencies.map((row) => [row.name, row.total])}
+          bars={data.topAgencies.map((row) => ({ label: row.name, value: row.total, display: String(row.total) }))} />
         <Ranking title="Destinos más vendidos" headings={['Destino', 'Código', 'Ventas']}
-          rows={data.topDestinations.map((row) => [row.name, row.code, row.total])} />
+          rows={data.topDestinations.map((row) => [row.name, row.code, row.total])}
+          bars={data.topDestinations.map((row) => ({ label: row.name, value: row.total, display: String(row.total) }))} />
       </div> : null}
     </section>
   )

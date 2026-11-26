@@ -35,6 +35,7 @@ describe('AdminReports', () => {
     expect(ratings).toHaveTextContent('8,75')
     expect(within(ratings).getByText('4')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Editar|Eliminar/ })).not.toBeInTheDocument()
+    expect(document.querySelectorAll('.admin-rank__bar')).toHaveLength(4)
   })
   it('handles fewer than five rows and each empty report', async () => {
     vi.mocked(getAdminReports).mockResolvedValue({ topBuyers: [], topAgencies: [], topDestinations: [], topRatedDestinations: [] })
@@ -47,6 +48,6 @@ describe('AdminReports', () => {
     renderPage()
     expect(await screen.findByText('Acceso denegado')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Reintentar' }))
-    expect(await screen.findByText('ana')).toBeInTheDocument()
+    expect(await screen.findByRole('table', { name: 'Compradores con más compras' })).toHaveTextContent('ana')
   })
 })
