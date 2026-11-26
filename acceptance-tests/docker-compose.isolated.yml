@@ -1,0 +1,8 @@
+# The acceptance runner talks to backend and flights-service over the Compose
+# network. Publishing 8080 and 8081 would clash with `npm start`.
+services:
+  backend:
+    ports: !reset []
+
+  flights-service:
+    ports: !reset []

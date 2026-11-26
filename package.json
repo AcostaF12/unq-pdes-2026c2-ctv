@@ -1,13 +1,26 @@
 {
   "name": "compra-tu-viaje",
   "private": true,
-  "description": "Atajos para levantar y apagar Compra tu Viaje con Docker.",
+  "description": "Atajos para levantar Compra tu Viaje y correr todas las pruebas.",
   "scripts": {
+    "test": "node scripts/run-tests.mjs",
+    "test:unit": "node scripts/run-tests.mjs unit",
+    "test:acceptance": "node scripts/run-tests.mjs acceptance",
+    "test:e2e": "node scripts/run-tests.mjs e2e",
+    "test:stress": "node scripts/run-stress.mjs",
     "start": "docker compose up --build -d --wait",
+    "start:metrics": "docker compose --profile metrics up --build -d --wait",
+    "start:logs": "docker compose --profile logs up --build -d --wait",
+    "start:traces": "docker compose --profile traces up --build -d --wait",
+    "start:observe": "docker compose --profile metrics --profile logs up --build -d --wait",
     "start:monitoring": "docker compose --profile monitoring up --build -d --wait",
     "up": "docker compose up --build -d --wait",
+    "up:metrics": "docker compose --profile metrics up --build -d --wait",
+    "up:logs": "docker compose --profile logs up --build -d --wait",
+    "up:traces": "docker compose --profile traces up --build -d --wait",
+    "up:observe": "docker compose --profile metrics --profile logs up --build -d --wait",
     "up:monitoring": "docker compose --profile monitoring up --build -d --wait",
-    "down": "docker compose --profile monitoring down",
+    "down": "docker compose --profile metrics --profile logs --profile traces --profile monitoring down",
     "ps": "docker compose ps",
     "logs": "docker compose logs -f --tail=80"
   }
