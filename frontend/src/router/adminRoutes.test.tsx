@@ -8,6 +8,7 @@ import { listHotels } from '../api/hotels'
 import { searchPackages, searchAdminPackages } from '../api/packages'
 import { listAgencies } from '../api/agencies'
 import { listManagedUsers } from '../api/adminUsers'
+import { getAdminSystem } from '../api/admin'
 import { getAdminSales } from '../api/purchases'
 import { getCurrentUser } from '../api/auth'
 import { persistSession } from '../api/session'
@@ -17,7 +18,7 @@ import { adminRoute } from './adminRoutes'
 
 vi.mock('../api/auth', () => ({ getCurrentUser: vi.fn() }))
 vi.mock('../api/flights', () => ({ listFlights: vi.fn(), createFlight: vi.fn() }))
-vi.mock('../api/hotels', () => ({ listHotels: vi.fn() }))
+vi.mock('../api/hotels', () => ({ listHotels: vi.fn(), deleteHotel: vi.fn(), getHotel: vi.fn(), createHotel: vi.fn(), updateHotel: vi.fn() }))
 vi.mock('../api/agencies', () => ({ listAgencies: vi.fn() }))
 vi.mock('../api/cities', () => ({ listCities: vi.fn() }))
 vi.mock('../api/adminUsers', () => ({
@@ -26,6 +27,14 @@ vi.mock('../api/adminUsers', () => ({
   updateManagedUser: vi.fn(),
 }))
 vi.mock('../api/purchases', () => ({ getAdminSales: vi.fn() }))
+vi.mock('../api/admin', () => ({
+  getAdminUsers: vi.fn(),
+  getAdminFavorites: vi.fn(),
+  getAdminReviews: vi.fn(),
+  getAdminPurchases: vi.fn(),
+  getAdminReports: vi.fn(),
+  getAdminSystem: vi.fn(),
+}))
 vi.mock('../api/packages', () => ({
   searchPackages: vi.fn(),
   searchAdminPackages: vi.fn(),
@@ -79,6 +88,21 @@ describe('admin routes', () => {
       totalElements: 0,
       totalPages: 0,
     })
+    vi.mocked(getAdminSystem).mockResolvedValue({
+      capturedAt: '2026-11-26T12:00:00Z',
+      systems: [{ name: 'backend', status: 'UP' }],
+      http: { requestCount: 0, clientErrors: 0, serverErrors: 0, meanMillis: null, endpoints: [] },
+      concurrency: {
+        poolActive: null,
+        poolIdle: null,
+        poolPending: null,
+        poolMax: null,
+        threadsBusy: null,
+        threadsCurrent: null,
+        threadsMax: null,
+      },
+      circuitBreaker: { name: 'flightsService', state: 'UNKNOWN', failureRate: null },
+    })
     vi.mocked(getAdminSales).mockResolvedValue({
       content: [],
       page: 0,
@@ -90,7 +114,16 @@ describe('admin routes', () => {
     })
   })
 
-  it.each(['/admin', '/admin/packages', '/admin/flights', '/admin/users', '/admin/agencies', '/admin/sales'])(
+  it.each([
+    '/admin',
+    '/admin/packages',
+    '/admin/flights',
+    '/admin/users',
+    '/admin/agencies',
+    '/admin/sales',
+    '/admin/system',
+    '/admin/hotels',
+  ])(
     'lets an admin open %s',
     async (path) => {
       renderAt(path, 'ADMIN')

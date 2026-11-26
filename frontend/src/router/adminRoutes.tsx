@@ -1,5 +1,6 @@
-import { Outlet, type RouteObject } from 'react-router-dom'
+import { type RouteObject } from 'react-router-dom'
 import { RequireAdmin } from '../auth/RequireAdmin'
+import { AdminLayout } from '../pages/Admin/AdminLayout'
 import { lazyPage } from './lazyPage'
 
 const AdminHome = lazyPage(() => import('../pages/Admin/AdminHome'), 'AdminHome')
@@ -15,16 +16,22 @@ const AdminFavorites = lazyPage(() => import('../pages/Admin/AdminQueries'), 'Ad
 const AdminReviews = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminReviews')
 const AdminPurchases = lazyPage(() => import('../pages/Admin/AdminQueries'), 'AdminPurchases')
 const AdminReports = lazyPage(() => import('../pages/Admin/AdminReports'), 'AdminReports')
+const AdminSystem = lazyPage(() => import('../pages/Admin/AdminSystem'), 'AdminSystem')
+const AdminHotels = lazyPage(() => import('../pages/Admin/AdminHotels'), 'AdminHotels')
+const HotelForm = lazyPage(() => import('../pages/HotelForm/HotelForm'), 'HotelForm')
 
 export const adminRoute: RouteObject = {
   path: 'admin',
   element: (
     <RequireAdmin>
-      <Outlet />
+      <AdminLayout />
     </RequireAdmin>
   ),
   children: [
     { index: true, element: <AdminHome /> },
+    { path: 'hotels', element: <AdminHotels /> },
+    { path: 'hotels/new', element: <HotelForm /> },
+    { path: 'hotels/:id/edit', element: <HotelForm /> },
     { path: 'packages', element: <AdminPackages /> },
     { path: 'flights', element: <AdminFlights /> },
     { path: 'users', element: <AdminUsers /> },
@@ -34,6 +41,7 @@ export const adminRoute: RouteObject = {
     { path: 'reviews', element: <AdminReviews /> },
     { path: 'purchases', element: <AdminPurchases /> },
     { path: 'reports', element: <AdminReports /> },
+    { path: 'system', element: <AdminSystem /> },
     { path: 'sales', element: <AdminSales /> },
     { path: 'sales/:id', element: <PurchaseDetail /> },
   ],
