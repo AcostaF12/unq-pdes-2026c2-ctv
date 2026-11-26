@@ -3,38 +3,77 @@ services:
   # does not publish their ports. `!reset` needs Docker Compose >= 2.24.
   backend-postgres:
     ports: !reset []
+    mem_limit: 160m
+    command: ["postgres", "-c", "shared_buffers=48MB", "-c", "max_connections=30", "-c", "work_mem=2MB"]
 
   flights-postgres:
     ports: !reset []
+    mem_limit: 160m
+    command: ["postgres", "-c", "shared_buffers=48MB", "-c", "max_connections=30", "-c", "work_mem=2MB"]
 
   elasticsearch:
     ports: !reset []
+    mem_limit: 640m
+    cpus: 0.40
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms384m -Xmx384m
 
   logstash:
     ports: !reset []
+    mem_limit: 384m
+    cpus: 0.25
 
   # Grafana reads Prometheus through the backend network.
   prometheus:
     ports: !reset []
+    mem_limit: 192m
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --storage.tsdb.retention.size=64MB
 
   flights-service:
     build: !reset null
     image: ghcr.io/acostaf12/ctv-flights-service:latest
+    mem_limit: 512m
     environment:
       SPRING_PROFILES_ACTIVE: prod
       # This Compose overlay is used by the demo VM. Production defaults to seed disabled.
       SEED_ENABLED: ${SEED_ENABLED:-true}
+      # One span in twenty. Enough to abrir una traza en la demo, y el stress no arma un span por compra.
+      TRACING_SAMPLING_PROBABILITY: "0.05"
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires -Xms128m -Xmx256m -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError
 
   backend:
     build: !reset null
     image: ghcr.io/acostaf12/ctv-backend:latest
+    mem_limit: 512m
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SEED_ENABLED: ${SEED_ENABLED:-true}
       CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:*,http://127.0.0.1:*}
       # Never fall back to the public development secret outside local runs.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (the deploy writes it to /opt/ctv/.env)}
+      TRACING_SAMPLING_PROBABILITY: "0.05"
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Argentina/Buenos_Aires -Xms128m -Xmx256m -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError
 
   frontend:
     build: !reset null
     image: ghcr.io/acostaf12/ctv-frontend:latest
+    mem_limit: 64m
+
+  grafana:
+    mem_limit: 256m
+
+  zipkin:
+    mem_limit: 192m
+    cpus: 0.15
+
+  kibana:
+    mem_limit: 448m
+    cpus: 0.25
+    environment:
+      NODE_OPTIONS: --max-old-space-size=320
