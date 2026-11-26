@@ -62,7 +62,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Esquema versionado con Flyway y seed idempotente que no pisa los datos al reiniciar.
 - Tests de aceptación con Cucumber, tests de interfaz con Cypress, ktlint, y el deploy manual que repite todos los controles antes de publicar.
 
-## 📝 Release Notes - Entrega 3 (en progreso)
+## 📝 Release Notes - Entrega 3
 
 - Cancelación de compras con baja lógica: `DELETE /purchases/{id}` deja la compra en `CANCELLED`, devuelve los asientos de ida y vuelta al servicio de vuelos y la conserva en los historiales con la marca "Cancelada", fuera de los reportes Top 5. Migración `V6` ([#31](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/31)).
 - Tests de carga y stress con k6 (catálogo, login, último asiento y pico de tráfico) y workflow manual "Load Tests" contra el runner o la VM ([#32](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/32)). Contra la VM pasaron los cuatro escenarios, sin errores ni sobreventa ([#34](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/34), [resultados](docs/load-tests.md#resultados)).
@@ -82,11 +82,12 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 - Migraciones `V7` (índices por precio y ruta de los paquetes, snapshots de ciudad en `varchar(255)`) y `V7.1` solo para PostgreSQL (índice trigram `pg_trgm` para buscar paquetes por nombre), que reemplazan a `schema-postgresql.sql`, que nunca corría en dev/prod ([#52](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/52)).
 - El backend también loguea cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, incluidas las rechazadas por seguridad (401/403): en Kibana una compra trae líneas de backend y de flights-service también en `prod` ([#53](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/53)).
 
-**Pendiente:**
-
-- Deploy final de la demo en la VM, verificado.
-- Guion del happy path final.
-- Release `ctv-version-3`.
+- Modelo de datos sincronizado con el esquema de Flyway y auditorías de configuración y documentación contra el código ([#47](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/47), [#48](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/48), [#49](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/49)).
+- "Kubernetes CI" corre también ante cambios del código de los servicios ([#50](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/50)); manifiestos de `k8s/` comentados sección por sección ([#57](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/57)) y resumen del job con el cluster, los pods, el smoke test y la autorecuperación ([#58](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/58)).
+- El deploy configura CORS para el origen del frontend de la VM ([#51](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/51)).
+- SonarCloud sin duplicación ni code smells: fotos de ciudades del seed como tabla compacta ([#55](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/55)) y grupo para la tarea `resolveDependencies` ([#61](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/61)).
+- Acciones de GitHub en versiones con Node 24 ([#56](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/56)) y builds de imágenes sin red: los jars de las dependencias quedan en la capa de Docker y `bootJar` corre `--offline` ([#59](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/59)).
+- Deploy de la versión de la demo en la VM ([corrida 45820571474](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45820571474)) y tests de carga contra ella: los cuatro escenarios en verde, sin errores ni sobreventa ([#62](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/pull/62), [corrida 45822461627](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627)).
 
 ---
 
