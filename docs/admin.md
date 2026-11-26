@@ -55,8 +55,9 @@ Los campos de cuenta se cargan al crear la agencia. Esta pantalla no cambia usua
 
 ### Hoteles
 
-- Ver el catálogo (`/hotels`).
-- Crear, editar y eliminar hoteles desde la interfaz.
+Ruta: `/admin/hotels`. Desde ahí se crea, edita y elimina sin salir del panel. Cada fila tiene "Ver ficha", que abre el hotel en el catálogo público (`/hotels/:id`).
+
+El orden para armar una oferta es Hotel, Vuelos y Paquete. Esa secuencia está en las tres pantallas y en la navegación del panel.
 
 ### Paquetes de cualquier agencia
 
@@ -72,6 +73,25 @@ Ruta: `/admin/flights`.
 - Cargar vuelos en `flights-service` para poder usarlos en los paquetes.
 - Las agencias y los administradores eligen los vuelos de ida y de vuelta de un paquete desde un selector, en lugar de escribir identificadores.
 
+### Operación
+
+En `/admin/system`, desde "Ver operación", el administrador ve el instante del backend sin abrir Actuator ni Prometheus:
+
+- Salud del backend, de su base y del servicio de vuelos.
+- Circuit breaker hacia vuelos: cerrado, abierto o probando, y el porcentaje de fallos cuando hay muestras.
+- Pool de conexiones (activas, libres, pendientes y tope) e hilos que atienden pedidos.
+- Requests acumulados desde el arranque, errores 4xx y 5xx, promedio y los cinco endpoints con más tráfico, con su p95.
+- El recorrido de una compra y de una cancelación, el p95 de `POST /purchases` y las dos suites de prueba: la corta (`npm run test:stress` y Kubernetes) y Load Tests contra la VM.
+
+La pantalla y Prometheus se actualizan cada 5 segundos, también en la VM. Prometheus guarda solo las series que dibujan los tableros. El chequeo de vuelos se reutiliza dos segundos. Pasado ese tiempo el pedido devuelve el último resultado y la renovación corre en segundo plano, así la pantalla no espera el HTTP a vuelos. El p95 se calcula solo para los cinco endpoints que se muestran. No scrapea Prometheus y no dispara las pruebas: las corre el workflow. La observabilidad de Grafana, Kibana y Zipkin ya está armada. La cancelación queda cubierta por `PurchaseCancellationControllerTest`: la segunda vez responde 400 y cada asiento se devuelve una sola vez.
+
+Corridas de referencia, ambas en verde:
+
+- [Kubernetes CI](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822899741): smoke y autorecuperación, todavía sin la suite corta. En este workflow esa suite corre después del smoke y antes de borrar un pod.
+- [Load Tests en la VM](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/actions/runs/45822461627): `catalog-load`, `login-load`, `last-seat-stress` y `catalog-spike`.
+
+Abajo hay enlaces a Grafana (3001), Kibana (5601), Zipkin (9411) y Prometheus (9090), en el mismo host desde el que se abrió la aplicación. Hace falta el perfil `monitoring`. Se pueden pisar con `VITE_GRAFANA_URL`, `VITE_KIBANA_URL`, `VITE_ZIPKIN_URL` y `VITE_PROMETHEUS_URL` al construir el frontend. En la VM, Prometheus no publica puerto.
+
 ## Verificación rápida
 
 1. Entrar como `vferreyra` y confirmar que aparece la navegación de administración.
@@ -79,6 +99,7 @@ Ruta: `/admin/flights`.
 3. Cargar un vuelo de ida y uno de vuelta.
 4. Crear un paquete para la agencia Despegar usando esos vuelos y comprobar que aparece en el catálogo y en el panel de la agencia (`agency` / `agency123`).
 5. Entrar como `buyer` / `buyer123` y confirmar que las rutas de administración no están disponibles.
+6. En `/admin/system`, confirmar salud, circuit breaker y los enlaces a Grafana, Kibana y Zipkin.
 
 ## Referencias
 
