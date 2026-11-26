@@ -1,9 +1,13 @@
 import {
   apiLogin, clearBrowserSession, createPackageViaApi, fieldByLabel, isoDateIn,
-  loginThroughUI, openAdminSection, registerBuyer, selectOptionContaining, uniqueSuffix,
+  loginThroughUI, openAdminSection, registerBuyer, uniqueSuffix,
 } from '../support/helpers'
 
-const HOTEL_OPTION = 'Hotel Palacio de París (PAR)'
+const HOTEL_NAME = 'Hotel Palacio de París'
+
+function chooseFlight(testId, text) {
+  cy.get(`[data-testid="${testId}"]`).contains('label', text).click()
+}
 
 function packageRow(name) {
   return cy.contains('[data-testid="package-item"]', name)
@@ -123,23 +127,24 @@ describe('Administración: vuelos y paquetes', () => {
     cy.contains('button', /^Nuevo paquete$/).click()
     cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Nombre').type(packageName)
+      fieldByLabel('Precio').type('2100')
       fieldByLabel('Agencia').select('Despegar')
-      fieldByLabel('Hotel').select(HOTEL_OPTION)
     })
-    // los vuelos se eligen de listas filtradas por hotel y por ruta, sin escribir ids;
-    // la opción muestra aerolínea, hora y lugares, y el detalle completo (con la ruta) queda en el title
-    selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
-    cy.get('[data-testid="package-outbound-flight"] option:selected')
+    cy.get('[data-testid="package-hotel"]').contains(HOTEL_NAME).click()
+    // los vuelos se eligen de tarjetas filtradas por hotel y por ruta, sin escribir ids;
+    // el detalle completo (con la ruta) queda en el title de la tarjeta
+    chooseFlight('package-outbound-flight', airline)
+    cy.get('[data-testid="package-outbound-flight"] input:checked')
+      .closest('label')
       .should('have.attr', 'title')
       .and('contain', 'BUE → PAR')
-    selectOptionContaining('[data-testid="package-return-flight"]', airline)
-    cy.get('[data-testid="package-return-flight"] option:selected')
+    chooseFlight('package-return-flight', airline)
+    cy.get('[data-testid="package-return-flight"] input:checked')
+      .closest('label')
       .should('have.attr', 'title')
       .and('contain', 'PAR → BUE')
-    cy.get('[data-testid="package-form"]').within(() => {
-      fieldByLabel('Precio').type('2100')
-      cy.contains('button', /^Crear paquete$/).click()
-    })
+    cy.get('[data-testid="package-summary"]').should('contain', HOTEL_NAME)
+    cy.contains('[data-testid="package-form"] button', /^Crear paquete$/).click()
     cy.wait('@createPackage').then(({ request, response }) => {
       expect(response.statusCode).to.eq(201)
       expect(request.body.agencyId, 'el administrador envía la agencia').to.be.a('number')
@@ -312,26 +317,26 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     cy.contains('h1', /^Paquetes de la agencia$/).should('be.visible')
     cy.get('[data-testid="package-form"]').within(() => {
       cy.contains('label', /^Agencia$/).should('not.exist')
-      cy.get('[data-testid="package-outbound-flight"]').should('be.disabled')
+      cy.get('[data-testid="package-outbound-flight"]').should('have.attr', 'aria-disabled', 'true')
       fieldByLabel('Nombre').type(packageName)
-      fieldByLabel('Hotel').select(HOTEL_OPTION)
+      fieldByLabel('Precio').type('1850')
+    })
+    cy.get('[data-testid="package-hotel"]').contains(HOTEL_NAME).click()
+    cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Origen de ida').select('BUE')
       fieldByLabel('Fecha de ida').type(outboundDate)
       fieldByLabel('Fecha de vuelta').type(returnDate)
     })
     cy.wait('@filteredOutbound').its('response.statusCode').should('eq', 200)
-    selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
-    // la fecha agrupa las opciones (optgroup) y figura completa en el title de la opción
-    cy.get('[data-testid="package-outbound-flight"] option:selected')
+    chooseFlight('package-outbound-flight', airline)
+    cy.get('[data-testid="package-outbound-flight"] input:checked')
+      .closest('label')
       .should('have.attr', 'title')
       .and('contain', outboundDate)
     cy.wait('@filteredReturn').its('response.statusCode').should('eq', 200)
-    cy.get('[data-testid="package-return-flight"]').should('be.enabled')
-    selectOptionContaining('[data-testid="package-return-flight"]', airline)
-    cy.get('[data-testid="package-form"]').within(() => {
-      fieldByLabel('Precio').type('1850')
-      cy.contains('button', /^Crear paquete$/).click()
-    })
+    cy.get('[data-testid="package-return-flight"]').should('not.have.attr', 'aria-disabled')
+    chooseFlight('package-return-flight', airline)
+    cy.contains('[data-testid="package-form"] button', /^Crear paquete$/).click()
     cy.wait('@createPackage').then(({ request, response }) => {
       expect(response.statusCode).to.eq(201)
       expect(request.body).not.to.have.property('agencyId')
@@ -344,19 +349,19 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     })
 
     cy.get(`button[aria-label="Editar ${packageName}"]`).click()
-    cy.get('[data-testid="package-return-flight"]').should('not.have.value', '')
+    cy.get('[data-testid="package-return-flight"] input:checked').should('exist')
     cy.get('[data-testid="package-flight-origin"]').select('BUE')
-    cy.get('[data-testid="package-outbound-flight"]').should('have.value', '')
-    cy.get('[data-testid="package-return-flight"]').should('have.value', '').and('be.disabled')
+    cy.get('[data-testid="package-outbound-flight"] input:checked').should('not.exist')
+    cy.get('[data-testid="package-return-flight"]').should('have.attr', 'aria-disabled', 'true')
     cy.get('[data-testid="package-outbound-date"]').type(outboundDate)
     cy.get('[data-testid="package-return-date"]').type(returnDate)
-    selectOptionContaining('[data-testid="package-outbound-flight"]', airline)
-    selectOptionContaining('[data-testid="package-return-flight"]', airline)
+    chooseFlight('package-outbound-flight', airline)
+    chooseFlight('package-return-flight', airline)
     cy.get('[data-testid="package-return-date"]').clear()
-    cy.get('[data-testid="package-outbound-flight"]').should('not.have.value', '')
-    cy.get('[data-testid="package-return-flight"]').should('have.value', '')
+    cy.get('[data-testid="package-outbound-flight"] input:checked').should('exist')
+    cy.get('[data-testid="package-return-flight"] input:checked').should('not.exist')
     cy.get('[data-testid="package-return-date"]').type(returnDate)
-    selectOptionContaining('[data-testid="package-return-flight"]', airline)
+    chooseFlight('package-return-flight', airline)
     cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Precio').clear().type('1950')
       cy.contains('button', /^Guardar cambios$/).click()
@@ -370,7 +375,7 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
     cy.reload()
     cy.contains('li', packageName).contains('USD 1950').should('be.visible')
 
-    // las acciones de la fila son botones de ícono; se identifican por su aria-label
+    // eliminar queda a un clic, identificado por su etiqueta
     cy.contains('li', packageName).find('button[aria-label="Eliminar"]').click()
     cy.wait('@deletePackage').its('response.statusCode').should('eq', 204)
     cy.contains('li', packageName).should('not.exist')
