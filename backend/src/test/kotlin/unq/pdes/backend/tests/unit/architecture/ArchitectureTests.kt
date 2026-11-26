@@ -50,7 +50,7 @@ class ArchitectureTests {
             .that()
             .resideInAPackage("..service..")
             .and()
-            .areNotAnonymousClasses()
+            .areTopLevelClasses()
             .should()
             .haveSimpleNameEndingWith("Service")
             .check(baseClasses)

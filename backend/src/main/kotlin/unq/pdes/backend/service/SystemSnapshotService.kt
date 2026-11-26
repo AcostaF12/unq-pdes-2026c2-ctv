@@ -193,21 +193,21 @@ class SystemSnapshotService(
     }
 
     private fun successRank(status: String): Int = if (status.startsWith("2")) 1 else 0
+
+    private data class CountedRequest(
+        val timer: Timer,
+        val method: String,
+        val uri: String,
+        val status: String,
+        val count: Long,
+        val totalMillis: Double,
+    )
+
+    private data class RankedEndpoint(
+        val method: String,
+        val uri: String,
+        val requestCount: Long,
+        val serverErrors: Long,
+        val dominant: Timer,
+    )
 }
-
-private data class CountedRequest(
-    val timer: Timer,
-    val method: String,
-    val uri: String,
-    val status: String,
-    val count: Long,
-    val totalMillis: Double,
-)
-
-private data class RankedEndpoint(
-    val method: String,
-    val uri: String,
-    val requestCount: Long,
-    val serverErrors: Long,
-    val dominant: Timer,
-)

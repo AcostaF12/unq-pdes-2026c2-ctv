@@ -30,8 +30,6 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-private const val FLIGHT_CALL_THREADS = 16
-
 @Service
 class PurchaseService(
     private val purchaseRepository: PurchaseRepository,
@@ -42,6 +40,10 @@ class PurchaseService(
     transactionManager: PlatformTransactionManager,
 ) {
     private val transactions = TransactionTemplate(transactionManager)
+
+    private companion object {
+        const val FLIGHT_CALL_THREADS = 16
+    }
 
     // Ida y vuelta pegan a vuelos distintos: se pueden hacer a la vez. El pool acota los hilos.
     private val flightCalls: ExecutorService =
