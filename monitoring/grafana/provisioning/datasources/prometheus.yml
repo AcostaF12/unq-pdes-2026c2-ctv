@@ -1,5 +1,11 @@
 apiVersion: 1
 
+# El índice de logs vive en Kibana. Si este datasource queda en el volumen, Grafana lo
+# marca caído cuando el perfil logs no está y llena el log con el health check.
+deleteDatasources:
+  - name: Elasticsearch
+    orgId: 1
+
 datasources:
   - name: Prometheus
     type: prometheus
@@ -7,4 +13,13 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-    editable: true
+    editable: false
+    jsonData:
+      timeInterval: 5s
+      httpMethod: POST
+      prometheusType: Prometheus
+      cacheLevel: Low
+      incrementalQuerying: true
+      incrementalQueryOverlapWindow: 10s
+      disableMetricsLookup: true
+      defaultEditor: code
