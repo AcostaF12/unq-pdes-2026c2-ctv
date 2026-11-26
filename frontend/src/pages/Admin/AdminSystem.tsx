@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   getAdminSystem,
   type AdminConcurrency,
@@ -20,20 +20,22 @@ import './AdminSystem.css'
 const REFRESH_MS = 5_000
 const SERIES_LIMIT = 30
 
+function purchaseSample(snapshot: AdminSystemSnapshot): number | null {
+  const purchase = snapshot.http.endpoints.find(
+    (endpoint) => endpoint.method === 'POST' && endpoint.uri === '/purchases',
+  )
+  return purchase?.p95Millis ?? null
+}
+
 function usePurchaseSeries(snapshot: AdminSystemSnapshot | undefined): number[] {
-  const [series, setSeries] = useState<number[]>([])
-  const lastAt = useRef<string | null>(null)
-  useEffect(() => {
-    if (!snapshot || lastAt.current === snapshot.capturedAt) return
-    lastAt.current = snapshot.capturedAt
-    const purchase = snapshot.http.endpoints.find(
-      (endpoint) => endpoint.method === 'POST' && endpoint.uri === '/purchases',
-    )
-    if (purchase?.p95Millis == null) return
-    const sample = purchase.p95Millis
-    setSeries((current) => [...current, sample].slice(-SERIES_LIMIT))
-  }, [snapshot])
-  return series
+  const [stored, setStored] = useState<{ at: string | null; values: number[] }>({ at: null, values: [] })
+  if (!snapshot || stored.at === snapshot.capturedAt) {
+    return stored.values
+  }
+  const sample = purchaseSample(snapshot)
+  const values = sample == null ? stored.values : [...stored.values, sample].slice(-SERIES_LIMIT)
+  setStored({ at: snapshot.capturedAt, values })
+  return values
 }
 
 function FailureRing({ percent }: { percent: number | null }) {

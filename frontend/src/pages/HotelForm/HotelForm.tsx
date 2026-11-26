@@ -28,7 +28,7 @@ export function HotelForm() {
   const isEdit = hotelId !== null
   const invalidEdit = isEdit && !Number.isFinite(hotelId)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [photoFailed, setPhotoFailed] = useState(false)
+  const [photo, setPhoto] = useState<{ url: string | null; failed: boolean }>({ url: null, failed: false })
 
   const {
     register,
@@ -74,10 +74,10 @@ export function HotelForm() {
   })
   const previewUrl = photoSource(photoUrl ?? '')
   const selectedCity = (citiesQuery.data ?? []).find((city) => city.code === cityCode)
-
-  useEffect(() => {
-    setPhotoFailed(false)
-  }, [previewUrl])
+  if (photo.url !== previewUrl) {
+    setPhoto({ url: previewUrl, failed: false })
+  }
+  const photoFailed = photo.url === previewUrl && photo.failed
 
   const saveMutation = useMutation({
     mutationFn: async (values: HotelFormValues) => {
@@ -201,7 +201,7 @@ export function HotelForm() {
                 <img
                   src={previewUrl}
                   alt=""
-                  onError={() => setPhotoFailed(true)}
+                  onError={() => setPhoto({ url: previewUrl, failed: true })}
                 />
               ) : (
                 <p className="hotel-form__placeholder">

@@ -9,6 +9,15 @@ function chooseFlight(testId, text) {
   cy.get(`[data-testid="${testId}"]`).contains('label', text).click()
 }
 
+function chooseHotel(name) {
+  cy.get('[data-testid="package-hotel"] option')
+    .contains(name)
+    .invoke('val')
+    .then((value) => {
+      cy.get('[data-testid="package-hotel"]').select(value)
+    })
+}
+
 function packageRow(name) {
   return cy.contains('[data-testid="package-item"]', name)
 }
@@ -130,7 +139,7 @@ describe('Administración: vuelos y paquetes', () => {
       fieldByLabel('Precio').type('2100')
       fieldByLabel('Agencia').select('Despegar')
     })
-    cy.get('[data-testid="package-hotel"]').contains(HOTEL_NAME).click()
+    chooseHotel(HOTEL_NAME)
     // los vuelos se eligen de tarjetas filtradas por hotel y por ruta, sin escribir ids;
     // el detalle completo (con la ruta) queda en el title de la tarjeta
     chooseFlight('package-outbound-flight', airline)
@@ -321,7 +330,7 @@ describe('Agencia: alta de paquetes con selector de vuelos', () => {
       fieldByLabel('Nombre').type(packageName)
       fieldByLabel('Precio').type('1850')
     })
-    cy.get('[data-testid="package-hotel"]').contains(HOTEL_NAME).click()
+    chooseHotel(HOTEL_NAME)
     cy.get('[data-testid="package-form"]').within(() => {
       fieldByLabel('Origen de ida').select('BUE')
       fieldByLabel('Fecha de ida').type(outboundDate)

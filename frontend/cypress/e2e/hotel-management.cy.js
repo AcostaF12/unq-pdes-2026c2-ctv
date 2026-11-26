@@ -25,7 +25,7 @@ describe('Administrador: gestión de hoteles', () => {
     cy.contains('[data-testid="hotel-item"]', hotelName).should('be.visible')
     cy.contains('[data-testid="hotel-item"]', 'Paris · PAR').should('be.visible')
 
-    cy.contains('[data-testid="hotel-item"]', hotelName).contains('a', /^Editar$/).click()
+    cy.contains('[data-testid="hotel-item"]', hotelName).find('a[aria-label="Editar"]').click()
     cy.contains('h1', /^Editar hotel$/).should('be.visible')
     cy.get('input[name="name"]').should('have.value', hotelName).clear().type(updatedName)
     cy.get('select[name="cityCode"]').select('ROM')
@@ -37,7 +37,7 @@ describe('Administrador: gestión de hoteles', () => {
     cy.reload()
     cy.contains('[data-testid="hotel-item"]', updatedName).should('be.visible')
 
-    cy.contains('[data-testid="hotel-item"]', updatedName).contains('button', /^Eliminar$/).click()
+    cy.contains('[data-testid="hotel-item"]', updatedName).find(`button[aria-label="Eliminar ${updatedName}"]`).click()
     cy.contains('button', /^Confirmar eliminación$/).click()
     cy.wait('@deleteHotel').its('response.statusCode').should('eq', 204)
     cy.location('pathname').should('eq', '/admin/hotels')

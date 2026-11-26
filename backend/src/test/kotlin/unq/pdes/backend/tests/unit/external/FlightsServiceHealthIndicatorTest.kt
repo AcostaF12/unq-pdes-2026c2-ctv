@@ -54,11 +54,12 @@ class FlightsServiceHealthIndicatorTest {
     @Test
     fun `05 - returns the last check without waiting when the next probe is slow`() {
         val calls = AtomicInteger()
-        val server = healthServer(200, """{"status":"UP"}""", calls) { call ->
-            if (call > 1) {
-                Thread.sleep(2_000)
+        val server =
+            healthServer(200, """{"status":"UP"}""", calls) { call ->
+                if (call > 1) {
+                    Thread.sleep(2_000)
+                }
             }
-        }
         val indicator = FlightsServiceHealthIndicator.create(url(server), RestClient.builder(), cacheTtlNanos = 0)
         try {
             assertEquals(Status.UP, indicator.health().status)

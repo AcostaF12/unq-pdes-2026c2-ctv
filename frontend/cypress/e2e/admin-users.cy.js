@@ -25,6 +25,7 @@ describe('Administración de usuarios, vendedores y agencias', () => {
 
     loginThroughUI('vferreyra', 'vferreyra')
     cy.visit('/admin/agencies')
+    cy.contains('button', /^Nueva agencia$/).click()
     fieldByLabel('Nombre de agencia').type(agencyName)
     fieldByLabel('Usuario').type(`owner_${suffix}`)
     fieldByLabel('Contraseña').type(password, { log: false })

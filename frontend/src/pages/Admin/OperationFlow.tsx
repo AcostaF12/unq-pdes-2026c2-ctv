@@ -185,23 +185,25 @@ function LatencyGauge({ millis }: { millis: number | null }) {
 
 function WeightChart() {
   const width = 1000
-  let cursor = 0
+  const segments = PURCHASE_STEPS.reduce<Array<{ step: (typeof PURCHASE_STEPS)[number]; index: number; seg: number; x: number }>>(
+    (placed, step, index) => {
+      const seg = (step.weight / 100) * width
+      const x = placed.reduce((sum, item) => sum + item.seg, 0)
+      return [...placed, { step, index, seg, x }]
+    },
+    [],
+  )
   return (
     <svg className="ops-weight" viewBox={`0 0 ${width} 56`} role="img" aria-label="Peso habitual del camino de compra">
       <line className="ops-weight__axis" x1="0" y1="20" x2={width} y2="20" />
-      {PURCHASE_STEPS.map((step, index) => {
-        const seg = (step.weight / 100) * width
-        const x = cursor
-        cursor += seg
-        return (
-          <g key={step.title} className={`ops-weight__seg ops-weight__seg--${index + 1}`}>
-            <rect x={x + 6} y="14" width={Math.max(seg - 12, 0)} height="6" rx="3" />
-            <text x={x + seg / 2} y="46" textAnchor="middle">
-              {step.lane}
-            </text>
-          </g>
-        )
-      })}
+      {segments.map(({ step, index, seg, x }) => (
+        <g key={step.title} className={`ops-weight__seg ops-weight__seg--${index + 1}`}>
+          <rect x={x + 6} y="14" width={Math.max(seg - 12, 0)} height="6" rx="3" />
+          <text x={x + seg / 2} y="46" textAnchor="middle">
+            {step.lane}
+          </text>
+        </g>
+      ))}
     </svg>
   )
 }
