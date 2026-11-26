@@ -2,6 +2,7 @@ package unq.pdes.flightsservice.tests.unit.service
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockModeType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -35,9 +36,13 @@ class FlightServiceCancelSaleTest {
 
     @Test
     fun `02 - cancelSale rejects a sale when the flight no longer exists`() {
-        val sale = sale(flight(id = 9), saleId = 4)
+        val booked = flight(id = 9)
+        val sale = sale(booked, saleId = 4)
         Mockito.`when`(sales.findForUpdate(4)).thenReturn(sale)
-        Mockito.`when`(flights.findForUpdate(9)).thenReturn(null)
+        Mockito
+            .doThrow(EntityNotFoundException("gone"))
+            .`when`(entityManager)
+            .refresh(booked, LockModeType.PESSIMISTIC_WRITE)
 
         val error =
             assertThrows(EntityNotFoundException::class.java) {
@@ -45,6 +50,7 @@ class FlightServiceCancelSaleTest {
             }
 
         assertEquals("There is no Flight with id: 9.", error.message)
+        Mockito.verify(flights, Mockito.never()).findForUpdate(Mockito.anyLong())
     }
 
     private fun flight(id: Long?): Flight =

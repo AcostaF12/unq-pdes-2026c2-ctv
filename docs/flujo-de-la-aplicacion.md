@@ -107,11 +107,9 @@ El detalle de pantallas de admin está en [admin.md](admin.md).
 Ocurre en `PurchaseService.purchase`. La pantalla solo hace `POST /purchases`.
 
 1. Confirma que quien llama es comprador.
-2. Bloquea la fila del paquete en `backend_dev`, para no cruzarse con un archivo en el mismo momento.
-3. Rechaza la compra si la agencia está inactiva o el paquete está archivado.
-4. Pide a vuelos que venda el asiento de ida. Vuelos bloquea la fila del vuelo en `flights_dev`. Si otra persona se quedó con el último lugar, esta espera, relee y ve cero.
-5. Pide el asiento de vuelta. Si esa venta falla, cancela la ida y devuelve el error. La compra local no se guarda.
-6. Guarda la compra en `backend_dev` con el precio, la agencia y una copia del paquete en ese momento. Si ese guardado falla, cancela la ida y la vuelta.
+2. Lee el paquete sin lock. Rechaza la compra si la agencia está inactiva o el paquete está archivado.
+3. Vende la ida y la vuelta a la vez. Cada venta bloquea su fila en `flights_dev`. Si otra persona se quedó con el último lugar, esta espera, relee y ve cero. Si una de las dos falla, cancela la otra y la compra local no se guarda.
+4. Recién ahí toma un lock corto de la fila del paquete en `backend_dev`, revalida agencia, archivo y vuelos, y guarda el ticket con el precio de ese momento. Si ese guardado falla, cancela las dos ventas. El lock no se sostiene mientras el backend habla con vuelos.
 
 No hay una transacción única entre las dos bases. Si la cancelación también falla, el error se traga y puede quedar un asiento vendido sin compra. No hay una cola de reintentos. El último asiento sí queda cerrado con el bloqueo de la fila del vuelo.
 

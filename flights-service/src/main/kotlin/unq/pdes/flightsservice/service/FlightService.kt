@@ -98,13 +98,15 @@ class FlightService(
         val sale =
             flightSaleRepository.findForUpdate(saleId)
                 ?: throw EntityNotFoundException("There is no FlightSale with id: $saleId.")
-        val flightId = sale.flight.id ?: throw EntityNotFoundException("There is no Flight for sale: $saleId.")
-        val flight =
-            flightRepository.findForUpdate(flightId)
-                ?: throw EntityNotFoundException("There is no Flight with id: $flightId.")
-        // The sale already loaded the flight into this session. Refresh under the lock so two
-        // cancellations of the same flight cannot overwrite the counter and drop a seat.
-        entityManager.refresh(flight, LockModeType.PESSIMISTIC_WRITE)
+        val flight = sale.flight
+        val flightId = flight.id ?: throw EntityNotFoundException("There is no Flight for sale: $saleId.")
+        // The sale already loaded the flight. Refresh is the locked re-read: a second
+        // SELECT FOR UPDATE would only hold the row while repeating the same query.
+        try {
+            entityManager.refresh(flight, LockModeType.PESSIMISTIC_WRITE)
+        } catch (_: EntityNotFoundException) {
+            throw EntityNotFoundException("There is no Flight with id: $flightId.")
+        }
         flight.availability = flight.availability + 1
         flightRepository.save(flight)
         flightSaleRepository.delete(sale)

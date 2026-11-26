@@ -9,25 +9,16 @@ const PURCHASE_STEPS = [
     title: 'Leer el paquete',
     lane: 'Leer',
     detail: 'Sin lock. Publicado y agencia activa.',
-    weight: 14,
   },
   {
-    title: 'Vender la ida',
-    lane: 'Ida',
-    detail: 'Lock de la fila del vuelo. Ahí se frena la sobreventa.',
-    weight: 42,
-  },
-  {
-    title: 'Vender la vuelta',
-    lane: 'Vuelta',
-    detail: 'Si falla, se cancela la ida y no se guarda la compra.',
-    weight: 28,
+    title: 'Vender ida y vuelta',
+    lane: 'Asientos',
+    detail: 'A la vez. Cada una lockea su fila. Si una falla, se cancela la otra.',
   },
   {
     title: 'Guardar',
     lane: 'Ticket',
     detail: 'Lock corto. Si cambió, se cancelan las dos ventas.',
-    weight: 16,
   },
 ] as const
 
@@ -134,14 +125,14 @@ function purchaseReading(
     return {
       tone: 'wait',
       title: 'La compra está lenta',
-      body: 'Ida y vuelta se venden en serie. Por encima de 500 ms suele ser la cola del lock del vuelo.',
+      body: 'Ida y vuelta se venden a la vez. Por encima de 500 ms suele ser la cola del lock del vuelo.',
     }
   }
   if (purchase.p95Millis >= 200) {
     return {
       tone: 'wait',
       title: 'El tiempo está en las dos ventas',
-      body: 'El catálogo no es el cuello. Este p95 es la ida, más la vuelta, más el insert.',
+      body: 'El catálogo no es el cuello. Este p95 es la venta de los dos vuelos, en paralelo, más el insert.',
     }
   }
   return {
@@ -183,26 +174,19 @@ function LatencyGauge({ millis }: { millis: number | null }) {
   )
 }
 
-function WeightChart() {
+function WeightChart({ millis }: { millis: number | null }) {
   const width = 1000
-  const segments = PURCHASE_STEPS.reduce<Array<{ step: (typeof PURCHASE_STEPS)[number]; index: number; seg: number; x: number }>>(
-    (placed, step, index) => {
-      const seg = (step.weight / 100) * width
-      const x = placed.reduce((sum, item) => sum + item.seg, 0)
-      return [...placed, { step, index, seg, x }]
-    },
-    [],
-  )
+  const ratio = millis === null ? 0 : Math.min(millis / P95_SCALE_MS, 1)
+  const filled = ratio * width
+  const label = millis === null ? 'Sin p95 medido, escala de 1 segundo' : `p95 ${Math.round(millis)} ms sobre ${P95_SCALE_MS} ms`
   return (
-    <svg className="ops-weight" viewBox={`0 0 ${width} 56`} role="img" aria-label="Peso habitual del camino de compra">
-      <line className="ops-weight__axis" x1="0" y1="20" x2={width} y2="20" />
-      {segments.map(({ step, index, seg, x }) => (
-        <g key={step.title} className={`ops-weight__seg ops-weight__seg--${index + 1}`}>
-          <rect x={x + 6} y="14" width={Math.max(seg - 12, 0)} height="6" rx="3" />
-          <text x={x + seg / 2} y="46" textAnchor="middle">
-            {step.lane}
-          </text>
-        </g>
+    <svg className="ops-weight" viewBox={`0 0 ${width} 72`} role="img" aria-label={label}>
+      <rect className="ops-weight__track" x="0" y="16" width={width} height="12" rx="6" />
+      <rect className="ops-weight__fill" x="0" y="16" width={filled} height="12" rx="6" />
+      {PURCHASE_STEPS.map((step, index) => (
+        <text key={step.lane} x={((index + 0.5) / PURCHASE_STEPS.length) * width} y="58" textAnchor="middle">
+          {step.lane}
+        </text>
       ))}
     </svg>
   )
@@ -211,20 +195,22 @@ function WeightChart() {
 function Sparkline({ values }: { values: number[] }) {
   const width = 320
   const height = 72
-  const max = Math.max(200, ...values, 0)
   const points = values.map((value, index) => {
     const x = values.length === 1 ? width / 2 : (index / (values.length - 1)) * width
-    const y = height - 10 - (value / max) * (height - 20)
+    const y = height - 10 - (Math.min(value, P95_SCALE_MS) / P95_SCALE_MS) * (height - 20)
     return { x, y }
   })
-  const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
-  const area = points.length > 1 ? `${line} L ${width} ${height} L 0 ${height} Z` : ''
+  const line =
+    points.length === 1
+      ? `M 0 ${points[0].y} L ${width} ${points[0].y}`
+      : points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
+  const area = points.length === 0 ? '' : `${line} L ${width} ${height} L 0 ${height} Z`
   return (
     <figure className="ops-spark">
       <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
         <line className="ops-spark__base" x1="0" y1={height - 10} x2={width} y2={height - 10} />
         {area === '' ? null : <path className="ops-spark__area" d={area} />}
-        {points.length > 1 ? <path className="ops-spark__line" d={line} /> : null}
+        {points.length === 0 ? null : <path className="ops-spark__line" d={line} />}
         {points.map((point) => (
           <circle key={`${point.x}-${point.y}`} className="ops-spark__dot" cx={point.x} cy={point.y} r="3.5" />
         ))}
@@ -308,12 +294,12 @@ export function OperationFlow({
         <p>La ida y la vuelta se venden antes del lock del paquete. El stress no gasta el catálogo de demo.</p>
       </header>
 
-      <WeightChart />
+      <WeightChart millis={purchase?.p95Millis ?? null} />
       <p className="admin-ops__lane-note">
-        El ancho es el peso habitual de cada paso. El número de este proceso es el p95.
+        La barra es el p95 sobre 1 segundo. Los nombres son los pasos, no una duración aparte.
       </p>
 
-      <FlowList steps={PURCHASE_STEPS} label="Pasos de la compra" />
+      <FlowList steps={PURCHASE_STEPS} label="Pasos de la compra" columns="three" />
 
       {reading ? (
         <div className="admin-ops__readout">

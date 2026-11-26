@@ -16,6 +16,7 @@ import unq.pdes.backend.external.flights.ExternalFlightSaleDto
 import unq.pdes.backend.external.flights.FlightsClient
 import unq.pdes.backend.model.Purchase
 import unq.pdes.backend.model.PurchaseStatus
+import unq.pdes.backend.model.TravelPackage
 import unq.pdes.backend.model.user.AgencyUser
 import unq.pdes.backend.model.user.Role
 import unq.pdes.backend.persistence.jpa.PurchaseRepository
@@ -198,14 +199,13 @@ class PurchaseService(
 
         return try {
             transactions.execute<Purchase> {
-                val travelPackage = travelPackageService.findForUpdate(packageId)
-                entityManager.refresh(travelPackage, LockModeType.PESSIMISTIC_WRITE)
+                val travelPackage = lockedPackage(preview)
                 require(travelPackage.agency.active) { "This agency is inactive. The package is not available for purchase." }
                 require(travelPackage.active) { "Este paquete está archivado y no admite nuevas compras." }
                 require(travelPackage.outboundFlightId == outboundFlightId && travelPackage.returnFlightId == returnFlightId) {
                     "El paquete cambió de vuelos durante la compra."
                 }
-                val currentBuyer = userService.findByUsername(username)
+                val currentBuyer = if (entityManager.contains(buyer)) buyer else userService.findByUsername(username)
                 purchaseRepository.save(
                     Purchase
                         .Builder()
@@ -219,8 +219,7 @@ class PurchaseService(
                 )
             }
         } catch (ex: Exception) {
-            outboundSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
-            returnSale.id?.let { runCatching { flightsClient.cancelSale(it) } }
+            compensate(outboundSale.id, returnSale.id)
             throw ex
         }
     }
@@ -250,11 +249,7 @@ class PurchaseService(
         }
         releaseSeats(listOfNotNull(purchase.outboundSaleId, purchase.returnSaleId))
         return transactions.execute<Purchase> {
-            val locked =
-                purchaseRepository.findForUpdate(id)
-                    ?: throw EntityNotFoundException("There is no Purchase with id: $id.")
-            // OSIV already holds this row. Refresh under the lock so only one cancel commits.
-            entityManager.refresh(locked, LockModeType.PESSIMISTIC_WRITE)
+            val locked = lockedPurchase(purchase, id)
             require(locked.isActive) { "La compra ya fue cancelada." }
             locked.cancel(now)
             purchaseRepository.save(locked)
@@ -271,11 +266,61 @@ class PurchaseService(
         val outbound = unwrap(runCatching { outboundFuture.join() })
         val returning = unwrap(runCatching { returnFuture.join() })
         if (outbound.isFailure || returning.isFailure) {
-            outbound.getOrNull()?.id?.let { runCatching { flightsClient.cancelSale(it) } }
-            returning.getOrNull()?.id?.let { runCatching { flightsClient.cancelSale(it) } }
+            compensate(outbound.getOrNull()?.id, returning.getOrNull()?.id)
             throw outbound.exceptionOrNull() ?: returning.exceptionOrNull()!!
         }
         return outbound.getOrThrow() to returning.getOrThrow()
+    }
+
+    /**
+     * One locked read. If OSIV already holds the row, refresh re-reads it under the lock.
+     * A second SELECT FOR UPDATE would only keep the row locked for longer.
+     */
+    private fun lockedPackage(preview: TravelPackage): TravelPackage {
+        if (entityManager.contains(preview)) {
+            refreshOrMissing(preview, "There is no TravelPackage with id: ${preview.id}.")
+            return preview
+        }
+        return travelPackageService.findForUpdate(preview.id!!)
+    }
+
+    private fun lockedPurchase(
+        purchase: Purchase,
+        id: Long,
+    ): Purchase {
+        if (entityManager.contains(purchase)) {
+            refreshOrMissing(purchase, "There is no Purchase with id: $id.")
+            return purchase
+        }
+        return purchaseRepository.findForUpdate(id)
+            ?: throw EntityNotFoundException("There is no Purchase with id: $id.")
+    }
+
+    private fun refreshOrMissing(
+        entity: Any,
+        missingMessage: String,
+    ) {
+        try {
+            entityManager.refresh(entity, LockModeType.PESSIMISTIC_WRITE)
+        } catch (_: EntityNotFoundException) {
+            throw EntityNotFoundException(missingMessage)
+        }
+    }
+
+    /** Both compensations run together. A failure here must not replace the original error. */
+    private fun compensate(
+        firstSaleId: Long?,
+        secondSaleId: Long?,
+    ) {
+        val ids = listOfNotNull(firstSaleId, secondSaleId)
+        if (ids.size < 2) {
+            ids.forEach { id -> runCatching { flightsClient.cancelSale(id) } }
+            return
+        }
+        val first = CompletableFuture.runAsync({ runCatching { flightsClient.cancelSale(ids[0]) } }, flightCalls)
+        val second = CompletableFuture.runAsync({ runCatching { flightsClient.cancelSale(ids[1]) } }, flightCalls)
+        first.join()
+        second.join()
     }
 
     private fun <T> inFlightContext(block: () -> T): CompletableFuture<T> = CompletableFuture.supplyAsync(block, flightCalls)

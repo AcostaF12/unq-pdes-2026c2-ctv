@@ -1005,7 +1005,6 @@
   stroke-linecap: round;
   stroke-dasharray: var(--len);
   stroke-dashoffset: var(--rest);
-  animation: ops-arc 900ms var(--ease-out);
 }
 
 .ops-arc--ok .ops-arc__value {
@@ -1043,6 +1042,14 @@
 
 .ops-weight__axis {
   stroke-width: 1;
+}
+
+.ops-weight__track {
+  fill: var(--color-line);
+}
+
+.ops-weight__fill {
+  fill: var(--color-brand);
 }
 
 .ops-weight__seg rect {
@@ -1099,8 +1106,3 @@
   transform-origin: 22px 22px;
 }
 
-@keyframes ops-arc {
-  from {
-    stroke-dashoffset: var(--len);
-  }
-}
