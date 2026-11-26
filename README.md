@@ -107,7 +107,7 @@ Release [`ctv-version-2`](https://github.com/AcostaF12/unq-pdes-2026c2-ctv/relea
 ├── docker-compose.yml        # Entorno local completo
 ├── docker-compose.prod.yml   # Overlay para la VM: imágenes de GHCR
 ├── docker-compose.e2e.yml    # Entorno aislado para Cypress
-└── package.json              # Atajos npm para levantar y apagar el entorno
+└── package.json              # Atajos npm para levantar el entorno y correr las pruebas
 ```
 
 ---
@@ -137,15 +137,24 @@ Con Docker Desktop abierto, desde la raíz del repositorio, levantar la aplicaci
 docker compose up --build -d --wait
 ```
 
-Para sumar el monitoreo (Prometheus, Grafana, Zipkin y ELK), agregar el perfil `monitoring`:
+El monitoreo está partido. `monitoring` prende los tres perfiles y es el de la demo completa y de la VM:
 
 ```bash
 docker compose --profile monitoring up --build -d --wait
 ```
 
-La primera vez tarda porque descarga imágenes y compila. `--wait` espera a que pasen los healthchecks. Sin el monitoreo pueden aparecer avisos de conexión a Logstash y Zipkin en los logs; la aplicación funciona igual.
+| Perfil | Qué suma | Cuándo |
+|--------|----------|--------|
+| `metrics` | Prometheus y Grafana | Medir k6. Es el liviano |
+| `logs` | Elasticsearch, Logstash y Kibana | Mostrar logs |
+| `traces` | Zipkin | Mostrar una traza |
+| `monitoring` | Los tres | Demo completa |
 
-Con Node instalado, los mismos comandos tienen atajos desde la raíz: `npm start` y `npm run start:monitoring`.
+Para medir sin Elasticsearch ni Zipkin: `docker compose --profile metrics up --build -d --wait`. Para ver métricas en Grafana y logs en Kibana, sin Zipkin: `--profile metrics --profile logs`.
+
+La primera vez tarda porque descarga imágenes y compila. `--wait` espera a que pasen los healthchecks. Sin el perfil `logs` o `traces` pueden aparecer avisos de conexión a Logstash y Zipkin en los logs; la aplicación funciona igual.
+
+Con Node, desde la raíz: `npm start`, `npm run start:metrics`, `npm run start:logs`, `npm run start:traces`, `npm run start:observe` (métricas y logs) y `npm run start:monitoring`.
 
 Para cambiar la configuración (por ejemplo, los puertos de las bases), copiar el archivo de ejemplo y editarlo antes de levantar. Docker Compose lo lee solo:
 
@@ -175,16 +184,16 @@ Los datos de ejemplo se cargan una sola vez y se conservan entre reinicios. Para
 | Frontend | http://localhost:8090 |
 | Backend | http://localhost:8080 |
 | Swagger (Backend) | http://localhost:8080/swagger-ui/index.html |
-| Prometheus (`monitoring`, solo local) | http://localhost:9090 |
-| Grafana (`monitoring`) | http://localhost:3001 (usuario `admin` / contraseña `admin`) |
-| Zipkin (`monitoring`) | http://localhost:9411 |
-| Kibana (logs, `monitoring`) | http://localhost:5601 |
+| Prometheus (`metrics`, solo local) | http://localhost:9090 |
+| Grafana (`metrics`) | http://localhost:3001 (usuario `admin` / contraseña `admin`) |
+| Zipkin (`traces`) | http://localhost:9411 |
+| Kibana (`logs`) | http://localhost:5601 |
 
-Con el perfil `monitoring`:
+Con el perfil `monitoring` (los tres):
 
-- **Grafana** carga el datasource de Prometheus y el dashboard `CTV - Overview` (servicios activos, uptime, memoria JVM y tasa de requests).
+- **Grafana** abre en `CTV - Overview` (servicios activos, uptime, heap usado contra el máximo y requests por segundo, sin `/actuator`). `CTV - Load` muestra el p95 por endpoint (sin `/actuator`), los 5xx, el pool de Hikari, el circuit breaker y el p95 de la búsqueda. Los dos dashboards se enlazan. Grafana no consulta logs: eso queda en Kibana, así el perfil `metrics` no deja un datasource caído.
 - **Zipkin** muestra cada llamada del backend a flights-service como una sola traza con los dos servicios; la pestaña Dependencies dibuja el arco backend → flights-service.
-- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile monitoring run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin. El backend y flights-service loguean cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, así que esa búsqueda trae líneas de los dos servicios.
+- **Kibana** arranca con el data view `ctv-logs-*` (campo de tiempo `@timestamp`), creado por el job `kibana-setup`. Para recrearlo: `docker compose --profile logs run --rm kibana-setup`. Los logs incluyen `traceId` y `spanId`, así que se puede filtrar por el `traceId` de una traza de Zipkin. El backend y flights-service loguean cada request (método, ruta, status y duración, sin `/actuator/**`) con su `traceId`, así que esa búsqueda trae líneas de los dos servicios.
 
 ### Usuarios de demo
 
@@ -286,22 +295,22 @@ Cada módulo propio tiene un Dockerfile multi-stage: se compila en una imagen (J
 - Los Dockerfiles de Kotlin resuelven las dependencias de Gradle en una capa propia antes de copiar `src`: cambiar código no vuelve a descargarlas.
 - Todas las imágenes base y de terceros usan versiones fijas: Temurin `25.0.5_8-jdk`/`25.0.5_8-jre`, Node `24.22-alpine` y `nginxinc/nginx-unprivileged:1.31-alpine` en los Dockerfiles, y las de la tabla en Compose.
 
-`docker-compose.yml` define **12 servicios** y **5 redes**. Por defecto levanta los 5 de la aplicación; los 7 de monitoreo están en el perfil `monitoring` (6 quedan corriendo y `kibana-setup` es un job que termina al crear el data view):
+`docker-compose.yml` define **12 servicios** y **5 redes**. Por defecto levanta los 5 de la aplicación. Los otros 7 están en tres perfiles (`metrics`, `logs`, `traces`); `monitoring` es la unión y los prende todos. `kibana-setup` es un job que termina al crear el data view:
 
-| Contenedor | Imagen | Puerto local | En la VM | Rol |
-|------------|--------|--------------|----------|-----|
-| `frontend` | build de `frontend/` (`nginx-unprivileged:1.31-alpine`) | 8090 → 8080 | 8090 | Sirve la SPA |
-| `backend` | build de `backend/` (Temurin 25.0.5) | 8080 | 8080 | API de CTV |
-| `flights-service` | build de `flights-service/` (Temurin 25.0.5) | interno | interno | API de vuelos, solo la usa el backend |
-| `backend-postgres` | `postgres:16.16` | 5433 | no se publica | Base del backend |
-| `flights-postgres` | `postgres:16.16` | 5434 | no se publica | Base de vuelos |
-| `prometheus` | `prom/prometheus:v3.16.0` | 9090 | no se publica | Métricas |
-| `grafana` | `grafana/grafana:13.3.1` | 3001 | 3001 | Dashboards |
-| `zipkin` | `openzipkin/zipkin:3.6.1` | 9411 | 9411 | Trazas |
-| `elasticsearch` | `docker.elastic.co/elasticsearch/elasticsearch:8.15.3` | 9200 | no se publica | Índice de logs |
-| `logstash` | `docker.elastic.co/logstash/logstash:8.15.3` | 5000 | no se publica | Recibe los logs |
-| `kibana` | `docker.elastic.co/kibana/kibana:8.15.3` | 5601 | 5601 | Consulta de logs |
-| `kibana-setup` | `curlimages/curl:8.17.0` | — | — | Job de una sola vez: crea el data view `ctv-logs-*` y termina |
+| Contenedor | Perfil | Imagen | Puerto local | En la VM | Rol |
+|------------|--------|--------|--------------|----------|-----|
+| `frontend` | siempre | build de `frontend/` (`nginx-unprivileged:1.31-alpine`) | 8090 → 8080 | 8090 | Sirve la SPA |
+| `backend` | siempre | build de `backend/` (Temurin 25.0.5) | 8080 | 8080 | API de CTV |
+| `flights-service` | siempre | build de `flights-service/` (Temurin 25.0.5) | interno | interno | API de vuelos, solo la usa el backend |
+| `backend-postgres` | siempre | `postgres:16.16` | 5433 | no se publica | Base del backend |
+| `flights-postgres` | siempre | `postgres:16.16` | 5434 | no se publica | Base de vuelos |
+| `prometheus` | `metrics` | `prom/prometheus:v3.16.0` | 9090 | no se publica | Métricas |
+| `grafana` | `metrics` | `grafana/grafana:13.3.1` | 3001 | 3001 | Dashboards |
+| `elasticsearch` | `logs` | `docker.elastic.co/elasticsearch/elasticsearch:8.15.3` | 9200 | no se publica | Índice de logs |
+| `logstash` | `logs` | `docker.elastic.co/logstash/logstash:8.15.3` | 5000 | no se publica | Recibe los logs |
+| `kibana` | `logs` | `docker.elastic.co/kibana/kibana:8.15.3` | 5601 | 5601 | Consulta de logs |
+| `kibana-setup` | `logs` | `curlimages/curl:8.17.0` | — | — | Job de una sola vez: crea el data view `ctv-logs-*` y termina |
+| `zipkin` | `traces` | `openzipkin/zipkin:3.6.1` | 9411 | 9411 | Trazas |
 
 En la VM, `docker-compose.prod.yml` quita los puertos de las bases, Elasticsearch, Logstash y Prometheus (`ports: !reset []`): solo se alcanzan por las redes internas (Grafana llega a Prometheus por la red interna).
 
@@ -313,7 +322,7 @@ Las redes aíslan quién habla con quién:
 | `backend-net` | backend, su Postgres, Prometheus, Grafana, Logstash | El servicio de vuelos no accede a la base del negocio |
 | `flights-net` | flights-service, su Postgres, backend, Prometheus, Logstash | El stock de vuelos |
 | `tracing-net` | backend, flights-service, Zipkin | Las trazas |
-| `logging-net` | Logstash, Elasticsearch, Kibana, kibana-setup | El índice de logs |
+| `logging-net` | Logstash, Elasticsearch, Kibana, kibana-setup | El índice de logs. Kibana es la pantalla de ELK |
 
 El arranque respeta las dependencias con healthchecks: las bases, después vuelos, después el backend. Los datos viven en volúmenes nombrados.
 
@@ -342,28 +351,61 @@ Frontend en http://localhost:8090 y backend en http://localhost:8080, igual que 
 
 ## 🧪 Pruebas
 
+Desde la raíz, con Java 25, Node.js 24 y Docker Desktop abierto:
+
+```bash
+npm test
+```
+
+Corre todas las suites de corrección y deja un resumen al final. Si alguna falla, el comando sigue con el resto y termina con error, así un solo recorrido muestra todo lo que se rompió.
+
+| Comando | Qué corre |
+|---------|-----------|
+| `npm test` | Todo lo de esta sección, en este orden |
+| `npm run test:unit` | Backend, flights-service y Vitest, en paralelo |
+| `npm run test:acceptance` | Cucumber, en un Compose propio |
+| `npm run test:e2e` | Cypress contra `docker-compose.e2e.yml` |
+| `npm run test:stress` | Concurrencia de k6 contra la app ya levantada |
+
+`npm test` no incluye k6. `npm run test:stress` corre la parte de concurrencia (último asiento, throughput, cancelar y recomprar, doble cancelación) contra el backend de `npm start`. El pico de catálogo y el login bajo carga siguen en el workflow manual Load Tests.
+
+### Cómo contarlo
+
+Cada suite responde una pregunta. No se pisan.
+
+| Pregunta | Respuesta |
+|----------|-----------|
+| ¿El código respeta las capas? | ArchUnit, dentro de `npm run test:unit`. Cinco reglas por servicio: el controller no toca el repositorio, el servicio se llama `Service`. |
+| ¿La regla se cumple con Spring levantado? | Integración. H2 para el flujo. Postgres, con Testcontainers, donde H2 no alcanza: Flyway, las consultas y el lock del último asiento. |
+| ¿Los dos servicios cierran el recorrido por HTTP? | Cucumber, 14 escenarios, en un Compose aparte. `npm run test:acceptance`. |
+| ¿La pantalla hace ese recorrido? | Cypress, 14 tests, contra la app compilada. `npm run test:e2e`. |
+| ¿Se puede vender un asiento de más? | k6, la suite corta. En Kubernetes corre contra las 2 réplicas del backend. `npm run test:stress` y el workflow Kubernetes CI. |
+| ¿Cómo se ve mientras pasa? | Grafana `CTV - Load`: p95, 5xx, pool y circuit breaker. Las líneas de esa ventana, en Kibana. |
+
+La aceptación usa el proyecto Compose `ctv-acceptance-local` y no publica los puertos 8080 ni 8081, así que puede convivir con `npm start`. Cypress usa 18080, 18081 y 18090, y apaga ese entorno al terminar. La primera vez tarda porque construye las imágenes.
+
 | Suite | Herramienta | Dónde | Cómo correrla |
 |-------|-------------|-------|---------------|
-| Unitarios e integración | JUnit 5, H2, Testcontainers | `backend/`, `flights-service/` | `./gradlew test` |
+| Unitarios e integración | JUnit 5, H2, Testcontainers | `backend/`, `flights-service/` | `npm run test:unit` (o `./gradlew test` en cada módulo) |
 | Arquitectura | ArchUnit | `backend/`, `flights-service/` | Incluidos en `./gradlew test` |
 | Cobertura | JaCoCo | `backend/`, `flights-service/` | `./gradlew jacocoTestReport` (`build/reports/jacoco/test/html`) |
 | Estilo | ktlint | `backend/`, `flights-service/` | `./gradlew build` |
-| Frontend | Vitest, ESLint | `frontend/` | `npm test`, `npm run lint` y `npm run build` |
-| Aceptación | Cucumber | `acceptance-tests/` | Ver [acceptance-tests/README.md](acceptance-tests/README.md) |
-| Interfaz (E2E) | Cypress | `frontend/cypress/` | Ver [frontend/README.md](frontend/README.md#pruebas-e2e) |
-| Carga y stress | k6 | `load-tests/` | Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
+| Frontend | Vitest, ESLint | `frontend/` | Vitest entra en `npm run test:unit`. Lint y build siguen en `frontend/`: `npm run lint` y `npm run build` |
+| Aceptación | Cucumber | `acceptance-tests/` | `npm run test:acceptance` |
+| Interfaz (E2E) | Cypress | `frontend/cypress/` | `npm run test:e2e` |
+| Carga y stress | k6 | `load-tests/` | `npm run test:stress` y Actions → Load Tests (ver [docs/load-tests.md](docs/load-tests.md)) |
 
 Cantidad de pruebas por tipo:
 
 | Tipo | Backend | Flights Service | Frontend | Total |
 |------|---------|-----------------|----------|-------|
 | Unitarios (incluye 5 reglas ArchUnit por servicio) | 163 | 32 | 236 (Vitest, 37 archivos) | 431 |
-| Integración (Spring, H2 y Testcontainers) | 298 | 47 | — | 345 |
+| Integración (Spring, H2 y Testcontainers) | 299 | 49 | — | 348 |
 | Aceptación (Cucumber) | 14 escenarios | | | 14 |
 | Interfaz (Cypress) | | | 14 tests en 7 archivos | 14 |
-| Carga y stress (k6) | 4 escenarios | | | 4 |
+| Carga y stress (k6) | 7 escenarios | | | 7 |
 
-Los números de backend y flights-service cuentan métodos de test; con los casos de los tests parametrizados, JUnit ejecuta 464 y 86.
+Los números de backend y flights-service cuentan métodos de test; con los casos de los tests parametrizados, JUnit ejecuta 465 y 88.
 
 Cucumber y Cypress corren contra los servicios y bases reales, en entornos Docker separados del de desarrollo. Los tests de PostgreSQL con Testcontainers necesitan Docker; sin Docker se omiten.
 
@@ -379,7 +421,7 @@ En la CI, los jobs de aceptación y e2e construyen las imágenes con `scripts/ci
 | Frontend CI | PR y push a `dev` o `main`, si cambia el frontend o su workflow | Lint, Vitest y build. En un push a `main`, publica la imagen |
 | Acceptance and E2E CI | PR y push a `dev` o `main` | Cucumber y Cypress contra la aplicación en Docker |
 | Workflow Validation CI | PR y push a `dev` o `main` | actionlint y `scripts/check-ci.rb` |
-| Kubernetes CI | PR y push a `dev` o `main`, si cambia `k8s/`, `scripts/ci-build-images.sh` o su workflow; también manual | Cluster kind con las imágenes del commit: aplica `k8s/`, smoke test (login, paquetes, frontend) y borra un pod del backend para comprobar que se repone |
+| Kubernetes CI | PR y push a `dev` o `main`, si cambia `k8s/`, las imágenes, `load-tests/`, los scripts del cluster o su workflow; también manual | Cluster kind con las imágenes del commit: aplica `k8s/`, smoke test, la suite corta de concurrencia contra las 2 réplicas y borra un pod del backend para comprobar que el otro sigue atendiendo |
 | Deploy Demo (Azure VM) | Manual | Repite todos los controles, publica las imágenes del commit y despliega en la VM |
 | Load Tests | Manual | Corre los escenarios de k6 contra la aplicación en el runner o en la VM |
 
@@ -397,7 +439,9 @@ En cada push a `main`, después de los controles, las imágenes de `backend`, `f
 
 ## ☁️ Despliegue en la nube (Azure)
 
-La app corre en una VM de Azure que permanece **apagada** la mayor parte del tiempo y solo se prende para las demos. La VM consume las imágenes ya construidas en GHCR (no compila nada).
+La app corre en una VM de Azure de 2 vCPU, serie B, que permanece **apagada** la mayor parte del tiempo y solo se prende para las demos. La serie B rinde mientras le quedan créditos de CPU; un stress largo los gasta y después la VM se siente lenta aunque el código no haya cambiado. La VM consume las imágenes ya construidas en GHCR (no compila nada).
+
+El overlay `docker-compose.prod.yml` le pone techo de memoria a cada contenedor y deja el heap de las dos JVM en 256 MB, para que Elasticsearch y Kibana no empujen al sistema a usar swap. Elasticsearch, Kibana y Logstash además tienen un tope de CPU para que la app siga respondiendo mientras indexan. Zipkin recibe una de cada veinte trazas. Prometheus, Grafana y la pantalla de operación se actualizan cada 5 segundos, también en la VM. El scrape no puede ser más corto: el timeout tiene que entrar en ese intervalo y la serie B se queda sin créditos de CPU si Prometheus pide las métricas todo el tiempo. Para no llenar ese intervalo, Prometheus se queda solo con las series de los tableros y el backend no recalcula un percentil extra en cada request.
 
 **Prender y desplegar:**
 Actions → `Deploy Demo (Azure VM)` → Run workflow → elegir la rama → `action: deploy`
