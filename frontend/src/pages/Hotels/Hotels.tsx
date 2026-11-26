@@ -95,7 +95,7 @@ export function Hotels() {
         subtitle="Alojamientos seleccionados en cada destino."
       >
         {isAdmin ? (
-          <Link className="hero__cta" to="/hotels/new">
+          <Link className="hero__cta" to="/admin/hotels/new">
             Nuevo hotel
           </Link>
         ) : null}

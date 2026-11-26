@@ -111,7 +111,7 @@ export function HotelDetail() {
         />
         {isAdmin ? (
           <div className="hotel-detail__actions">
-            <Link className="hotel-detail__edit" to={`/hotels/${hotel.id}/edit`}>
+            <Link className="hotel-detail__edit" to={`/admin/hotels/${hotel.id}/edit`}>
               Editar
             </Link>
             <Button
