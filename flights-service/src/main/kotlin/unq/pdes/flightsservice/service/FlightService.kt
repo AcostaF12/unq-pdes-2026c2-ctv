@@ -1,6 +1,8 @@
 package unq.pdes.flightsservice.service
 
+import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.LockModeType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,6 +17,7 @@ import java.time.LocalTime
 class FlightService(
     private val flightRepository: FlightRepository,
     private val flightSaleRepository: FlightSaleRepository,
+    private val entityManager: EntityManager,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -95,7 +98,13 @@ class FlightService(
         val sale =
             flightSaleRepository.findForUpdate(saleId)
                 ?: throw EntityNotFoundException("There is no FlightSale with id: $saleId.")
-        val flight = flightRepository.findForUpdate(sale.flight.id!!)!!
+        val flightId = sale.flight.id ?: throw EntityNotFoundException("There is no Flight for sale: $saleId.")
+        val flight =
+            flightRepository.findForUpdate(flightId)
+                ?: throw EntityNotFoundException("There is no Flight with id: $flightId.")
+        // The sale already loaded the flight into this session. Refresh under the lock so two
+        // cancellations of the same flight cannot overwrite the counter and drop a seat.
+        entityManager.refresh(flight, LockModeType.PESSIMISTIC_WRITE)
         flight.availability = flight.availability + 1
         flightRepository.save(flight)
         flightSaleRepository.delete(sale)

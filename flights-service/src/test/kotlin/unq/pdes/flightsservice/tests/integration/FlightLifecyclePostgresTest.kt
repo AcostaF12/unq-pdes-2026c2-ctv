@@ -165,4 +165,67 @@ class FlightLifecyclePostgresTest {
             executor.shutdownNow()
         }
     }
+
+    @Test
+    fun `simultaneous cancel and sell keep availability consistent`() {
+        val flight = custom(2)
+        val sale = service.sell(flight.id!!, "Holder")
+        val executor = Executors.newFixedThreadPool(2)
+        val ready = CountDownLatch(2)
+        val start = CountDownLatch(1)
+        try {
+            val cancel =
+                executor.submit(
+                    Callable {
+                        ready.countDown()
+                        check(start.await(10, TimeUnit.SECONDS))
+                        runCatching { service.cancelSale(sale.id!!) }.isSuccess
+                    },
+                )
+            val sell =
+                executor.submit(
+                    Callable {
+                        ready.countDown()
+                        check(start.await(10, TimeUnit.SECONDS))
+                        runCatching { service.sell(flight.id!!, "New buyer") }.isSuccess
+                    },
+                )
+            assertTrue(ready.await(10, TimeUnit.SECONDS))
+            start.countDown()
+            assertTrue(cancel.get(15, TimeUnit.SECONDS))
+            assertTrue(sell.get(15, TimeUnit.SECONDS))
+            assertEquals(1, service.findById(flight.id!!).availability)
+            assertEquals(1, sales.count())
+        } finally {
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `two simultaneous cancels restore the seat once`() {
+        val flight = custom(1)
+        val sale = service.sell(flight.id!!, "Holder")
+        val executor = Executors.newFixedThreadPool(2)
+        val ready = CountDownLatch(2)
+        val start = CountDownLatch(1)
+        try {
+            val futures =
+                (1..2).map {
+                    executor.submit(
+                        Callable {
+                            ready.countDown()
+                            check(start.await(10, TimeUnit.SECONDS))
+                            runCatching { service.cancelSale(sale.id!!) }.isSuccess
+                        },
+                    )
+                }
+            assertTrue(ready.await(10, TimeUnit.SECONDS))
+            start.countDown()
+            assertEquals(1, futures.count { it.get(15, TimeUnit.SECONDS) })
+            assertEquals(1, service.findById(flight.id!!).availability)
+            assertEquals(0, sales.count())
+        } finally {
+            executor.shutdownNow()
+        }
+    }
 }
